@@ -3,7 +3,7 @@
 // 1. Walk detail pages pdp=1..N (concurrency 3, ≥300ms delay per worker).
 // 2. Join regions from the directory page by normalised name.
 // 3. Upsert into pharmacies; rows with coords_manual=true keep their coords.
-import "dotenv/config";
+import "./load-env";
 import { supabaseAdmin } from "../src/lib/supabase";
 import { fetchHtml, HttpError, KTEB_BASE, mapLimit } from "../src/lib/scrape/http";
 import { parseDetailPage, parseDirectory, type DetailPage } from "../src/lib/scrape/parse";

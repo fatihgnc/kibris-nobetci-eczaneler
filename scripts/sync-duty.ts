@@ -1,5 +1,5 @@
 // Runs the duty sync from the command line: `npm run sync-duty`
-import "dotenv/config";
+import "./load-env";
 import { supabaseAdmin } from "../src/lib/supabase";
 import { runDutySync } from "../src/lib/scrape/sync-duty";
 
