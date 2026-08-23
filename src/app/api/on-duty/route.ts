@@ -27,7 +27,12 @@ export async function GET(req: NextRequest) {
   const dutyDate = dateParam && /^\d{4}-\d{2}-\d{2}$/.test(dateParam) ? dateParam : dutyDateFor();
 
   // Local development without a Supabase project: MOCK_DATA=1 serves a fixture.
-  if (process.env.MOCK_DATA === "1") {
+  //
+  // Hard-locked out of production. This endpoint drives which pharmacy a person
+  // is told to call in the middle of the night; serving invented names and phone
+  // numbers as if they were real is the worst failure this app can have, so the
+  // flag must never be able to switch it on outside development.
+  if (process.env.MOCK_DATA === "1" && process.env.NODE_ENV !== "production") {
     const { mockOnDuty } = await import("@/lib/mock");
     const mock = mockOnDuty(lat, lng);
     mock.pharmacies = mock.pharmacies.filter((p) => !region || p.region === region);
