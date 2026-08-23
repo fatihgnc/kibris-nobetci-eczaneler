@@ -208,7 +208,11 @@ button { font: inherit; color: inherit; border: 0; background: none; cursor: poi
 .btn.pri:hover { filter: brightness(1.08); }
 .btn.sec { background: var(--bg); color: var(--text); border: 1px solid var(--line); }
 .btn.sec:hover { border-color: var(--accent); }
-.btn.ghost { background: transparent; color: var(--text-2); border: 1px solid var(--line-soft); }
+/* A true ghost: no edge at all, so it never competes with the filled button
+   beside it. The affordance shows up on hover as a faint wash, mixed from
+   --text so it lifts on the dark theme and deepens on the light one. */
+.btn.ghost { background: transparent; color: var(--text-2); border: 0; }
+.btn.ghost:hover { background: color-mix(in oklab, var(--text) 9%, transparent); color: var(--text); }
 
 /* notices inside list */
 .notice { padding: 16px; border-radius: 15px; background: var(--surface-2); border: 1px solid var(--line-soft); }
