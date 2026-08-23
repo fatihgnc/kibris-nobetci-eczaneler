@@ -27,64 +27,70 @@ const COORDS_RE = /maps\.google\.com\/maps\?q=(-?\d+\.\d+),(-?\d+\.\d+)/;
 const DATE_RE = /(\d{2})\.(\d{2})\.(\d{4})/;
 const HOURS_RE = /(\d{2}:\d{2})\s*-\s*(\d{2}:\d{2})/;
 const ONCALL_RE = /\((\d{2}:\d{2})\s*-\s*(\d{2}:\d{2})\s*On-?Call\)/i;
-const PHONE_RE = /\(?0\d{3}\)?[\s.]*\d{3}[\s.]*\d{2}[\s.]*\d{2}/g;
 
-function splitPhones(raw: string | null): { phone: string | null; phoneAlt: string | null } {
-  if (!raw) return { phone: null, phoneAlt: null };
-  const found: string[] = raw.match(PHONE_RE) ?? [];
-  const clean = (s: string) => s.replace(/\s+/g, " ").trim();
-  const [first, second] = found;
-  if (first && second) return { phone: clean(first), phoneAlt: clean(second) };
-  if (first) return { phone: clean(first), phoneAlt: null };
-  const t = clean(raw);
-  return { phone: t.length ? t : null, phoneAlt: null };
-}
-
-/** Parse PharmacyDetail.aspx — coordinates live in the maps iframe URL. */
+/**
+ * Parse PharmacyDetail.aspx.
+ *
+ * The page carries no field labels — each row is an icon plus a value — so
+ * matching on label text finds nothing. What is stable is the ASP.NET control
+ * id: the generated prefix (CpAll_PharmacyDetail_6_) can change, the suffix
+ * does not, so ids are matched by suffix. Icon classes are the fallback.
+ *
+ * Coordinates come from the embedded Google Maps iframe, which is why this
+ * project needs no geocoding service.
+ */
 export function parseDetailPage(html: string): DetailPage | null {
   const $ = cheerio.load(html);
 
-  const coords = COORDS_RE.exec(html);
-  const lat = coords ? Number(coords[1]) : null;
-  const lng = coords ? Number(coords[2]) : null;
+  const clean = (t: string | undefined) => {
+    const v = (t ?? "").replace(/\s+/g, " ").trim();
+    return v.length ? v : null;
+  };
+  const byId = (suffix: string) => clean($(`[id$="${suffix}"]`).first().text());
 
-  // Name: try common heading elements, largest first.
-  let name = "";
-  for (const sel of ["h1", "h2", "h3", ".pharmacy-name", "#ctl00_ContentPlaceHolder1_lblName"]) {
-    const t = $(sel).first().text().replace(/\s+/g, " ").trim();
-    if (t && /ECZANES/i.test(t.toLocaleUpperCase("tr-TR"))) {
-      name = t;
-      break;
-    }
-    if (t && !name) name = t;
-  }
-  if (!name) {
-    const title = $("title").text().replace(/\s+/g, " ").trim();
-    if (title) name = title.split(/[-|—]/)[0].trim();
-  }
+  /** Value cell sitting next to a given icon, e.g. i.icon-map-marker. */
+  const byIcon = (iconClass: string) =>
+    clean($(`i.${iconClass}`).first().closest("td").next("td").text());
+
+  const name =
+    byId("lblPharmacyName") ??
+    clean($("h3").first().text()) ??
+    clean($("h1,h2").first().text());
   if (!name) return null;
 
-  // Key/value table: label cell → value cell.
-  let address: string | null = null;
-  let phoneRaw: string | null = null;
-  let email: string | null = null;
-  $("tr").each((_, tr) => {
-    const cells = $(tr).find("td,th");
-    if (cells.length < 2) return;
-    const label = $(cells[0]).text().toLocaleLowerCase("tr-TR");
-    const value = $(cells[cells.length - 1]).text().replace(/\s+/g, " ").trim();
-    if (!value) return;
-    if (label.includes("adres")) address = value;
-    else if (label.includes("telefon") || label.includes("tel")) phoneRaw = value;
-    else if (label.includes("posta") || label.includes("mail")) email = value;
-  });
-  if (!email) {
-    const m = /[\w.+-]+@[\w-]+\.[\w.]+/.exec($("body").text());
-    email = m ? m[0] : null;
+  const address = byId("lblAddress") ?? byIcon("icon-map-marker");
+
+  let phone = byId("lblPhoneNumber1");
+  let phoneAlt = byId("lblPhoneNumber2");
+  if (!phone) {
+    // Fall back to tel: links, but only inside the detail table — the site
+    // header carries KTEB's own switchboard number.
+    const scope = $("i.icon-map-marker").first().closest("table");
+    const nums = (scope.length ? scope : $("body"))
+      .find('a[href^="tel:"]')
+      .map((_, a) => clean($(a).text()))
+      .get()
+      .filter((v): v is string => Boolean(v));
+    phone = nums[0] ?? null;
+    phoneAlt = phoneAlt ?? nums[1] ?? null;
   }
 
-  const { phone, phoneAlt } = splitPhones(phoneRaw);
-  return { name, address, phone, phoneAlt, email, lat, lng };
+  const email =
+    byId("lblEmail") ??
+    clean($('a[href^="mailto:"]').first().text()) ??
+    (/[\w.+-]+@[\w-]+\.[\w.]+/.exec($("body").text())?.[0] ?? null);
+
+  const coords = COORDS_RE.exec(html);
+
+  return {
+    name,
+    address,
+    phone,
+    phoneAlt,
+    email,
+    lat: coords ? Number(coords[1]) : null,
+    lng: coords ? Number(coords[2]) : null,
+  };
 }
 
 /** Parse the full directory table → normalised name → region. */
