@@ -4,7 +4,11 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
 function required(name: string): string {
-  const v = process.env[name];
+  // Trimmed because these are pasted into a dashboard by hand: a trailing
+  // newline or space on a key still looks set, passes this check, and is then
+  // rejected by the API — which surfaces as an opaque 500 rather than as a
+  // configuration problem.
+  const v = process.env[name]?.trim();
   if (!v) throw new Error(`Missing environment variable: ${name}`);
   return v;
 }
