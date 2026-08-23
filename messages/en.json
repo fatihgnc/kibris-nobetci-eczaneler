@@ -79,7 +79,7 @@
     "date": "Date",
     "approx": "Approx.",
     "dutyNight": "Night duty, {date}",
-    "drive": "{distance} · {minutes} min by car",
+    "drive": "{distance} · {duration} by car",
     "oncallNote": "<b>On-call:</b> The pharmacy door is closed. The pharmacist answers the phone until {until}; once you confirm your medicine they will tell you where to meet.",
     "source": "Duty information is taken from the <b>Kıbrıs Türk Eczacılar Birliği</b> list. <warn>Call to confirm before travelling.</warn>"
   },

@@ -69,3 +69,17 @@ export function telHref(phone: string): string {
 export function directionsUrl(lat: number, lng: number): string {
   return `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
 }
+
+/**
+ * Drive estimate: under an hour stays "43 dk" / "43 min", above it splits into
+ * hours + minutes so a long haul does not read as a three-digit minute count.
+ */
+export function formatDriveTime(minutes: number, locale: string): string {
+  const tr = locale === "tr";
+  const h = Math.floor(minutes / 60);
+  const m = minutes % 60;
+  if (h === 0) return tr ? `${m} dk` : `${m} min`;
+  const hours = tr ? `${h} sa` : `${h} hr`;
+  if (m === 0) return hours;
+  return tr ? `${hours} ${m} dk` : `${hours} ${m} min`;
+}

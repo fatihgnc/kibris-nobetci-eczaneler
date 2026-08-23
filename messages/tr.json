@@ -79,7 +79,7 @@
     "date": "Tarih",
     "approx": "Yaklaşık",
     "dutyNight": "{date} gecesi nöbeti",
-    "drive": "{distance} · araçla {minutes} dk",
+    "drive": "{distance} · araçla {duration}",
     "oncallNote": "<b>On-Call:</b> Eczane kapısı kapalı. Eczacı {until}'a kadar telefonda; ilacınızı teyit ettikten sonra buluşma noktasını size söyleyecek.",
     "source": "Nöbet bilgisi <b>Kıbrıs Türk Eczacılar Birliği</b> listesinden alınmıştır. <warn>Yola çıkmadan önce telefonla teyit ediniz.</warn>"
   },

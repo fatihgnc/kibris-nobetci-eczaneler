@@ -19,6 +19,7 @@ import {
   formatAgo,
   formatClock,
   formatDistanceKm,
+  formatDriveTime,
   formatDutyDate,
   formatDutyDateParts,
   telHref,
@@ -612,7 +613,7 @@ export default function AppShell() {
                 <dd className="mono">
                   {t("detail.drive", {
                     distance: formatDistanceKm(p.dist, locale),
-                    minutes: Math.max(3, Math.round(p.dist * 1.6)),
+                    duration: formatDriveTime(Math.max(3, Math.round(p.dist * 1.6)), locale),
                   })}
                 </dd>
               </div>
