@@ -61,6 +61,24 @@ drop policy if exists "anon read sync_runs" on sync_runs;
 create policy "anon read sync_runs" on sync_runs
   for select to anon using (true);
 
+-- Table privileges. RLS decides *which rows* a role may see, but a role still
+-- needs a GRANT to touch the table at all — the two are separate layers and
+-- both are required. Without these every query fails with 42501.
+grant usage on schema public to anon, service_role;
+
+grant select on public.pharmacies  to anon;
+grant select on public.duty_shifts to anon;
+
+-- sync_runs is granted per column: the API only needs the last successful run
+-- timestamp, and sync_runs.error can contain internal messages that should not
+-- be publicly readable.
+grant select (finished_at, kind, status) on public.sync_runs to anon;
+
+-- The scrapers and the cron route run as service_role and need full access,
+-- including the sequences behind the bigserial primary keys.
+grant all on public.pharmacies, public.duty_shifts, public.sync_runs to service_role;
+grant usage, select on all sequences in schema public to service_role;
+
 -- Proximity query. PostGIS is unnecessary for ~400 rows; haversine is plenty.
 create or replace function on_duty_nearby(
   p_date date,
