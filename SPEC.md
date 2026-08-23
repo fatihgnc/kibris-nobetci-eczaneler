@@ -331,10 +331,15 @@ as 24:00 when comparing.
 
 - Protected by a `CRON_SECRET` header. Invokes the `scripts/sync-duty.ts` logic.
 
-### Vercel cron (`vercel.json`)
+### Scheduling (`.github/workflows/sync-duty.yml`)
 
 `03:00`, `09:00`, `17:00` UTC — roughly 06:00 / 12:00 / 20:00 in Nicosia. The
 morning run guarantees the day's roster is in place before pharmacies open.
+
+Scheduled from GitHub Actions rather than Vercel Cron: the Vercel Hobby plan
+caps a project at a couple of jobs running about once a day, which cannot cover
+three runs. GitHub also emails the owner when a run fails, which serves as the
+alerting for a scraper that otherwise fails silently.
 
 ---
 

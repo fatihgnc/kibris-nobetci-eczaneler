@@ -41,10 +41,41 @@ npm test          # unit tests: duty-date boundaries, status derivation, region 
    ```bash
    npm run sync-duty
    ```
-   On Vercel, `vercel.json` schedules `GET /api/cron/sync-duty` at 03:00, 09:00
-   and 17:00 UTC (≈ 06:00 / 12:00 / 20:00 Nicosia). If fewer than 7 records
-   parse, the run is marked `failed` and existing data is left untouched; the
-   app then serves the last known roster behind the `stale` banner.
+   Scheduled by GitHub Actions rather than Vercel Cron: the Vercel Hobby plan
+   caps a project at a couple of cron jobs running roughly once a day, and this
+   roster needs three runs. See [Scheduling](#scheduling).
+
+   If fewer than 7 records parse, the run is marked `failed` and existing data
+   is left untouched; the app then serves the last known roster behind the
+   `stale` banner.
+
+## Scheduling
+
+[`.github/workflows/sync-duty.yml`](.github/workflows/sync-duty.yml) calls
+`GET /api/cron/sync-duty` at 03:00, 09:00 and 17:00 UTC — roughly 06:00, 12:00
+and 20:00 in Nicosia. The morning run guarantees the roster is in place before
+pharmacies open.
+
+It needs one repository secret, `CRON_SECRET`, matching the value deployed to
+Vercel. Add it under Settings → Secrets and variables → Actions. `APP_URL` is a
+plain `env:` at the top of the workflow — edit it there if the domain changes.
+
+The workflow calls the deployed endpoint rather than running the scraper itself,
+so the scheduled path is the same code the app serves and GitHub needs no
+database credentials.
+
+**A failed run emails the repository owner**, which is this project's alerting.
+`ALERT_WEBHOOK_URL` remains available for a webhook on top of that.
+
+Two things to know about GitHub's scheduler:
+
+- Scheduled runs are queued and can start late under load. That is fine here —
+  the roster changes once a day, not by the minute.
+- **GitHub disables scheduled workflows in a repository with no activity for 60
+  days**, and emails you when it does. Any commit resets the clock; otherwise
+  re-enable it from the Actions tab.
+
+Run it by hand any time from the Actions tab (`workflow_dispatch`).
 
 ## Environment variables
 

@@ -1,0 +1,104 @@
+name: Sync duty roster
+
+# Vercel Cron is not usable here: the Hobby plan caps a project at a couple of
+# jobs running roughly once a day, and this roster needs three runs — most
+# importantly the morning one, so the day's list is in place before pharmacies
+# open.
+#
+# This calls the deployed endpoint rather than running the scraper itself, so
+# the scheduled path is the same code the app serves, and the only secret
+# GitHub needs is CRON_SECRET.
+#
+# A failed run emails the repository owner, which doubles as the alerting this
+# project otherwise has none of.
+
+on:
+  schedule:
+    # 03:00 / 09:00 / 17:00 UTC — roughly 06:00 / 12:00 / 20:00 in Nicosia.
+    # GitHub queues scheduled runs and can start them late under load, which is
+    # fine: the roster changes once a day, not by the minute.
+    - cron: "0 3 * * *"
+    - cron: "0 9 * * *"
+    - cron: "0 17 * * *"
+  workflow_dispatch: # manual trigger from the Actions tab
+
+concurrency:
+  group: sync-duty
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      APP_URL: https://kibris-nobetci-eczaneler.vercel.app
+    steps:
+      - name: Trigger duty sync
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          set -uo pipefail
+
+          if [ -z "${CRON_SECRET}" ]; then
+            echo "::error::CRON_SECRET is not set in repository secrets"
+            exit 1
+          fi
+
+          attempt() {
+            curl -sS --max-time 300 \
+              -w '\n%{http_code}' \
+              -H "Authorization: Bearer ${CRON_SECRET}" \
+              "${APP_URL}/api/cron/sync-duty"
+          }
+
+          # Two attempts: a transient network blip should not raise an alarm,
+          # but a genuinely broken sync still fails the run.
+          for i in 1 2; do
+            echo "Attempt ${i}..."
+            response=$(attempt) || response=""
+            code=$(printf '%s' "${response}" | tail -n1)
+            body=$(printf '%s' "${response}" | sed '$d')
+
+            echo "HTTP ${code:-none}"
+            echo "${body}"
+
+            if [ "${code}" = "200" ]; then
+              # Parsed with sed rather than jq: the response is flat, and a
+              # missing jq would otherwise send a successful sync down the
+              # failure branch and raise a false alarm.
+              field() { printf '%s' "${body}" | sed -n "s/.*\"$1\"[[:space:]]*:[[:space:]]*\"\([^\"]*\)\".*/\1/p"; }
+              status=$(field status)
+              rows=$(printf '%s' "${body}" | sed -n 's/.*"rowsWritten"[[:space:]]*:[[:space:]]*\([0-9]*\).*/\1/p')
+              date=$(field dutyDate)
+              : "${status:=unknown}" "${rows:=0}" "${date:=—}"
+
+              if [ "${status}" = "ok" ]; then
+                echo "### ✅ Duty roster synced" >> "$GITHUB_STEP_SUMMARY"
+                echo "" >> "$GITHUB_STEP_SUMMARY"
+                echo "- Duty date: \`${date}\`" >> "$GITHUB_STEP_SUMMARY"
+                echo "- Rows written: \`${rows}\`" >> "$GITHUB_STEP_SUMMARY"
+                exit 0
+              fi
+
+              # A 200 with status != ok means the sanity check tripped: fewer
+              # than 7 records parsed, so the parser is probably broken and the
+              # existing roster was deliberately left untouched.
+              echo "::error::Sync reported status=${status}. Existing data was left in place; the app is serving the last known roster behind the stale flag."
+              echo "### ❌ Duty sync failed" >> "$GITHUB_STEP_SUMMARY"
+              echo "" >> "$GITHUB_STEP_SUMMARY"
+              echo '```json' >> "$GITHUB_STEP_SUMMARY"
+              echo "${body}" >> "$GITHUB_STEP_SUMMARY"
+              echo '```' >> "$GITHUB_STEP_SUMMARY"
+              exit 1
+            fi
+
+            if [ "${code}" = "401" ]; then
+              echo "::error::Rejected with 401 — the CRON_SECRET in GitHub does not match the one deployed to Vercel."
+              exit 1
+            fi
+
+            [ "${i}" = "1" ] && sleep 30
+          done
+
+          echo "::error::Sync did not return 200 after two attempts (last: ${code:-no response})"
+          exit 1
