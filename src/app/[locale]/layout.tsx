@@ -4,6 +4,7 @@ import { getMessages, getTranslations, setRequestLocale } from "next-intl/server
 import { Archivo, IBM_Plex_Mono } from "next/font/google";
 import { notFound } from "next/navigation";
 import RegisterSW from "@/components/RegisterSW";
+import { THEME_INIT_SCRIPT } from "@/components/theme-init";
 import { routing } from "@/i18n/routing";
 import "../globals.css";
 
@@ -69,8 +70,17 @@ export default async function LocaleLayout({
   const messages = await getMessages();
 
   return (
-    <html lang={locale} className={`${archivo.variable} ${plexMono.variable}`}>
+    <html
+      lang={locale}
+      className={`${archivo.variable} ${plexMono.variable}`}
+      // data-theme is written by the inline script below before React
+      // hydrates, so the server markup will not match by design.
+      suppressHydrationWarning
+    >
       <body>
+        {/* Resolves the theme onto <html> before the page paints, so a light
+            user never sees a dark flash on load. */}
+        <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
         <NextIntlClientProvider messages={messages}>
           {children}
           <RegisterSW />

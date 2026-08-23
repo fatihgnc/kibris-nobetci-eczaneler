@@ -26,7 +26,8 @@ import {
 import { isRegionCode, REGION_LABEL, REGION_ORDER, type RegionCode } from "@/lib/regions";
 import { deriveStatus, type DutyStatus } from "@/lib/status";
 import type { OnDutyPharmacy, OnDutyResponse } from "@/lib/types";
-import { CloseIcon, LocateIcon, NavIcon, PhoneIcon, RecenterIcon } from "./icons";
+import { CloseIcon, LocateIcon, MoonIcon, NavIcon, PhoneIcon, RecenterIcon, SunIcon } from "./icons";
+import { useTheme } from "./useTheme";
 import type { MapPoint } from "./MapView";
 
 const MapView = dynamic(() => import("./MapView"), { ssr: false });
@@ -74,6 +75,7 @@ export default function AppShell() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const isDesktop = useIsDesktop();
+  const { theme, toggle: toggleTheme } = useTheme();
 
   const regionParam = searchParams.get("region");
   const region: RegionCode | null = isRegionCode(regionParam) ? regionParam : null;
@@ -633,6 +635,17 @@ export default function AppShell() {
     </Link>
   );
 
+  const themeButton = (
+    <button
+      className="iconbtn"
+      onClick={toggleTheme}
+      title={theme === "dark" ? t("header.themeToLight") : t("header.themeToDark")}
+      aria-label={theme === "dark" ? t("header.themeToLight") : t("header.themeToDark")}
+    >
+      {theme === "dark" ? <SunIcon /> : <MoonIcon />}
+    </button>
+  );
+
   const locButton = (
     <button
       className={`iconbtn ${locMode === "granted" ? "on" : ""}`}
@@ -657,6 +670,7 @@ export default function AppShell() {
       selId={sel}
       fitSignal={fitSignal}
       onSelect={select}
+      theme={theme}
       bottomInset={isDesktop ? 0 : mapInset}
     />
   );
@@ -673,6 +687,7 @@ export default function AppShell() {
                 <b>{t("app.name")}</b>
               </div>
               <div className="datechip" style={{ visibility: "hidden" }} />
+              {themeButton}
               {localeSwitch}
             </div>
             <div className="deskbar">
@@ -744,7 +759,13 @@ export default function AppShell() {
       <div ref={staleRef}>{staleBanner}</div>
       <div className="mapwrap" ref={mapwrapRef}>
         {mapView}
-        <div className="mapbtns">{recenterButton}</div>
+        {/* The map container runs to the bottom of the screen, so buttons
+            anchored to it end up behind the sheet and cannot be tapped.
+            Lift them by however much the sheet currently covers. */}
+        <div className="mapbtns" style={{ bottom: mapInset + 14 }}>
+          {themeButton}
+          {recenterButton}
+        </div>
       </div>
       <section className="sheet" ref={sheetRef} aria-label={t("list.title")}>
         <div

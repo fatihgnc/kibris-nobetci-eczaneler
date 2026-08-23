@@ -9,7 +9,9 @@
     "findMe": "Konumumu bul",
     "recenter": "Haritayı ortala",
     "switchLocale": "Switch to English",
-    "dutyNightShort": "<b>{dayMonth}</b> {weekday} gecesi"
+    "dutyNightShort": "<b>{dayMonth}</b> {weekday} gecesi",
+    "themeToLight": "Açık temaya geç",
+    "themeToDark": "Koyu temaya geç"
   },
   "chips": {
     "all": "Tümü",

@@ -9,7 +9,9 @@
     "findMe": "Find my location",
     "recenter": "Recenter map",
     "switchLocale": "Türkçe'ye geç",
-    "dutyNightShort": "Night duty, {weekday} <b>{dayMonth}</b>"
+    "dutyNightShort": "Night duty, {weekday} <b>{dayMonth}</b>",
+    "themeToLight": "Switch to light theme",
+    "themeToDark": "Switch to dark theme"
   },
   "chips": {
     "all": "All",
