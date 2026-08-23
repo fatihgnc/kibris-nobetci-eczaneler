@@ -18,16 +18,24 @@ interface Props {
   selId: number | null;
   fitSignal: number;
   onSelect: (id: number) => void;
+  /**
+   * Height in px of the map container hidden behind the bottom sheet. Leaflet
+   * fits to the whole container, so without this the pins are centred behind
+   * the sheet and the user opens the app to an empty patch of sea.
+   */
+  bottomInset?: number;
 }
 
 const CYPRUS_CENTER: [number, number] = [35.25, 33.45];
 
-export default function MapView({ points, me, selId, fitSignal, onSelect }: Props) {
+export default function MapView({ points, me, selId, fitSignal, onSelect, bottomInset = 0 }: Props) {
   const elRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<L.Map | null>(null);
   const layerRef = useRef<L.LayerGroup | null>(null);
   const onSelectRef = useRef(onSelect);
   onSelectRef.current = onSelect;
+  const insetRef = useRef(bottomInset);
+  insetRef.current = bottomInset;
 
   useEffect(() => {
     if (!elRef.current || mapRef.current) return;
@@ -91,15 +99,24 @@ export default function MapView({ points, me, selId, fitSignal, onSelect }: Prop
       const pts: [number, number][] = points.map((p) => [p.lat, p.lng] as [number, number]);
       if (me) pts.push(me);
       m.invalidateSize();
-      if (pts.length > 1) m.fitBounds(pts, { padding: [46, 46], maxZoom: 12 });
-      else if (pts.length === 1) m.setView(pts[0], 13);
+      // Keep at least a usable strip: on a short viewport the sheet can cover
+      // nearly the whole map, and Leaflet cannot fit into a negative box.
+      const usable = Math.max(0, m.getSize().y - insetRef.current - 92);
+      const bottom = usable > 80 ? insetRef.current + 46 : 46;
+      if (pts.length > 1) {
+        m.fitBounds(pts, {
+          paddingTopLeft: [46, 46],
+          paddingBottomRight: [46, bottom],
+          maxZoom: 12,
+        });
+      } else if (pts.length === 1) m.setView(pts[0], 13);
       else m.setView(CYPRUS_CENTER, 9);
     };
     fit();
     const t = setTimeout(fit, 80);
     return () => clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [fitSignal]);
+  }, [fitSignal, bottomInset]);
 
   // Focus the selected pharmacy
   useEffect(() => {

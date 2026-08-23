@@ -88,6 +88,7 @@ export default function AppShell() {
   const [nowMin, setNowMin] = useState(() => dutyMinutesFor());
   const [fitSignal, setFitSignal] = useState(0);
   const [showLocHelp, setShowLocHelp] = useState(false);
+  const [mapInset, setMapInset] = useState(0);
 
   const bumpFit = useCallback(() => setFitSignal((n) => n + 1), []);
 
@@ -99,6 +100,9 @@ export default function AppShell() {
       const res = await fetch(`/api/on-duty${q}`);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       setData((await res.json()) as OnDutyResponse);
+      // Re-fit once the roster lands: the first fit runs while the map is still
+      // empty, so without this the pins stay off the visible strip.
+      setFitSignal((n) => n + 1);
     } catch {
       setError(true);
     } finally {
@@ -227,6 +231,7 @@ export default function AppShell() {
   const staleRef = useRef<HTMLDivElement>(null);
   const mapwrapRef = useRef<HTMLDivElement>(null);
   const sheetRef = useRef<HTMLDivElement>(null);
+  const insetRef = useRef(0);
   const snapRef = useRef(snap);
   snapRef.current = snap;
 
@@ -243,6 +248,15 @@ export default function AppShell() {
     mapwrap.style.bottom = "0px";
     sheet.style.height = `${H - chipsBottom - staleH - 10}px`;
     sheet.style.transform = `translateY(${SNAPS[snapRef.current] * H}px)`;
+    // How much of the map the sheet covers, so fitBounds can stay above it.
+    // That is the sheet's *visible* height: its own height minus how far it is
+    // translated down, not the distance from the top of the viewport.
+    const sheetH = H - chipsBottom - staleH - 10;
+    const covered = Math.max(0, Math.round(sheetH - SNAPS[snapRef.current] * H));
+    if (insetRef.current !== covered) {
+      insetRef.current = covered;
+      setMapInset(covered);
+    }
   }, []);
 
   useLayoutEffect(() => {
@@ -627,7 +641,14 @@ export default function AppShell() {
   );
 
   const mapView = (
-    <MapView points={points} me={coords} selId={sel} fitSignal={fitSignal} onSelect={select} />
+    <MapView
+      points={points}
+      me={coords}
+      selId={sel}
+      fitSignal={fitSignal}
+      onSelect={select}
+      bottomInset={isDesktop ? 0 : mapInset}
+    />
   );
 
   /* ---------- desktop ---------- */
