@@ -2,7 +2,13 @@
 
 /* ================================================================
    Design tokens — ported 1:1 from the approved prototype.
-   Dark is the default (night-time app); light follows the system.
+   Dark is the default (night-time app).
+
+   The active theme is always an explicit data-theme on <html>: the inline
+   script in the layout resolves the stored choice, or the system preference
+   when there is none, before the first paint. A media query is not used —
+   it would fight an explicit choice, and the app needs JavaScript for
+   everything else anyway.
    ================================================================ */
 :root {
   --font-ui: var(--font-archivo), "Archivo", Helvetica, Arial, sans-serif;
@@ -26,32 +32,28 @@
   --oncall: oklch(0.74 0.012 250);
   --oncall-bg: oklch(0.28 0.008 250);
   --shadow: 0 -18px 40px rgba(0, 0, 0, .55);
-  --tilefx: invert(1) hue-rotate(185deg) brightness(.86) contrast(.92) saturate(.55);
   --stage: oklch(0.115 0.01 250);
 }
-@media (prefers-color-scheme: light) {
-  :root:not([data-theme="dark"]) {
-    --bg: oklch(0.985 0.004 250);
-    --surface: oklch(1 0 0);
-    --surface-2: oklch(0.965 0.006 250);
-    --line: oklch(0.885 0.008 250);
-    --line-soft: oklch(0.925 0.006 250);
-    --text: oklch(0.24 0.015 250);
-    --text-2: oklch(0.45 0.014 250);
-    --text-3: oklch(0.58 0.012 250);
-    --accent: oklch(0.52 0.13 240);
-    --accent-ink: oklch(0.99 0.004 250);
-    --accent-soft: oklch(0.94 0.03 240);
-    --open: oklch(0.50 0.14 155);
-    --open-bg: oklch(0.94 0.05 158);
-    --warn: oklch(0.52 0.11 62);
-    --warn-bg: oklch(0.95 0.05 78);
-    --oncall: oklch(0.48 0.01 250);
-    --oncall-bg: oklch(0.94 0.004 250);
-    --shadow: 0 -14px 34px rgba(20, 28, 40, .14);
-    --tilefx: saturate(.72) brightness(1.02);
-    --stage: oklch(0.90 0.008 250);
-  }
+:root[data-theme="light"] {
+  --bg: oklch(0.985 0.004 250);
+  --surface: oklch(1 0 0);
+  --surface-2: oklch(0.965 0.006 250);
+  --line: oklch(0.885 0.008 250);
+  --line-soft: oklch(0.925 0.006 250);
+  --text: oklch(0.24 0.015 250);
+  --text-2: oklch(0.45 0.014 250);
+  --text-3: oklch(0.58 0.012 250);
+  --accent: oklch(0.52 0.13 240);
+  --accent-ink: oklch(0.99 0.004 250);
+  --accent-soft: oklch(0.94 0.03 240);
+  --open: oklch(0.50 0.14 155);
+  --open-bg: oklch(0.94 0.05 158);
+  --warn: oklch(0.52 0.11 62);
+  --warn-bg: oklch(0.95 0.05 78);
+  --oncall: oklch(0.48 0.01 250);
+  --oncall-bg: oklch(0.94 0.004 250);
+  --shadow: 0 -14px 34px rgba(20, 28, 40, .14);
+  --stage: oklch(0.90 0.008 250);
 }
 
 * { box-sizing: border-box; }
@@ -129,7 +131,6 @@ button { font: inherit; color: inherit; border: 0; background: none; cursor: poi
 /* map */
 .mapwrap { position: absolute; left: 0; right: 0; overflow: hidden; background: var(--surface); }
 .map { position: absolute; inset: 0; }
-.leaflet-tile-pane { filter: var(--tilefx); }
 .leaflet-container { background: var(--surface); font-family: var(--font-ui); }
 .leaflet-control-attribution {
   background: color-mix(in oklab, var(--bg) 78%, transparent) !important; color: var(--text-3) !important;

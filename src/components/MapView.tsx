@@ -18,6 +18,8 @@ interface Props {
   selId: number | null;
   fitSignal: number;
   onSelect: (id: number) => void;
+  /** Which basemap to draw. */
+  theme?: "light" | "dark";
   /**
    * Height in px of the map container hidden behind the bottom sheet. Leaflet
    * fits to the whole container, so without this the pins are centred behind
@@ -27,6 +29,21 @@ interface Props {
 }
 
 const CYPRUS_CENTER: [number, number] = [35.25, 33.45];
+
+/**
+ * A basemap built for each theme, rather than one map put through a CSS
+ * filter. Inverting a light map to fake a dark one turns the land a muddy
+ * olive and inverts the label text along with it, which is tiring to read.
+ *
+ * Both are CARTO basemaps, free to use with the attribution below.
+ */
+const BASEMAPS = {
+  dark: "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",
+  light: "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png",
+} as const;
+
+const TILE_ATTRIBUTION =
+  '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors © <a href="https://carto.com/attributions">CARTO</a>';
 
 /**
  * The island plus a small margin. Every pharmacy this app will ever show is
@@ -64,7 +81,7 @@ function lockZoomOut(m: L.Map) {
   m.setMinZoom(Math.min(m.getZoom(), islandZoom(m)));
 }
 
-export default function MapView({ points, me, selId, fitSignal, onSelect, bottomInset = 0 }: Props) {
+export default function MapView({ points, me, selId, fitSignal, onSelect, theme = "dark", bottomInset = 0 }: Props) {
   const elRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<L.Map | null>(null);
   const layerRef = useRef<L.LayerGroup | null>(null);
@@ -72,6 +89,9 @@ export default function MapView({ points, me, selId, fitSignal, onSelect, bottom
   onSelectRef.current = onSelect;
   const insetRef = useRef(bottomInset);
   insetRef.current = bottomInset;
+  const tileRef = useRef<L.TileLayer | null>(null);
+  const themeRef = useRef(theme);
+  themeRef.current = theme;
 
   useEffect(() => {
     if (!elRef.current || mapRef.current) return;
@@ -85,9 +105,10 @@ export default function MapView({ points, me, selId, fitSignal, onSelect, bottom
       maxBounds: CYPRUS_BOUNDS,
       maxBoundsViscosity: 1,
     });
-    L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
-      attribution: "© OpenStreetMap contributors",
+    tileRef.current = L.tileLayer(BASEMAPS[themeRef.current], {
+      attribution: TILE_ATTRIBUTION,
       maxZoom: 18,
+      subdomains: "abcd",
     }).addTo(m);
     m.setView(CYPRUS_CENTER, 9);
     lockZoomOut(m);
@@ -131,6 +152,13 @@ export default function MapView({ points, me, selId, fitSignal, onSelect, bottom
     }
     m.invalidateSize();
   }, [points, me, selId]);
+
+  // Swap the basemap when the theme changes.
+  useEffect(() => {
+    const m = mapRef.current;
+    if (!m || !tileRef.current) return;
+    tileRef.current.setUrl(BASEMAPS[theme]);
+  }, [theme]);
 
   // Fit all points (recenter button, data / filter changes)
   useEffect(() => {
