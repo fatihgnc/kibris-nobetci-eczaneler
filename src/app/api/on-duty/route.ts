@@ -97,6 +97,12 @@ export async function GET(req: NextRequest) {
 
   const body: OnDutyResponse = { dutyDate, lastSyncedAt, stale, pharmacies };
   return NextResponse.json(body, {
-    headers: { "Cache-Control": "public, s-maxage=300, stale-while-revalidate=3600" },
+    headers: {
+      // max-age=0 keeps the browser revalidating; without it the CDN strips the
+      // s-maxage directives it consumes and the browser is left with a bare
+      // "public", which it may then cache heuristically. The edge still serves
+      // this for 300s (SPEC §6).
+      "Cache-Control": "public, max-age=0, s-maxage=300, stale-while-revalidate=3600",
+    },
   });
 }
