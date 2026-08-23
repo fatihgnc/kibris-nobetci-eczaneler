@@ -26,9 +26,9 @@ npm test          # unit tests: duty-date boundaries, status derivation, region 
 
 1. **Supabase:** create a project, run [supabase/schema.sql](supabase/schema.sql)
    in the SQL editor (tables, RLS, `on_duty_nearby`).
-2. **Env:** copy `.env.example` → `.env.local` (and to Vercel project settings),
-   fill in the Supabase URL/keys and a random `CRON_SECRET`. Remove/ignore
-   `MOCK_DATA` in production.
+2. **Env:** copy `.env.example` → `.env.local`, and set the same values in the
+   Vercel project settings. Generate `CRON_SECRET` with `openssl rand -base64 32`.
+   Leave `MOCK_DATA` unset in production. See [Environment variables](#environment-variables).
 3. **Seed the pharmacy directory** (one-off, re-runnable monthly):
    ```bash
    npm run seed
@@ -45,6 +45,31 @@ npm test          # unit tests: duty-date boundaries, status derivation, region 
    and 17:00 UTC (≈ 06:00 / 12:00 / 20:00 Nicosia). If fewer than 7 records
    parse, the run is marked `failed` and existing data is left untouched; the
    app then serves the last known roster behind the `stale` banner.
+
+## Environment variables
+
+| Variable | Read by | Required |
+| --- | --- | --- |
+| `SUPABASE_URL` | API routes, `scripts/` | yes |
+| `SUPABASE_ANON_KEY` | `/api/on-duty` | yes |
+| `SUPABASE_SERVICE_ROLE_KEY` | cron route, `scripts/` | yes |
+| `CRON_SECRET` | `/api/cron/sync-duty` | yes |
+| `SCRAPER_CONTACT` | scraper User-Agent | recommended |
+| `MOCK_DATA` | `/api/on-duty` | development only |
+
+**None of these is prefixed `NEXT_PUBLIC_`, and none should be.** The prefix is
+not what grants access — it inlines the value into the JavaScript bundle sent to
+the browser, where anyone can read it in View Source. Server code (API routes,
+server components, the `scripts/` CLIs) reads the real environment at runtime
+and needs no prefix.
+
+Nothing here belongs in the browser anyway: the client only ever calls
+`/api/on-duty`, and that route talks to Supabase server-side. Prefixing
+`SUPABASE_SERVICE_ROLE_KEY` would publish a key that bypasses RLS and can read
+and write the entire database.
+
+Real values live in `.env.local` (gitignored) and in the Vercel project
+settings — never in the repository. `.env.example` documents the names only.
 
 ## Key decisions (see SPEC.md for the full rationale)
 
