@@ -1,5 +1,6 @@
 // GET /api/cron/sync-duty — protected by CRON_SECRET (SPEC §6).
 import { NextRequest, NextResponse } from "next/server";
+import { sendFailureAlert } from "@/lib/alert";
 import { runDutySync } from "@/lib/scrape/sync-duty";
 import { supabaseAdmin } from "@/lib/supabase";
 
@@ -15,5 +16,17 @@ export async function GET(req: NextRequest) {
   }
 
   const result = await runDutySync(supabaseAdmin());
+
+  // This is the unattended path: if it fails, the stale banner is the only
+  // symptom and only end users see it.
+  if (result.status !== "ok") {
+    await sendFailureAlert({
+      status: result.status,
+      error: result.error,
+      rowsWritten: result.rowsWritten,
+      dutyDate: result.dutyDate,
+    });
+  }
+
   return NextResponse.json(result, { status: result.status === "ok" ? 200 : 500 });
 }

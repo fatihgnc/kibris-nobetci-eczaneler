@@ -54,6 +54,7 @@ npm test          # unit tests: duty-date boundaries, status derivation, region 
 | `SUPABASE_ANON_KEY` | `/api/on-duty` | yes |
 | `SUPABASE_SERVICE_ROLE_KEY` | cron route, `scripts/` | yes |
 | `CRON_SECRET` | `/api/cron/sync-duty` | yes |
+| `ALERT_WEBHOOK_URL` | cron route | recommended |
 | `SCRAPER_CONTACT` | scraper User-Agent | recommended |
 | `MOCK_DATA` | `/api/on-duty` | development only |
 
@@ -70,6 +71,16 @@ and write the entire database.
 
 Real values live in `.env.local` (gitignored) and in the Vercel project
 settings — never in the repository. `.env.example` documents the names only.
+
+## Alerting
+
+Set `ALERT_WEBHOOK_URL` to any endpoint that accepts a JSON POST (Slack and
+Discord webhooks work unchanged). The cron route calls it whenever the duty sync
+fails — including the sanity-check failure, where fewer than 7 records parse.
+
+This matters because failure is deliberately quiet: the app keeps serving the
+last known roster behind the `stale` flag rather than showing a blank screen, so
+without an alert a broken scraper is visible only to end users.
 
 ## Key decisions (see SPEC.md for the full rationale)
 
