@@ -28,6 +28,42 @@ interface Props {
 
 const CYPRUS_CENTER: [number, number] = [35.25, 33.45];
 
+/**
+ * The island plus a small margin. Every pharmacy this app will ever show is
+ * inside it, so panning beyond serves no purpose and only loses the user —
+ * at 3am, scrolling off into the Mediterranean is a real way to get lost.
+ *
+ * Cyprus spans roughly 34.56–35.70 N and 32.27–34.60 E. The margin is wider to
+ * the south because the mobile fit puts the island in the strip above the
+ * sheet, which means the map centre sits south of the island — with a tight
+ * box the centre could not get there and the outermost pharmacies fell off
+ * screen. The extra room is open sea; the north edge stays below the Turkish
+ * coast.
+ */
+const CYPRUS_BOUNDS = L.latLngBounds([33.60, 31.70], [35.95, 35.10]);
+
+/** Zoom at which the whole island fits the current container. */
+function islandZoom(m: L.Map): number {
+  const z = m.getBoundsZoom(CYPRUS_BOUNDS);
+  return Number.isFinite(z) ? z : 8;
+}
+
+/**
+ * Floor for user-driven zoom-out, applied after a programmatic fit.
+ *
+ * These two pull against each other on mobile: the sheet covers half the map,
+ * so fitting every pin into the strip that is left needs a wider view than
+ * "the island fills the container". Constraining the fit to the island zoom
+ * pushed the outermost pharmacies back out of sight.
+ *
+ * So the fit is left free and the floor is set to whatever it settled on —
+ * never tighter than the island zoom. The user cannot pull further out than
+ * the view they were given, and maxBounds still stops them wandering off.
+ */
+function lockZoomOut(m: L.Map) {
+  m.setMinZoom(Math.min(m.getZoom(), islandZoom(m)));
+}
+
 export default function MapView({ points, me, selId, fitSignal, onSelect, bottomInset = 0 }: Props) {
   const elRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<L.Map | null>(null);
@@ -44,12 +80,17 @@ export default function MapView({ points, me, selId, fitSignal, onSelect, bottom
       attributionControl: true,
       scrollWheelZoom: true,
       fadeAnimation: false,
+      // A solid wall rather than a rubber band: viscosity 1 stops the drag at
+      // the edge instead of letting it spring past and snap back.
+      maxBounds: CYPRUS_BOUNDS,
+      maxBoundsViscosity: 1,
     });
     L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
       attribution: "© OpenStreetMap contributors",
       maxZoom: 18,
     }).addTo(m);
     m.setView(CYPRUS_CENTER, 9);
+    lockZoomOut(m);
     layerRef.current = L.layerGroup().addTo(m);
     mapRef.current = m;
     const t = setTimeout(() => m.invalidateSize(), 60);
@@ -99,6 +140,8 @@ export default function MapView({ points, me, selId, fitSignal, onSelect, bottom
       const pts: [number, number][] = points.map((p) => [p.lat, p.lng] as [number, number]);
       if (me) pts.push(me);
       m.invalidateSize();
+      // Let the fit choose freely; the floor is applied to its result below.
+      m.setMinZoom(0);
       // Keep at least a usable strip: on a short viewport the sheet can cover
       // nearly the whole map, and Leaflet cannot fit into a negative box.
       const usable = Math.max(0, m.getSize().y - insetRef.current - 92);
@@ -111,6 +154,7 @@ export default function MapView({ points, me, selId, fitSignal, onSelect, bottom
         });
       } else if (pts.length === 1) m.setView(pts[0], 13);
       else m.setView(CYPRUS_CENTER, 9);
+      lockZoomOut(m);
     };
     fit();
     const t = setTimeout(fit, 80);
