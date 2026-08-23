@@ -54,7 +54,19 @@ export async function GET(req: NextRequest) {
   ]);
 
   if (rpc.error) {
+    // Logged server-side only — the client gets a stable, opaque message.
+    // Swallowing it entirely made a real outage undiagnosable: the endpoint
+    // returned 500 with no signal anywhere, and the cause (a bad
+    // SUPABASE_ANON_KEY in the deployment) had to be found by elimination.
+    console.error(
+      `on-duty query failed: ${rpc.error.message}${rpc.error.code ? ` [${rpc.error.code}]` : ""}`
+    );
     return NextResponse.json({ error: "query_failed" }, { status: 500 });
+  }
+
+  // Not fatal: without it the roster is still served, just flagged stale.
+  if (sync.error) {
+    console.warn(`on-duty could not read the last sync time: ${sync.error.message}`);
   }
 
   const lastSyncedAt: string | null = sync.data?.finished_at ?? null;
