@@ -1,0 +1,88 @@
+{
+  "app": {
+    "name": "Nöbetçi",
+    "title": "Nöbetçi Eczane — KKTC",
+    "description": "Kuzey Kıbrıs'ta bu gece nöbetçi olan eczaneleri haritada ve listede gösterir."
+  },
+  "header": {
+    "dutyNight": "<b>{dayMonth}</b> {weekday} gecesi nöbeti",
+    "findMe": "Konumumu bul",
+    "recenter": "Haritayı ortala",
+    "switchLocale": "Switch to English",
+    "dutyNightShort": "<b>{dayMonth}</b> {weekday} gecesi"
+  },
+  "chips": {
+    "all": "Tümü",
+    "allRegions": "Tüm bölgeler",
+    "regionFilter": "Bölge filtresi"
+  },
+  "list": {
+    "nearest": "Size en yakın",
+    "tonight": "Bu gece nöbetçi",
+    "regionOnDuty": "{region} nöbetçi",
+    "count": "{count} eczane",
+    "sortDistance": "Mesafeye göre",
+    "sortRegion": "Bölgeye göre",
+    "title": "Nöbetçi eczaneler"
+  },
+  "status": {
+    "OPEN": "Açık",
+    "CLOSING_SOON": "{time}'de kapanıyor",
+    "ON_CALL": "Kapalı – telefonla ulaşın (On-Call)",
+    "CLOSED": "Kapalı",
+    "distance": "MESAFE"
+  },
+  "hours": {
+    "range": "Nöbet saatleri {open}–{close}",
+    "oncall": "Nöbet {open}–{close} · eczacı {until}'a kadar telefonda",
+    "unknown": "Nöbet saatleri: {raw}"
+  },
+  "actions": {
+    "call": "Ara",
+    "directions": "Yol Tarifi",
+    "close": "Kapat",
+    "retry": "Tekrar dene",
+    "refresh": "Yenile",
+    "showAll": "Tüm bölgeleri göster",
+    "howTo": "Nasıl açılır?"
+  },
+  "locask": {
+    "title": "Konumunuzu açın, en yakını sıralayalım",
+    "body": "Konum olmadan da kullanabilirsiniz: aşağıdan bölge seçin, eczaneler ada genelinde listelenir.",
+    "cta": "Konumumu bul"
+  },
+  "denied": {
+    "title": "Konum izni kapalı",
+    "body": "Mesafe gösterilemiyor. Bölge seçerek devam edebilir ya da tarayıcı ayarlarından izni açabilirsiniz.",
+    "help": "Tarayıcınızın adres çubuğundaki kilit simgesine dokunup Konum iznini açın, ardından sayfayı yenileyin."
+  },
+  "empty": {
+    "title": "{region} bölgesinde nöbetçi eczane yok",
+    "titleAll": "Bu gece için nöbet kaydı bulunamadı",
+    "body": "Bu gece için kayıtlı nöbet bulunmuyor. Filtreyi genişleterek diğer bölgelere bakabilirsiniz."
+  },
+  "error": {
+    "title": "Liste yüklenemedi",
+    "body": "Bağlantı sorunu olabilir. Yeniden denemek için dokunun."
+  },
+  "stale": {
+    "label": "Son güncelleme {ago} · {time}",
+    "never": "Nöbet verisi henüz eşitlenmedi"
+  },
+  "detail": {
+    "address": "Adres",
+    "phone": "Telefon",
+    "phoneAlt": "Telefon 2",
+    "duty": "Nöbet",
+    "date": "Tarih",
+    "approx": "Yaklaşık",
+    "dutyNight": "{date} gecesi nöbeti",
+    "drive": "{distance} · araçla {minutes} dk",
+    "oncallNote": "<b>On-Call:</b> Eczane kapısı kapalı. Eczacı {until}'a kadar telefonda; ilacınızı teyit ettikten sonra buluşma noktasını size söyleyecek.",
+    "source": "Nöbet bilgisi <b>Kıbrıs Türk Eczacılar Birliği</b> listesinden alınmıştır. <warn>Yola çıkmadan önce telefonla teyit ediniz.</warn>"
+  },
+  "foot": {
+    "sourceLabel": "Veri kaynağı:",
+    "confirm": "Gitmeden önce telefonla teyit ediniz."
+  }
+}

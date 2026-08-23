@@ -1,0 +1,88 @@
+{
+  "app": {
+    "name": "Nöbetçi",
+    "title": "On-Duty Pharmacy — North Cyprus",
+    "description": "Shows tonight's on-duty pharmacies in Northern Cyprus on a map and in a list."
+  },
+  "header": {
+    "dutyNight": "Night duty, {weekday} <b>{dayMonth}</b>",
+    "findMe": "Find my location",
+    "recenter": "Recenter map",
+    "switchLocale": "Türkçe'ye geç",
+    "dutyNightShort": "Night duty, {weekday} <b>{dayMonth}</b>"
+  },
+  "chips": {
+    "all": "All",
+    "allRegions": "All regions",
+    "regionFilter": "Region filter"
+  },
+  "list": {
+    "nearest": "Nearest to you",
+    "tonight": "On duty tonight",
+    "regionOnDuty": "On duty in {region}",
+    "count": "{count} pharmacies",
+    "sortDistance": "By distance",
+    "sortRegion": "By region",
+    "title": "On-duty pharmacies"
+  },
+  "status": {
+    "OPEN": "Open",
+    "CLOSING_SOON": "Closes at {time}",
+    "ON_CALL": "Closed – phone the pharmacist (on-call)",
+    "CLOSED": "Closed",
+    "distance": "DISTANCE"
+  },
+  "hours": {
+    "range": "Duty hours {open}–{close}",
+    "oncall": "Duty {open}–{close} · pharmacist on the phone until {until}",
+    "unknown": "Duty hours: {raw}"
+  },
+  "actions": {
+    "call": "Call",
+    "directions": "Directions",
+    "close": "Close",
+    "retry": "Try again",
+    "refresh": "Refresh",
+    "showAll": "Show all regions",
+    "howTo": "How to enable?"
+  },
+  "locask": {
+    "title": "Turn on location to sort by distance",
+    "body": "It works without location too: pick a region below and pharmacies are listed island-wide.",
+    "cta": "Find my location"
+  },
+  "denied": {
+    "title": "Location permission is off",
+    "body": "Distances can't be shown. Continue by picking a region, or enable the permission in your browser settings.",
+    "help": "Tap the lock icon in your browser's address bar, allow Location, then reload the page."
+  },
+  "empty": {
+    "title": "No on-duty pharmacy in {region}",
+    "titleAll": "No duty records found for tonight",
+    "body": "There is no recorded duty for tonight. Widen the filter to check other regions."
+  },
+  "error": {
+    "title": "Couldn't load the list",
+    "body": "There may be a connection problem. Tap to try again."
+  },
+  "stale": {
+    "label": "Last updated {ago} · {time}",
+    "never": "Duty data has not been synced yet"
+  },
+  "detail": {
+    "address": "Address",
+    "phone": "Phone",
+    "phoneAlt": "Phone 2",
+    "duty": "Duty",
+    "date": "Date",
+    "approx": "Approx.",
+    "dutyNight": "Night duty, {date}",
+    "drive": "{distance} · {minutes} min by car",
+    "oncallNote": "<b>On-call:</b> The pharmacy door is closed. The pharmacist answers the phone until {until}; once you confirm your medicine they will tell you where to meet.",
+    "source": "Duty information is taken from the <b>Kıbrıs Türk Eczacılar Birliği</b> list. <warn>Call to confirm before travelling.</warn>"
+  },
+  "foot": {
+    "sourceLabel": "Data source:",
+    "confirm": "Call the pharmacy to confirm before travelling."
+  }
+}
