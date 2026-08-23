@@ -92,12 +92,22 @@ export default function AppShell() {
 
   const bumpFit = useCallback(() => setFitSignal((n) => n + 1), []);
 
-  const load = useCallback(async (c: [number, number] | null) => {
+  /**
+   * The roster is fetched without the user's coordinates, and distances are
+   * computed on the device.
+   *
+   * SPEC §10 requires that location is never written to logs, and a hosting
+   * platform logs the request URL including its query string — so sending
+   * lat/lng that way would put it in the logs by construction. There is no
+   * need for it either: a duty day has ~15 pharmacies, which is nothing to
+   * sort locally. It also means every visitor shares one cached response
+   * instead of fragmenting the edge cache by coordinate.
+   */
+  const load = useCallback(async () => {
     setLoading(true);
     setError(false);
     try {
-      const q = c ? `?lat=${c[0].toFixed(5)}&lng=${c[1].toFixed(5)}` : "";
-      const res = await fetch(`/api/on-duty${q}`);
+      const res = await fetch("/api/on-duty");
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       setData((await res.json()) as OnDutyResponse);
       // Re-fit once the roster lands: the first fit runs while the map is still
@@ -122,18 +132,18 @@ export default function AppShell() {
         setCoords(c);
         setLocMode("granted");
         setShowLocHelp(false);
-        load(c);
+        // No refetch: the roster does not depend on where the user is.
         setFitSignal((n) => n + 1);
       },
       () => setLocMode("denied"),
       { enableHighAccuracy: false, timeout: 12000, maximumAge: 120000 }
     );
-  }, [load]);
+  }, []);
 
   // Render a full page first, then only auto-locate when permission is
   // already granted — never prompt on load (SPEC §7).
   useEffect(() => {
-    load(null);
+    load();
     if (typeof navigator !== "undefined" && navigator.permissions?.query) {
       navigator.permissions
         .query({ name: "geolocation" })
@@ -354,7 +364,7 @@ export default function AppShell() {
               time: formatClock(data.lastSyncedAt, locale),
             })
           : t("stale.never")}
-        <button onClick={() => load(coords)}>{t("actions.refresh")}</button>
+        <button onClick={() => load()}>{t("actions.refresh")}</button>
       </div>
     ) : null;
 
@@ -468,7 +478,7 @@ export default function AppShell() {
           <h4>{t("error.title")}</h4>
           <p>{t("error.body")}</p>
           <div className="acts">
-            <button className="btn sec" onClick={() => load(coords)}>
+            <button className="btn sec" onClick={() => load()}>
               {t("actions.retry")}
             </button>
           </div>

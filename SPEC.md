@@ -418,8 +418,11 @@ so keep source data untouched.
 - Emailing KTEB before launch is recommended. They publish an official app of
   their own, so a good-faith notice costs nothing and keeps the door open for
   cooperation on data access later.
-- The user's location is sent to the server but **never stored** and never
-  written to logs.
+- The user's location **never leaves the device**. Distances are computed
+  client-side over the day's ~15 pharmacies, so `lat`/`lng` are not sent to the
+  API at all — a hosting platform logs request URLs including the query string,
+  which would put coordinates in the logs by construction. The API still accepts
+  the parameters (§6) but the app does not use them.
 
 ---
 
