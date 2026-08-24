@@ -203,18 +203,12 @@ export default function AppShell() {
   const points: MapPoint[] = useMemo(
     () =>
       list
-        // Number from the list position first, then drop what cannot be
-        // placed. The number is the only thing tying a pin to its card, so
-        // numbering the survivors instead would silently shift every pin
-        // after a pharmacy that has no coordinates onto the wrong card.
-        .map((p, i) => ({ p, index: i + 1 }))
-        .filter(({ p }) => p.lat !== null && p.lng !== null)
-        .map(({ p, index }) => ({
+        .filter((p) => p.lat !== null && p.lng !== null)
+        .map((p) => ({
           id: p.id,
           lat: p.lat as number,
           lng: p.lng as number,
           statusClass: STATUS_CLASS[p.liveStatus],
-          index,
         })),
     [list]
   );

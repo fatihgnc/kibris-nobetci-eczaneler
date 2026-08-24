@@ -9,7 +9,6 @@ export interface MapPoint {
   lat: number;
   lng: number;
   statusClass: string; // s-open | s-warn | s-oncall | s-closed
-  index: number; // 1-based, matches the list order
 }
 
 interface Props {
@@ -141,7 +140,7 @@ export default function MapView({ points, me, selId, fitSignal, onSelect, theme 
       L.marker([p.lat, p.lng], {
         icon: L.divIcon({
           className: "",
-          html: `<div class="pin ${p.statusClass} ${sel ? "sel" : ""}"><i>${p.index}</i></div>`,
+          html: `<div class="pin ${p.statusClass} ${sel ? "sel" : ""}"><i></i></div>`,
           iconSize: sel ? [34, 34] : [26, 26],
           iconAnchor: sel ? [17, 17] : [13, 13],
         }),
