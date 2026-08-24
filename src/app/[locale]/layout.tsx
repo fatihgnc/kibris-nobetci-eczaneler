@@ -51,10 +51,9 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
-  themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#fafafc" },
-    { media: "(prefers-color-scheme: dark)", color: "#15171d" },
-  ],
+  // One colour, not a prefers-color-scheme pair: the app defaults to light
+  // regardless of the system setting.
+  themeColor: "#fafafc",
 };
 
 export default async function LocaleLayout({
@@ -78,8 +77,8 @@ export default async function LocaleLayout({
       suppressHydrationWarning
     >
       <body>
-        {/* Resolves the theme onto <html> before the page paints, so a light
-            user never sees a dark flash on load. */}
+        {/* Resolves the theme onto <html> before the page paints, so someone
+            who chose dark never sees a light flash on load. */}
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
         <NextIntlClientProvider messages={messages}>
           {children}

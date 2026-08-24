@@ -7,40 +7,23 @@ export const THEME_STORAGE_KEY = "theme";
 
 /** Reads what the inline script in the layout already resolved onto <html>. */
 function currentTheme(): Theme {
-  if (typeof document === "undefined") return "dark";
-  return document.documentElement.dataset.theme === "light" ? "light" : "dark";
+  if (typeof document === "undefined") return "light";
+  return document.documentElement.dataset.theme === "dark" ? "dark" : "light";
 }
 
 /**
  * Theme state, kept on <html data-theme> so CSS is the single source of truth
  * and the inline script can restore it before the first paint.
  *
- * Defaults to dark on the server: this is a night-time app, and the design's
- * default. The inline script corrects it to the system preference — or to a
- * stored choice — before anything is painted, so there is no flash.
+ * Defaults to light, matching the inline script, so the server markup and the
+ * first client render agree and there is no flash. The system preference is
+ * not consulted: only a stored choice from the toggle overrides the default.
  */
 export function useTheme(): { theme: Theme; toggle: () => void } {
-  const [theme, setTheme] = useState<Theme>("dark");
+  const [theme, setTheme] = useState<Theme>("light");
 
   useEffect(() => {
     setTheme(currentTheme());
-
-    // Follow the system while the user has not made a choice of their own.
-    const mq = window.matchMedia("(prefers-color-scheme: light)");
-    const onSystemChange = () => {
-      let stored: string | null = null;
-      try {
-        stored = localStorage.getItem(THEME_STORAGE_KEY);
-      } catch {
-        // Private mode or blocked storage: fall through to the system value.
-      }
-      if (stored === "light" || stored === "dark") return;
-      const next: Theme = mq.matches ? "light" : "dark";
-      document.documentElement.dataset.theme = next;
-      setTheme(next);
-    };
-    mq.addEventListener("change", onSystemChange);
-    return () => mq.removeEventListener("change", onSystemChange);
   }, []);
 
   const toggle = useCallback(() => {

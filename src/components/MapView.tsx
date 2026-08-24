@@ -81,7 +81,7 @@ function lockZoomOut(m: L.Map) {
   m.setMinZoom(Math.min(m.getZoom(), islandZoom(m)));
 }
 
-export default function MapView({ points, me, selId, fitSignal, onSelect, theme = "dark", bottomInset = 0 }: Props) {
+export default function MapView({ points, me, selId, fitSignal, onSelect, theme = "light", bottomInset = 0 }: Props) {
   const elRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<L.Map | null>(null);
   const layerRef = useRef<L.LayerGroup | null>(null);

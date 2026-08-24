@@ -7,8 +7,8 @@ export default function manifest(): MetadataRoute.Manifest {
     description: "Kuzey Kıbrıs'ta bu gece nöbetçi olan eczaneler",
     start_url: "/",
     display: "standalone",
-    background_color: "#15171d",
-    theme_color: "#15171d",
+    background_color: "#fafafc",
+    theme_color: "#fafafc",
     // PNG rather than SVG: Android still refuses to use an SVG for the
     // install prompt and home-screen icon.
     icons: [
