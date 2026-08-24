@@ -348,7 +348,6 @@ export default function AppShell() {
         : t("list.tonight");
   const showInitialSkeleton = loading && !data;
   const countTxt = showInitialSkeleton ? "" : t("list.count", { count: list.length });
-  const otherLocale = locale === "tr" ? "en" : "tr";
 
   const badgeLabel = (p: Listed) =>
     t(`status.${p.liveStatus}`, { time: p.closesAt ?? "" });
@@ -630,25 +629,46 @@ export default function AppShell() {
     );
   };
 
+  // Both locales side by side: the current one is inert text, the other a link.
+  const localeItem = (l: "tr" | "en") =>
+    l === locale ? (
+      <span className="on" aria-current="true">
+        {l.toUpperCase()}
+      </span>
+    ) : (
+      <Link
+        href={region ? { pathname: "/", query: { region } } : "/"}
+        locale={l}
+        aria-label={t("header.switchLocale")}
+      >
+        {l.toUpperCase()}
+      </Link>
+    );
+
   const localeSwitch = (
-    <Link
-      className="iconbtn txt localebtn"
-      href={region ? { pathname: "/", query: { region } } : "/"}
-      locale={otherLocale}
-      aria-label={t("header.switchLocale")}
-    >
-      {otherLocale.toUpperCase()}
-    </Link>
+    <div className="localesw">
+      {localeItem("tr")}
+      <span className="sep" aria-hidden="true">
+        /
+      </span>
+      {localeItem("en")}
+    </div>
   );
 
-  const themeButton = (
+  const themeLabel = theme === "dark" ? t("header.themeToLight") : t("header.themeToDark");
+  const themeSwitch = (
     <button
-      className="iconbtn"
+      type="button"
+      className={`themesw ${theme === "dark" ? "on" : ""}`}
+      role="switch"
+      aria-checked={theme === "dark"}
       onClick={toggleTheme}
-      title={theme === "dark" ? t("header.themeToLight") : t("header.themeToDark")}
-      aria-label={theme === "dark" ? t("header.themeToLight") : t("header.themeToDark")}
+      title={themeLabel}
+      aria-label={themeLabel}
     >
-      {theme === "dark" ? <SunIcon /> : <MoonIcon />}
+      <span className="knob" aria-hidden="true">
+        {theme === "dark" ? <MoonIcon /> : <SunIcon />}
+      </span>
     </button>
   );
 
@@ -692,7 +712,7 @@ export default function AppShell() {
                 <b>{t("app.name")}</b>
               </div>
               <div className="datechip" style={{ visibility: "hidden" }} />
-              {themeButton}
+              {themeSwitch}
               {localeSwitch}
             </div>
             <div className="deskbar">
@@ -703,19 +723,24 @@ export default function AppShell() {
               {locButton}
             </div>
             <div className="selectwrap">
-              <select
-                className="select"
-                aria-label={t("chips.regionFilter")}
-                value={region ?? "ALL"}
-                onChange={(e) => setRegion(isRegionCode(e.target.value) ? e.target.value : null)}
-              >
-                <option value="ALL">{t("chips.allRegions")}</option>
-                {REGION_ORDER.map((r) => (
-                  <option key={r} value={r}>
-                    {REGION_LABEL[r]}
-                  </option>
-                ))}
-              </select>
+              <div className="selectfield">
+                <select
+                  className="select"
+                  aria-label={t("chips.regionFilter")}
+                  value={region ?? "ALL"}
+                  onChange={(e) => setRegion(isRegionCode(e.target.value) ? e.target.value : null)}
+                >
+                  <option value="ALL">{t("chips.allRegions")}</option>
+                  {REGION_ORDER.map((r) => (
+                    <option key={r} value={r}>
+                      {REGION_LABEL[r]}
+                    </option>
+                  ))}
+                </select>
+                {/* Drawn here rather than left to the native arrow, which sits
+                    hard against the border with no room to inset it. */}
+                <span className="selectcaret" aria-hidden="true" />
+              </div>
             </div>
             {staleBanner && <div className="dstale">{staleBanner}</div>}
             <div className="sheethead">
@@ -767,7 +792,7 @@ export default function AppShell() {
             anchored to it end up behind the sheet and cannot be tapped.
             Lift them by however much the sheet currently covers. */}
         <div className="mapbtns" style={{ bottom: mapInset + 14 }}>
-          {themeButton}
+          {themeSwitch}
           {recenterButton}
         </div>
       </div>
