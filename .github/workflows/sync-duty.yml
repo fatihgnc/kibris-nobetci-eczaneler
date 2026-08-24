@@ -31,7 +31,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     env:
-      APP_URL: https://kibris-nobetci-eczaneler.vercel.app
+      APP_URL: https://acikeczanevarmi.com
     steps:
       - name: Trigger duty sync
         env:
