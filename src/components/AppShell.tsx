@@ -275,7 +275,15 @@ export default function AppShell() {
     mapwrap.style.top = `${chipsBottom + staleH}px`;
     mapwrap.style.bottom = "0px";
     sheet.style.height = `${H - chipsBottom - staleH - 10}px`;
-    sheet.style.transform = `translateY(${SNAPS[snapRef.current] * H}px)`;
+    const drop = SNAPS[snapRef.current] * H;
+    sheet.style.transform = `translateY(${drop}px)`;
+    // The sheet is anchored to the bottom and then pushed down by the snap, so
+    // that much of it hangs off the screen — and 100dvh can itself run past the
+    // visible viewport while the browser chrome is showing. Pad the sheet by
+    // both, or the last card and the footer sit below the fold unreachably.
+    const visible = window.visualViewport?.height ?? window.innerHeight;
+    const belowFold = Math.max(0, app.getBoundingClientRect().bottom - visible);
+    sheet.style.paddingBottom = `${drop + belowFold}px`;
     // How much of the map the sheet covers, so fitBounds can stay above it.
     // That is the sheet's *visible* height: its own height minus how far it is
     // translated down, not the distance from the top of the viewport.
@@ -350,6 +358,10 @@ export default function AppShell() {
   const dutyDate = data?.dutyDate ?? dutyDateFor();
   const dutyDateText = formatDutyDate(dutyDate, locale);
   const dutyParts = formatDutyDateParts(dutyDate, locale);
+  // "23 Ağu Paz" rather than "23 Ağustos Pazar gecesi": the long form does not
+  // fit the phone header beside a name as long as a domain, and truncating it
+  // mid-word reads worse than saying less.
+  const dutyPartsShort = formatDutyDateParts(dutyDate, locale, "short");
   const titleTxt =
     coords && locMode === "granted"
       ? t("list.nearest")
@@ -778,9 +790,7 @@ export default function AppShell() {
           <b>{t("app.name")}</b>
         </div>
         <div className="datechip">
-          {/* Short form: the full wording overflows this row on 360-392px phones,
-              which carry a locale switch the desktop header has room for. */}
-          {t.rich("header.dutyNightShort", { b: (c) => <strong>{c}</strong>, ...dutyParts })}
+          {t.rich("header.dutyDateShort", { b: (c) => <strong>{c}</strong>, ...dutyPartsShort })}
         </div>
         {localeSwitch}
         {locButton}

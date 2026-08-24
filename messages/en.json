@@ -11,6 +11,7 @@
     "recenter": "Recenter map",
     "switchLocale": "Türkçe'ye geç",
     "dutyNightShort": "Night duty, {weekday} <b>{dayMonth}</b>",
+    "dutyDateShort": "<b>{dayMonth}</b> {weekday}",
     "themeToLight": "Switch to light theme",
     "themeToDark": "Switch to dark theme"
   },

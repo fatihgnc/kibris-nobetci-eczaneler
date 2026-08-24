@@ -24,11 +24,15 @@ export function formatDutyDate(dutyDate: string, locale: string): string {
  * Duty heading split into parts, so the design's emphasis (bold day+month,
  * plain weekday) can be applied without markup in the message bundle.
  */
-export function formatDutyDateParts(dutyDate: string, locale: string): { dayMonth: string; weekday: string } {
+export function formatDutyDateParts(
+  dutyDate: string,
+  locale: string,
+  style: "long" | "short" = "long"
+): { dayMonth: string; weekday: string } {
   const d = new Date(`${dutyDate}T12:00:00Z`);
   const day = new Intl.DateTimeFormat(locale, { day: "numeric", timeZone: "UTC" }).format(d);
-  const month = new Intl.DateTimeFormat(locale, { month: "long", timeZone: "UTC" }).format(d);
-  const weekday = new Intl.DateTimeFormat(locale, { weekday: "long", timeZone: "UTC" }).format(d);
+  const month = new Intl.DateTimeFormat(locale, { month: style, timeZone: "UTC" }).format(d);
+  const weekday = new Intl.DateTimeFormat(locale, { weekday: style, timeZone: "UTC" }).format(d);
   return { dayMonth: `${day} ${month}`, weekday };
 }
 

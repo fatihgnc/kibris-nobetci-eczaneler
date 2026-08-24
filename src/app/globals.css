@@ -142,7 +142,15 @@ button { font: inherit; color: inherit; border: 0; background: none; cursor: poi
 @media (prefers-reduced-motion: reduce) { .themesw .knob { transition: none; } }
 
 /* filters */
-.chips { display: flex; gap: 7px; overflow-x: auto; padding: 2px 14px 12px; scrollbar-width: none; }
+.chips {
+  display: flex; gap: 7px; overflow-x: auto; padding: 2px 14px 12px; scrollbar-width: none;
+  /* Claim the sideways drag. Without pan-x the browser is free to read it as
+     its own back/forward swipe, and the row never moves; overscroll-behavior
+     stops the gesture escaping to the page once the row hits an end. */
+  touch-action: pan-x;
+  overscroll-behavior-x: contain;
+  -webkit-overflow-scrolling: touch;
+}
 .chips::-webkit-scrollbar { display: none; }
 .chip {
   flex: none; min-height: 38px; padding: 9px 14px; border-radius: 20px; font-size: 13px; font-weight: 500;
