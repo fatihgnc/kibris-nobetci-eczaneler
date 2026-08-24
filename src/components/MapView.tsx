@@ -9,6 +9,8 @@ export interface MapPoint {
   lat: number;
   lng: number;
   statusClass: string; // s-open | s-warn | s-oncall | s-closed
+  /** Filtered out: drawn as faded context, not part of the fit, not clickable. */
+  muted: boolean;
 }
 
 interface Props {
@@ -136,18 +138,19 @@ export default function MapView({ points, me, selId, fitSignal, onSelect, theme 
       }).addTo(layer);
     }
     for (const p of points) {
-      const sel = p.id === selId;
-      L.marker([p.lat, p.lng], {
+      const sel = p.id === selId && !p.muted;
+      const marker = L.marker([p.lat, p.lng], {
         icon: L.divIcon({
           className: "",
-          html: `<div class="pin ${p.statusClass} ${sel ? "sel" : ""}"><i></i></div>`,
+          html: `<div class="pin ${p.statusClass} ${p.muted ? "muted" : ""} ${sel ? "sel" : ""}"><i></i></div>`,
           iconSize: sel ? [34, 34] : [26, 26],
           iconAnchor: sel ? [17, 17] : [13, 13],
         }),
-        zIndexOffset: sel ? 400 : 0,
-      })
-        .addTo(layer)
-        .on("click", () => onSelectRef.current(p.id));
+        // Muted pins sit under the rest so a dense region still reads.
+        zIndexOffset: sel ? 400 : p.muted ? -200 : 0,
+        interactive: !p.muted,
+      }).addTo(layer);
+      if (!p.muted) marker.on("click", () => onSelectRef.current(p.id));
     }
     m.invalidateSize();
   }, [points, me, selId]);
@@ -164,7 +167,11 @@ export default function MapView({ points, me, selId, fitSignal, onSelect, theme 
     const m = mapRef.current;
     if (!m) return;
     const fit = () => {
-      const pts: [number, number][] = points.map((p) => [p.lat, p.lng] as [number, number]);
+      // Only what the filter actually selected: fitting the muted pins too
+      // would zoom back out to the whole island on every region change.
+      const pts: [number, number][] = points
+        .filter((p) => !p.muted)
+        .map((p) => [p.lat, p.lng] as [number, number]);
       if (me) pts.push(me);
       m.invalidateSize();
       // Let the fit choose freely; the floor is applied to its result below.
@@ -193,7 +200,7 @@ export default function MapView({ points, me, selId, fitSignal, onSelect, theme 
   useEffect(() => {
     const m = mapRef.current;
     if (!m || selId === null) return;
-    const p = points.find((x) => x.id === selId);
+    const p = points.find((x) => x.id === selId && !x.muted);
     if (p) m.setView([p.lat, p.lng], 14, { animate: true });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selId]);

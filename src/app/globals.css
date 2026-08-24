@@ -176,6 +176,9 @@ button { font: inherit; color: inherit; border: 0; background: none; cursor: poi
   width: 26px; height: 26px; border-radius: 50%; display: block; background: var(--accent);
   box-shadow: 0 2px 8px rgba(0, 0, 0, .45); border: 2px solid var(--bg);
 }
+/* Filtered out but still drawn, so the map keeps its shape when a region is
+   picked. Faded right back and with no shadow, so it never competes. */
+.pin.muted i { opacity: .3; box-shadow: none; }
 /* No outline here — an accent ring on an accent dot is invisible. The halo
    picks the selected pin out of a cluster instead. */
 .pin.sel i {

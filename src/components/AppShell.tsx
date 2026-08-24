@@ -165,27 +165,32 @@ export default function AppShell() {
     return () => clearInterval(id);
   }, []);
 
-  const list: Listed[] = useMemo(() => {
+  // Every on-duty pharmacy, region filter not yet applied: the map draws the
+  // ones outside the filter too, dimmed, so the filter never looks like the
+  // island has emptied out.
+  const all: Listed[] = useMemo(() => {
     if (!data) return [];
-    const filtered = data.pharmacies
-      .filter((p) => !region || p.region === region)
-      .map((p) => ({
-        ...p,
-        liveStatus: deriveStatus(
-          {
-            opensAt: p.opensAt,
-            closesAt: p.closesAt,
-            oncallFrom: p.onCall?.from ?? null,
-            oncallTo: p.onCall?.to ?? null,
-          },
-          nowMin
-        ),
-        dist:
-          p.distanceKm ??
-          (coords && p.lat !== null && p.lng !== null
-            ? Math.round(kmBetween(coords, [p.lat, p.lng]) * 10) / 10
-            : null),
-      }));
+    return data.pharmacies.map((p) => ({
+      ...p,
+      liveStatus: deriveStatus(
+        {
+          opensAt: p.opensAt,
+          closesAt: p.closesAt,
+          oncallFrom: p.onCall?.from ?? null,
+          oncallTo: p.onCall?.to ?? null,
+        },
+        nowMin
+      ),
+      dist:
+        p.distanceKm ??
+        (coords && p.lat !== null && p.lng !== null
+          ? Math.round(kmBetween(coords, [p.lat, p.lng]) * 10) / 10
+          : null),
+    }));
+  }, [data, coords, nowMin]);
+
+  const list: Listed[] = useMemo(() => {
+    const filtered = all.filter((p) => !region || p.region === region);
     if (coords) {
       filtered.sort((a, b) => (a.dist ?? Infinity) - (b.dist ?? Infinity));
     } else {
@@ -198,19 +203,22 @@ export default function AppShell() {
       );
     }
     return filtered;
-  }, [data, region, coords, nowMin]);
+  }, [all, region, coords]);
 
   const points: MapPoint[] = useMemo(
     () =>
-      list
+      all
         .filter((p) => p.lat !== null && p.lng !== null)
         .map((p) => ({
           id: p.id,
           lat: p.lat as number,
           lng: p.lng as number,
           statusClass: STATUS_CLASS[p.liveStatus],
+          // Outside the filter: context only, so it is dimmed, ignored by the
+          // fit, and not clickable — its card is not in the list to open.
+          muted: region !== null && p.region !== region,
         })),
-    [list]
+    [all, region]
   );
 
   const selected = sel !== null ? list.find((p) => p.id === sel) ?? null : null;
@@ -223,10 +231,18 @@ export default function AppShell() {
       else params.delete("region");
       const qs = params.toString();
       router.replace(`${pathname}${qs ? `?${qs}` : ""}`, { scroll: false });
-      bumpFit();
     },
-    [searchParams, router, pathname, bumpFit]
+    [searchParams, router, pathname]
   );
+
+  // Refit once the region has actually landed in the URL. setRegion only asks
+  // the router to navigate, so fitting inside it would still see the old set.
+  const fittedRegion = useRef<RegionCode | null | undefined>(undefined);
+  useEffect(() => {
+    const first = fittedRegion.current === undefined;
+    fittedRegion.current = region;
+    if (!first) bumpFit();
+  }, [region, bumpFit]);
 
   const select = useCallback(
     (id: number) => {
