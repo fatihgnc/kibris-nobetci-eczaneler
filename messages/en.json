@@ -2,8 +2,11 @@
   "app": {
     "name": "acikeczanevarmi.com",
     "shortName": "Açık Eczane",
-    "title": "acikeczanevarmi.com — North Cyprus On-Duty Pharmacy",
-    "description": "Shows tonight's on-duty pharmacies in Northern Cyprus on a map and in a list."
+    "title": "North Cyprus On-Duty Pharmacies — Open Tonight",
+    "description": "Pharmacies on duty tonight in Northern Cyprus. See every open pharmacy's location, phone number and duty hours on the map.",
+    "ogTitle": "Which pharmacy is on duty tonight in North Cyprus?",
+    "ogDescription": "Find the nearest on-duty pharmacy on the map and call it in one tap. Duty hours and directions included.",
+    "ogImageAlt": "acikeczanevarmi.com — map of on-duty pharmacies in North Cyprus"
   },
   "header": {
     "dutyNight": "Night duty, {weekday} <b>{dayMonth}</b>",

@@ -2,8 +2,11 @@
   "app": {
     "name": "acikeczanevarmi.com",
     "shortName": "Açık Eczane",
-    "title": "acikeczanevarmi.com — KKTC Nöbetçi Eczane",
-    "description": "Kuzey Kıbrıs'ta bu gece nöbetçi olan eczaneleri haritada ve listede gösterir."
+    "title": "KKTC Nöbetçi Eczaneler — Bu Gece Açık Olanlar",
+    "description": "Kuzey Kıbrıs'ta bu gece nöbetçi olan eczaneler. Haritadan açık olan nöbetçi eczanelerin konumunu, telefon numarasını ve nöbet saatini görüntüleyin.",
+    "ogTitle": "KKTC'de bu gece hangi eczane nöbetçi?",
+    "ogDescription": "Size en yakın nöbetçi eczaneyi haritada görün, tek dokunuşla arayın. Nöbet saatleri ve yol tarifi dahil.",
+    "ogImageAlt": "acikeczanevarmi.com — KKTC nöbetçi eczane haritası"
   },
   "header": {
     "dutyNight": "<b>{dayMonth}</b> {weekday} gecesi nöbeti",
