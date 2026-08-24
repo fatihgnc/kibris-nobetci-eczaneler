@@ -1,7 +1,8 @@
 {
   "app": {
-    "name": "Nöbetçi",
-    "title": "On-Duty Pharmacy — North Cyprus",
+    "name": "acikeczanevarmi.com",
+    "shortName": "Açık Eczane",
+    "title": "acikeczanevarmi.com — North Cyprus On-Duty Pharmacy",
     "description": "Shows tonight's on-duty pharmacies in Northern Cyprus on a map and in a list."
   },
   "header": {

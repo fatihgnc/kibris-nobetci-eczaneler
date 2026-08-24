@@ -2,8 +2,9 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "Nöbetçi Eczane — KKTC",
-    short_name: "Nöbetçi",
+    name: "acikeczanevarmi.com — KKTC Nöbetçi Eczane",
+    // Short enough to survive the home-screen label, where the domain is cut off.
+    short_name: "Açık Eczane",
     description: "Kuzey Kıbrıs'ta bu gece nöbetçi olan eczaneler",
     start_url: "/",
     display: "standalone",

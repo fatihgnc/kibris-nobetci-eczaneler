@@ -1,7 +1,8 @@
 {
   "app": {
-    "name": "Nöbetçi",
-    "title": "Nöbetçi Eczane — KKTC",
+    "name": "acikeczanevarmi.com",
+    "shortName": "Açık Eczane",
+    "title": "acikeczanevarmi.com — KKTC Nöbetçi Eczane",
     "description": "Kuzey Kıbrıs'ta bu gece nöbetçi olan eczaneleri haritada ve listede gösterir."
   },
   "header": {

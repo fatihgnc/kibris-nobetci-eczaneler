@@ -689,7 +689,6 @@ export default function AppShell() {
           <div className="panel">
             <div className="topbar">
               <div className="brand">
-                <span className="mark" aria-hidden="true" />
                 <b>{t("app.name")}</b>
               </div>
               <div className="datechip" style={{ visibility: "hidden" }} />
@@ -741,7 +740,6 @@ export default function AppShell() {
     <div className="app" ref={appRef}>
       <div className="topbar">
         <div className="brand">
-          <span className="mark" aria-hidden="true" />
           <b>{t("app.name")}</b>
         </div>
         <div className="datechip">

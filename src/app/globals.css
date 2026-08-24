@@ -90,16 +90,15 @@ button { font: inherit; color: inherit; border: 0; background: none; cursor: poi
 
 /* top bar */
 .topbar {
-  display: flex; align-items: center; gap: 8px;
+  display: flex; align-items: center; gap: 6px;
   padding: 14px 14px 10px;
   padding-top: max(14px, env(safe-area-inset-top));
   background: var(--bg); position: relative; z-index: 500;
 }
-.brand { display: flex; align-items: center; gap: 8px; flex: 0 0 auto; }
-.mark { width: 26px; height: 26px; border-radius: 8px; background: var(--accent); position: relative; flex: none; }
-.mark::after { content: ""; position: absolute; inset: 9px 6px; border-radius: 2px; background: var(--accent-ink); }
-.mark::before { content: ""; position: absolute; inset: 6px 9px; border-radius: 2px; background: var(--accent-ink); }
-.brand b { font-size: 15px; font-weight: 700; letter-spacing: -.01em; }
+.brand { display: flex; align-items: center; flex: 0 0 auto; }
+/* The name is a domain, so it is longer than a wordmark: kept small enough on
+   phones that the date beside it still has room to read. */
+.brand b { font-size: 12.5px; font-weight: 700; letter-spacing: -.01em; }
 .datechip {
   flex: 1 1 auto; min-width: 0; text-align: center; font-size: 12.5px; color: var(--text-2);
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
@@ -275,7 +274,8 @@ button { font: inherit; color: inherit; border: 0; background: none; cursor: poi
 /* ---------- desktop layout (≥1024px) ---------- */
 .deskgrid { display: grid; grid-template-columns: 400px 1fr; grid-template-rows: minmax(0, 1fr); height: 100%; }
 .panel { display: flex; flex-direction: column; border-right: 1px solid var(--line); min-width: 0; min-height: 0; overflow: hidden; background: var(--bg); }
-.panel .topbar { padding: 16px 18px 12px; }
+.panel .topbar { padding: 16px 18px 12px; gap: 8px; }
+.panel .brand b { font-size: 15px; }
 .panel .list { padding: 0 14px 10px; flex: 1; min-height: 0; }
 .deskmap { position: relative; min-height: 0; overflow: hidden; }
 .deskmap .mapwrap { inset: 0; }

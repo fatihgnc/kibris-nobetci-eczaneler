@@ -22,7 +22,7 @@ export async function sendFailureAlert(payload: AlertPayload): Promise<void> {
   if (!url) return;
 
   const summary =
-    `🔴 Nöbetçi Eczane — duty sync ${payload.status}` +
+    `🔴 acikeczanevarmi.com — duty sync ${payload.status}` +
     `\nDuty date: ${payload.dutyDate ?? "—"}` +
     `\nRows written: ${payload.rowsWritten}` +
     (payload.error ? `\nError: ${payload.error}` : "") +

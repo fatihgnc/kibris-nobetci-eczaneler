@@ -43,7 +43,7 @@ export async function generateMetadata({
       ],
       apple: "/apple-touch-icon.png",
     },
-    appleWebApp: { capable: true, title: t("name"), statusBarStyle: "black-translucent" },
+    appleWebApp: { capable: true, title: t("shortName"), statusBarStyle: "black-translucent" },
   };
 }
 

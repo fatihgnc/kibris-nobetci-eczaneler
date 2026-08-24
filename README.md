@@ -1,4 +1,4 @@
-# Nöbetçi — Northern Cyprus On-Duty Pharmacy Finder
+# acikeczanevarmi.com — Northern Cyprus On-Duty Pharmacy Finder
 
 Shows the on-duty ("nöbetçi") pharmacies nearest to the user, on a map and in a
 list, with one-tap calling and directions. Mobile-first; built per [SPEC.md](SPEC.md)
