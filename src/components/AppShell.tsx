@@ -768,6 +768,11 @@ export default function AppShell() {
               <div className="datechip" style={{ visibility: "hidden" }} />
               {localeSwitch}
             </div>
+            {/* Its own row under the name and the locale switch, so neither of
+                those has to grow a line to make room for it. Desktop only: the
+                phone's topbar already shares one tight row with the date and
+                the locate button. */}
+            <p className="tagline">{t("app.tagline")}</p>
             <div className="deskbar">
               <div className="datechip">
                 {t.rich("header.dutyNightShort", { b: (c) => <strong>{c}</strong>, ...dutyParts })}
