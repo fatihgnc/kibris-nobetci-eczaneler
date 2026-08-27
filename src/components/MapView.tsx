@@ -100,8 +100,41 @@ function lockZoomOut(m: L.Map) {
   m.setMinZoom(Math.min(m.getZoom(), islandZoom(m)));
 }
 
+/**
+ * The live map, kept alive across unmounts.
+ *
+ * Switching TR/EN navigates between two route segments, so React tears this
+ * component down and builds a new one. Leaflet does not survive that: the old
+ * instance is destroyed, a new one starts at the island view and every tile is
+ * fetched again, which reads as the map resetting itself for a change that
+ * only touches labels.
+ *
+ * So the instance and the element it is bound to outlive the component. On
+ * mount the kept element is re-parented into the fresh host and the same map
+ * carries on — same centre, same zoom, same tiles already painted. Only the
+ * host div belongs to React.
+ *
+ * Nothing calls map.remove(): this app shows the map on every screen, so the
+ * instance is never garbage to collect, and destroying it is precisely the
+ * behaviour being fixed here.
+ */
+let keptEl: HTMLDivElement | null = null;
+let keptMap: L.Map | null = null;
+let keptLayer: L.LayerGroup | null = null;
+/**
+ * Set when a mount adopts the kept map instead of building one, and consumed
+ * by the fit effect on the same pass so it leaves the carried-over view alone.
+ *
+ * A per-component ref cannot do this job: StrictMode runs mount, cleanup and
+ * mount again on the same instance, so a ref set on the first pass is already
+ * spent when the second one arrives and the fit slips through.
+ */
+let carriedOver = false;
+/** Whether the pins have ever been framed. Until they have, every mount fits. */
+let everFitted = false;
+
 export default function MapView({ points, me, selId, fitSignal, onSelect, bottomInset = 0 }: Props) {
-  const elRef = useRef<HTMLDivElement>(null);
+  const hostRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<L.Map | null>(null);
   const layerRef = useRef<L.LayerGroup | null>(null);
   const onSelectRef = useRef(onSelect);
@@ -110,29 +143,49 @@ export default function MapView({ points, me, selId, fitSignal, onSelect, bottom
   insetRef.current = bottomInset;
 
   useEffect(() => {
-    if (!elRef.current || mapRef.current) return;
-    const m = L.map(elRef.current, {
-      zoomControl: false,
-      attributionControl: true,
-      scrollWheelZoom: true,
-      fadeAnimation: false,
-      // A solid wall rather than a rubber band: viscosity 1 stops the drag at
-      // the edge instead of letting it spring past and snap back.
-      maxBounds: ISLAND,
-      maxBoundsViscosity: 1,
-    });
-    L.tileLayer(BASEMAP, {
-      attribution: TILE_ATTRIBUTION,
-      maxZoom: 19,
-    }).addTo(m);
-    m.setView(CYPRUS_CENTER, 9);
-    lockZoomOut(m);
-    layerRef.current = L.layerGroup().addTo(m);
-    mapRef.current = m;
-    const t = setTimeout(() => m.invalidateSize(), 60);
+    const host = hostRef.current;
+    if (!host) return;
+
+    if (keptMap) carriedOver = true;
+
+    if (!keptMap || !keptEl || !keptLayer) {
+      keptEl = document.createElement("div");
+      keptEl.className = "mapcanvas";
+      // Leaflet measures the element when the map is created, so it has to be
+      // in the document and sized before L.map runs.
+      host.appendChild(keptEl);
+      const m = L.map(keptEl, {
+        zoomControl: false,
+        attributionControl: true,
+        scrollWheelZoom: true,
+        fadeAnimation: false,
+        // A solid wall rather than a rubber band: viscosity 1 stops the drag at
+        // the edge instead of letting it spring past and snap back.
+        maxBounds: ISLAND,
+        maxBoundsViscosity: 1,
+      });
+      L.tileLayer(BASEMAP, {
+        attribution: TILE_ATTRIBUTION,
+        maxZoom: 19,
+      }).addTo(m);
+      m.setView(CYPRUS_CENTER, 9);
+      lockZoomOut(m);
+      keptLayer = L.layerGroup().addTo(m);
+      keptMap = m;
+    } else if (keptEl.parentNode !== host) {
+      host.appendChild(keptEl);
+    }
+
+    mapRef.current = keptMap;
+    layerRef.current = keptLayer;
+    // The host is a different box after a remount even when it looks the same,
+    // so Leaflet has to re-measure before it draws.
+    const t = setTimeout(() => keptMap?.invalidateSize(), 60);
     return () => {
       clearTimeout(t);
-      m.remove();
+      // Detach, never destroy: the element goes back to holding the live map
+      // until the next host asks for it.
+      if (keptEl && keptEl.parentNode === host) host.removeChild(keptEl);
       mapRef.current = null;
       layerRef.current = null;
     };
@@ -166,7 +219,11 @@ export default function MapView({ points, me, selId, fitSignal, onSelect, bottom
       }).addTo(layer);
       if (!p.muted) marker.on("click", () => onSelectRef.current(p.id));
     }
-    m.invalidateSize();
+    // No invalidateSize here. Re-measuring while maxBounds is set makes Leaflet
+    // pan the view back inside the wall, and this effect also runs on the
+    // short-lived mount into the phone layout, where the container is a
+    // different shape — the correction it made there followed the map into the
+    // desktop container and showed up as the view drifting on every switch.
   }, [points, me, selId]);
 
   // Fit all points (recenter button, data / filter changes)
@@ -187,19 +244,68 @@ export default function MapView({ points, me, selId, fitSignal, onSelect, bottom
       // nearly the whole map, and Leaflet cannot fit into a negative box.
       const usable = Math.max(0, m.getSize().y - insetRef.current - 92);
       const bottom = usable > 80 ? insetRef.current + 46 : 46;
+      /*
+       * Every move here is animate: false, and it has to be.
+       *
+       * An animated fitBounds settles over the next few frames, but the two
+       * calls below run immediately: lockZoomOut would read the zoom the map
+       * is leaving rather than the one it is heading for, and setMaxBounds
+       * pans the view inside the wall right away, which cancels the flight
+       * mid-air and drops the map back where it started. The old code hid this
+       * by fitting twice, 80ms apart — the second pass landed after the first
+       * had settled. Jumping straight there needs no second pass.
+       */
       if (pts.length > 1) {
         m.fitBounds(pts, {
           paddingTopLeft: [46, 46],
           paddingBottomRight: [46, bottom],
           maxZoom: 12,
+          animate: false,
         });
-      } else if (pts.length === 1) m.setView(pts[0], 13);
-      else m.setView(CYPRUS_CENTER, 9);
+      } else if (pts.length === 1) m.setView(pts[0], 13, { animate: false });
+      else m.setView(CYPRUS_CENTER, 9, { animate: false });
       lockZoomOut(m);
       m.setMaxBounds(wallFor(m, insetRef.current));
     };
-    fit();
-    const t = setTimeout(fit, 80);
+    // A remount is not a reason to re-frame: the user's pan and zoom is the
+    // view they left behind, and a locale switch should not take it. Until the
+    // pins have been framed once, though, every mount still owes them a fit.
+    if (carriedOver && everFitted) {
+      carriedOver = false;
+      // Deferred for the same reason as the fit below: the mount into the
+      // phone layout must not re-measure a map it is about to hand over.
+      const keep = setTimeout(() => {
+        // Only when the box actually changed. Re-measuring, and re-applying a
+        // wall the map already has, both make Leaflet pan the view back inside
+        // that wall — which nudged the map a few tens of pixels on every
+        // switch, for a container that had not moved at all.
+        const host = hostRef.current;
+        const size = m.getSize();
+        if (host && (host.clientWidth !== size.x || host.clientHeight !== size.y)) {
+          m.invalidateSize();
+          m.setMaxBounds(wallFor(m, insetRef.current));
+        }
+      }, 90);
+      return () => clearTimeout(keep);
+    }
+    carriedOver = false;
+
+    /*
+     * Deferred, and cancelled if this mount does not survive the delay.
+     *
+     * useIsDesktop cannot read the media query during the first render without
+     * breaking hydration, so it reports "mobile" and corrects itself in an
+     * effect. Every arrival therefore mounts this component twice: once into
+     * the phone layout, once into the desktop one, a frame apart. A fit that
+     * ran immediately would frame the pins for the container being thrown
+     * away, and — worse — would mark them framed, so the container that
+     * survives would inherit a view fitted to the wrong box. Waiting lets the
+     * short-lived mount die before it can claim anything.
+     */
+    const t = setTimeout(() => {
+      everFitted = true;
+      fit();
+    }, 90);
     return () => clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fitSignal, bottomInset]);
@@ -213,5 +319,5 @@ export default function MapView({ points, me, selId, fitSignal, onSelect, bottom
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selId]);
 
-  return <div className="map" ref={elRef} />;
+  return <div className="map" ref={hostRef} />;
 }
