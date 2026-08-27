@@ -143,19 +143,43 @@ export default function AppShell() {
     );
   }, []);
 
-  // Render a full page first, then only auto-locate when permission is
-  // already granted — never prompt on load (SPEC §7).
+  /**
+   * Ask for location as soon as the user arrives.
+   *
+   * SPEC §7 requires a full page before the permission prompt, not the absence
+   * of one, so the roster is awaited first: the browser dialog then opens over
+   * a list the user can already read and use, and dismissing it leaves them
+   * exactly where they were. Denial stays a normal path — the region filter
+   * carries the whole app without coordinates.
+   *
+   * Only a `prompt` or already-`granted` state reaches getCurrentPosition. A
+   * standing `denied` is not worth calling into: the browser answers instantly
+   * from the stored decision without showing anything, so it would only flash
+   * the "locating" state on the way to a refusal the user already gave.
+   */
   useEffect(() => {
-    load();
-    if (typeof navigator !== "undefined" && navigator.permissions?.query) {
-      navigator.permissions
-        .query({ name: "geolocation" })
-        .then((res) => {
-          if (res.state === "granted") locate();
-          else if (res.state === "denied") setLocMode("denied");
-        })
-        .catch(() => {});
-    }
+    let cancelled = false;
+    (async () => {
+      await load();
+      if (cancelled || typeof navigator === "undefined") return;
+      if (!navigator.permissions?.query) {
+        // Safari before 16 has no Permissions API for geolocation; asking is
+        // the only way to find out where we stand.
+        locate();
+        return;
+      }
+      try {
+        const res = await navigator.permissions.query({ name: "geolocation" });
+        if (cancelled) return;
+        if (res.state === "denied") setLocMode("denied");
+        else locate();
+      } catch {
+        if (!cancelled) locate();
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
