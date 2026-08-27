@@ -449,16 +449,51 @@ so keep source data untouched.
 
 ## 12. Acceptance criteria
 
-- [ ] Opened at 01:30, the app shows the previous day's roster
-- [ ] With location granted, the list sorts by distance, nearest first
-- [ ] With location denied, the app is fully usable via region selection
-- [ ] "Call" opens the dialler with the correct number
-- [ ] "Directions" resolves to the correct coordinates
-- [ ] A pharmacy in its on-call window is not labelled as open
-- [ ] With the scraper deliberately broken, the app serves the last known data
+All verified on 2026-08-27 against the live database and the running app.
+Timing-dependent criteria were checked by evaluating the pure functions at the
+relevant instant rather than by waiting for it; UI criteria were measured in
+the DOM.
+
+- [x] Opened at 01:30, the app shows the previous day's roster
+      — `dutyDateFor()` at 01:30 local returns the previous date (unit tests
+      cover both DST offsets), and the roster for that date comes back with
+      the expected shifts
+- [x] With location granted, the list sorts by distance, nearest first
+      — with the position fixed at Gazimağusa the list ordered 0.0 / 2.4 / 18 /
+      28 / 43 km and the heading switched to "Size en yakın"
+- [x] With location denied, the app is fully usable via region selection
+      — selecting Girne narrowed the list to that region, put it in the URL,
+      and left the other pharmacies on the map dimmed
+- [x] "Call" opens the dialler with the correct number
+      — every phone number in a real duty roster produces a well-formed `tel:`
+      href; none is missing
+- [x] "Directions" resolves to the correct coordinates
+      — every pharmacy on a real roster has coordinates and its Maps URL
+      carries them unchanged
+- [x] A pharmacy in its on-call window is not labelled as open
+      — a shift open 08:00–22:00 with the pharmacist on call to midnight reads
+      OPEN at 21:00, CLOSING_SOON at 21:30, ON_CALL at 22:30 and 23:30, CLOSED
+      at 01:30
+- [x] With the scraper deliberately broken, the app serves the last known data
       behind a `stale` notice
-- [ ] Every region has at least one listed pharmacy (data integrity check)
-- [ ] Attribution and the confirmation warning are visible in both locales
-- [ ] Switching to English translates the interface while pharmacy names,
+      — `runDutySync` against an unparseable page and against a failing fetch
+      writes nothing to `duty_shifts` and marks the run failed
+      (`scrape/__tests__/sync-duty.test.ts`); the banner renders in both
+      locales
+- [x] Every region has at least one listed pharmacy (data integrity check)
+      — 432 pharmacies, all nine regions populated (Lefkoşa 168 … Karpaz 8),
+      no NULL region
+- [x] Attribution and the confirmation warning are visible in both locales
+- [x] Switching to English translates the interface while pharmacy names,
       addresses, and region labels remain in Turkish
-- [ ] The locale choice survives reload and is reflected in `<html lang>`
+      — "On duty tonight / 13 pharmacies / Call / Directions" alongside
+      "Gönyeli Yıldız Eczanesi, Lefkoşa, Atatürk Cd."
+- [x] The locale choice survives reload and is reflected in `<html lang>`
+      — `NEXT_LOCALE=en` persists, `/` resolves to `/en`, `<html lang="en">`
+
+The run also surfaced a failure mode none of the criteria named: the duty day
+rolls over at 08:00 while the sync runs on its own schedule, so the app can
+ask for a date nothing has written yet. It then reported an empty roster as a
+quiet night, with no notice, because the stale flag only measured the age of
+the last sync. An empty roster now counts as stale (§6), and the sync runs
+again just after the rollover.
