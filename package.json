@@ -9,7 +9,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "seed": "tsx scripts/seed-pharmacies.ts",
-    "sync-duty": "tsx scripts/sync-duty.ts"
+    "sync-duty": "tsx scripts/sync-duty.ts",
+    "coords": "tsx scripts/manual-coords.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.45.4",
