@@ -14,12 +14,24 @@ name: Sync duty roster
 
 on:
   schedule:
-    # 03:00 / 09:00 / 17:00 UTC — roughly 06:00 / 12:00 / 20:00 in Nicosia.
     # GitHub queues scheduled runs and can start them late under load, which is
     # fine: the roster changes once a day, not by the minute.
-    - cron: "0 3 * * *"
-    - cron: "0 9 * * *"
-    - cron: "0 17 * * *"
+    #
+    # The two morning runs are the ones that matter. The duty day rolls over at
+    # 08:00 Nicosia time, so from that moment the app asks for a date nothing
+    # has written yet — on 27 Aug 2026 that left the live site showing an empty
+    # list all morning while KTEB had already published the roster.
+    #
+    # Cron is fixed UTC while Nicosia moves with DST, so one run cannot land
+    # just after 08:00 local all year: 05:30 UTC is 08:30 in summer but 07:30
+    # in winter, still before the rollover. Both are scheduled, and whichever
+    # one falls before the rollover simply rewrites the day that is already
+    # there — the upsert is idempotent, so the cost of the extra run is nil.
+    - cron: "0 3 * * *" #  06:00 summer / 05:00 winter, local
+    - cron: "30 5 * * *" # 08:30 summer / 07:30 winter — rollover run (summer)
+    - cron: "30 6 * * *" # 09:30 summer / 08:30 winter — rollover run (winter)
+    - cron: "0 9 * * *" #  12:00 summer / 11:00 winter
+    - cron: "0 17 * * *" # 20:00 summer / 19:00 winter
   workflow_dispatch: # manual trigger from the Actions tab
 
 concurrency:
