@@ -65,8 +65,8 @@
   },
   "empty": {
     "title": "No on-duty pharmacy in {region}",
-    "titleAll": "No duty records found for tonight",
-    "body": "There is no recorded duty for tonight. Widen the filter to check other regions."
+    "titleAll": "No on-duty pharmacy found for tonight",
+    "body": "No on-duty pharmacy is listed for tonight. Widen the filter to check other regions."
   },
   "error": {
     "title": "Couldn't load the list",
