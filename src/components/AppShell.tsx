@@ -17,6 +17,7 @@ import { Link, usePathname, useRouter } from "@/i18n/navigation";
 import { dutyDateFor, dutyMinutesFor } from "@/lib/duty-date";
 import {
   directionsUrl,
+  mapSearchUrl,
   formatAgo,
   formatClock,
   formatDistanceKm,
@@ -404,6 +405,23 @@ export default function AppShell() {
       </div>
     ) : null;
 
+  /**
+   * Where the "Yol Tarifi" button goes.
+   *
+   * KTEB leaves the map iframe off some detail pages, so those pharmacies
+   * reach us with no coordinates: no pin on the map, nothing to focus when
+   * their card is tapped. Dropping the button as well left the user with an
+   * address on screen and no way to act on it, so they fall back to a Maps
+   * search on the name and address — good enough to start driving, and the
+   * card says plainly that this one is not on our map.
+   */
+  const mapsHref = (p: Listed) =>
+    p.lat !== null && p.lng !== null
+      ? directionsUrl(p.lat, p.lng)
+      : // The address already names its town, so the region is the fallback for
+        // when there is no address at all, not an addition to one.
+        mapSearchUrl(p.name, p.address ?? (p.region ? REGION_LABEL[p.region] : null), "KKTC");
+
   const card = (p: Listed) => {
     const cls = STATUS_CLASS[p.liveStatus];
     const callFirst = p.liveStatus === "ON_CALL" || p.liveStatus === "CLOSED";
@@ -448,18 +466,16 @@ export default function AppShell() {
               {t("actions.call")}
             </a>
           )}
-          {p.lat !== null && p.lng !== null && (
-            <a
-              className={`btn ${callFirst ? "sec" : "pri"}`}
-              href={directionsUrl(p.lat, p.lng)}
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <NavIcon />
-              {t("actions.directions")}
-            </a>
-          )}
+          <a
+            className={`btn ${callFirst ? "sec" : "pri"}`}
+            href={mapsHref(p)}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <NavIcon />
+            {t("actions.directions")}
+          </a>
         </div>
       </article>
     );
@@ -584,18 +600,21 @@ export default function AppShell() {
                 {t("actions.call")}
               </a>
             )}
-            {p.lat !== null && p.lng !== null && (
-              <a
-                className={`btn ${callFirst ? "sec" : "pri"}`}
-                href={directionsUrl(p.lat, p.lng)}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                <NavIcon />
-                {t("actions.directions")}
-              </a>
-            )}
+            <a
+              className={`btn ${callFirst ? "sec" : "pri"}`}
+              href={mapsHref(p)}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <NavIcon />
+              {t("actions.directions")}
+            </a>
           </div>
+          {(p.lat === null || p.lng === null) && (
+            // Otherwise selecting this pharmacy looks broken: the map does not
+            // move, because there is no pin of its to move to.
+            <div className="nopinnote">{t("detail.noPin")}</div>
+          )}
           {p.liveStatus === "ON_CALL" && p.onCall && (
             <div className="oncallnote">
               {t.rich("detail.oncallNote", {

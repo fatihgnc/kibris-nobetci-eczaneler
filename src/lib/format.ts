@@ -75,6 +75,18 @@ export function directionsUrl(lat: number, lng: number): string {
 }
 
 /**
+ * Google Maps search URL, for the pharmacies KTEB publishes without an
+ * embedded map — a name and an address are all we have for them, and handing
+ * those to Maps still gets the user moving. Nothing here is a coordinate, so
+ * callers must not treat the result as a pin: there is no marker to focus and
+ * no distance to compute.
+ */
+export function mapSearchUrl(...parts: (string | null | undefined)[]): string {
+  const q = parts.filter(Boolean).join(", ");
+  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(q)}`;
+}
+
+/**
  * Drive estimate: under an hour stays "43 dk" / "43 min", above it splits into
  * hours + minutes so a long haul does not read as a three-digit minute count.
  */
