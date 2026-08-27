@@ -171,7 +171,12 @@ button { font: inherit; color: inherit; border: 0; background: none; cursor: poi
   transition: transform .34s cubic-bezier(.22, .9, .24, 1);
 }
 .sheet.dragging { transition: none; }
-.grab { padding: 9px 0 5px; display: grid; place-items: center; cursor: grab; touch-action: none; }
+/* The whole drag surface: bar plus heading. touch-action none belongs here,
+   on the element that actually receives the pointer, or the browser claims the
+   gesture for scrolling before the handler sees the second move. */
+.sheetdrag { touch-action: none; cursor: grab; }
+.sheetdrag:active { cursor: grabbing; }
+.grab { padding: 9px 0 5px; display: grid; place-items: center; }
 .grab span { width: 42px; height: 4px; border-radius: 3px; background: var(--line); }
 .sheethead { display: flex; align-items: baseline; gap: 9px; padding: 1px 16px 10px; }
 .sheethead h2 { margin: 0; font-size: 15.5px; font-weight: 600; letter-spacing: -.01em; }

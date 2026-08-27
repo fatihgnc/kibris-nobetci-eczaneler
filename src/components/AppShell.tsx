@@ -866,18 +866,24 @@ export default function AppShell() {
         </div>
       </div>
       <section className="sheet" ref={sheetRef} aria-label={t("list.title")}>
+        {/* The handle and the heading drag together. On a phone the bar alone
+            is a ~18px strip to land a thumb on, and the row under it looks
+            just as grabbable — missing it read as a sheet that would not
+            open at all. */}
         <div
-          className="grab"
+          className="sheetdrag"
           onPointerDown={onGrabPointerDown}
           onPointerMove={onGrabPointerMove}
           onPointerUp={onGrabPointerUp}
         >
-          <span />
-        </div>
-        <div className="sheethead">
-          <h2>{titleTxt}</h2>
-          <span className="n">{countTxt}</span>
-          <span className="sortbtn">{coords ? t("list.sortDistance") : t("list.sortRegion")}</span>
+          <div className="grab">
+            <span />
+          </div>
+          <div className="sheethead">
+            <h2>{titleTxt}</h2>
+            <span className="n">{countTxt}</span>
+            <span className="sortbtn">{coords ? t("list.sortDistance") : t("list.sortRegion")}</span>
+          </div>
         </div>
         <div className="list">{listContent}</div>
         {foot}
