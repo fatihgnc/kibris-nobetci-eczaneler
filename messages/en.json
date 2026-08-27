@@ -11,7 +11,6 @@
   },
   "header": {
     "dutyNight": "Night duty, {weekday} <b>{dayMonth}</b>",
-    "findMe": "Find my location",
     "recenter": "Recenter map",
     "switchLocale": "Türkçe'ye geç",
     "dutyNightShort": "Night duty, {weekday} <b>{dayMonth}</b>",

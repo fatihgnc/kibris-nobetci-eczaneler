@@ -1,15 +1,5 @@
 // Inline SVG icons — geometry copied from the design prototype.
 
-export function LocateIcon() {
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden="true">
-      <circle cx="12" cy="12" r="3.2" />
-      <circle cx="12" cy="12" r="8" />
-      <path d="M12 1.5v3M12 19.5v3M1.5 12h3M19.5 12h3" />
-    </svg>
-  );
-}
-
 export function RecenterIcon() {
   return (
     <svg viewBox="0 0 24 24" aria-hidden="true">

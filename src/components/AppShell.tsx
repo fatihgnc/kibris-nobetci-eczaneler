@@ -29,7 +29,7 @@ import {
 import { isRegionCode, REGION_LABEL, REGION_ORDER, type RegionCode } from "@/lib/regions";
 import { deriveStatus, type DutyStatus } from "@/lib/status";
 import type { OnDutyPharmacy, OnDutyResponse } from "@/lib/types";
-import { CloseIcon, LocateIcon, NavIcon, PhoneIcon, RecenterIcon } from "./icons";
+import { CloseIcon, NavIcon, PhoneIcon, RecenterIcon } from "./icons";
 import type { MapPoint } from "./MapView";
 
 const MapView = dynamic(() => import("./MapView"), { ssr: false });
@@ -755,17 +755,6 @@ export default function AppShell() {
     </div>
   );
 
-  const locButton = (
-    <button
-      className={`iconbtn ${locMode === "granted" ? "on" : ""}`}
-      onClick={() => (locMode === "granted" ? bumpFit() : locate())}
-      title={t("header.findMe")}
-      aria-label={t("header.findMe")}
-    >
-      <LocateIcon />
-    </button>
-  );
-
   const recenterButton = (
     <button className="iconbtn" onClick={bumpFit} title={t("header.recenter")} aria-label={t("header.recenter")}>
       <RecenterIcon />
@@ -855,7 +844,6 @@ export default function AppShell() {
           {t.rich("header.dutyDateShort", { b: (c) => <strong>{c}</strong>, ...dutyPartsShort })}
         </div>
         {localeSwitch}
-        {locButton}
       </div>
       <div className="chips" ref={chipsRef} role="group" aria-label={t("chips.regionFilter")}>
         <button className="chip" aria-pressed={region === null} onClick={() => setRegion(null)}>
