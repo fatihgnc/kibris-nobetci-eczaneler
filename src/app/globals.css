@@ -296,13 +296,14 @@ button { font: inherit; color: inherit; border: 0; background: none; cursor: poi
   max-height: calc(100% - 36px); overflow-y: auto;
 }
 .deskdetail .dbody { padding: 18px; }
-.deskbar { display: flex; align-items: center; gap: 12px; padding: 14px 18px 0; margin-bottom: 8px; border-bottom: 1px solid var(--line-soft); }
+.deskbar { display: flex; align-items: center; gap: 12px; padding: 14px 18px 8px; border-bottom: 1px solid var(--line-soft); }
 .deskbar .datechip { text-align: left; flex: 0 1 auto; line-height: 16px; }
 /* The locate button here is chrome-free: it only picks up a faint surface and
-   a hint of shadow on hover. The box stays 32px so the date keeps its 8px off
-   the rule below, so the icon shrinks instead to breathe inside it. */
-.deskbar .iconbtn { width: 32px; height: 32px; background: none; border-color: transparent; }
-.deskbar .iconbtn svg { width: 16px; height: 16px; }
+   a hint of shadow on hover, on a barely rounded square. The box stays 32px so
+   it does not push the date further off the rule below; the icon shrinks
+   instead to breathe inside it. */
+.deskbar .iconbtn { width: 32px; height: 32px; border-radius: 4px; background: none; border-color: transparent; }
+.deskbar .iconbtn svg { width: 18px; height: 18px; }
 .deskbar .iconbtn.on { background: none; border-color: transparent; color: var(--accent); }
 .deskbar .iconbtn:hover { background: var(--surface-2); border-color: transparent; box-shadow: 0 1px 3px rgba(0, 0, 0, .10); }
 .deskbar .spacer { flex: 1; }
