@@ -38,9 +38,9 @@
     "distance": "DISTANCE"
   },
   "hours": {
-    "range": "Duty hours {open}–{close}",
-    "oncall": "Duty {open}–{close} · pharmacist on the phone until {until}",
-    "unknown": "Duty hours: {raw}"
+    "range": "Duty hours <t>{open}–{close}</t>",
+    "oncall": "Duty <t>{open}–{close}</t> · pharmacist on the phone until <t>{until}</t>",
+    "unknown": "Duty hours: <t>{raw}</t>"
   },
   "actions": {
     "call": "Call",
@@ -85,6 +85,7 @@
     "dutyNight": "Night duty, {date}",
     "drive": "{distance} · {duration} by car",
     "oncallNote": "<b>On-call:</b> The pharmacy door is closed. The pharmacist answers the phone until {until}; once you confirm your medicine they will tell you where to meet.",
+    "noPin": "This pharmacy has no coordinates in the source, so it cannot be marked on the map. Directions search Google Maps by its name and address.",
     "source": "Duty information is taken from the <b>Kıbrıs Türk Eczacılar Birliği</b> list. <warn>Call to confirm before travelling.</warn>"
   },
   "foot": {

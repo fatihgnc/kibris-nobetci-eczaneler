@@ -5,6 +5,7 @@ import { useLocale, useTranslations } from "next-intl";
 import dynamic from "next/dynamic";
 import { useSearchParams } from "next/navigation";
 import {
+  type ReactNode,
   useCallback,
   useEffect,
   useLayoutEffect,
@@ -372,12 +373,15 @@ export default function AppShell() {
   const badgeLabel = (p: Listed) =>
     t(`status.${p.liveStatus}`, { time: p.closesAt ?? "" });
 
+  // The clock times carry the chip; the words around them stay plain text, so
+  // the eye lands on the hours without the whole sentence shouting.
   const hoursLine = (p: Listed) => {
+    const time = (c: ReactNode) => <span className="t">{c}</span>;
     if (p.onCall && p.opensAt && p.closesAt) {
-      return t("hours.oncall", { open: p.opensAt, close: p.closesAt, until: p.onCall.to });
+      return t.rich("hours.oncall", { t: time, open: p.opensAt, close: p.closesAt, until: p.onCall.to });
     }
-    if (p.opensAt && p.closesAt) return t("hours.range", { open: p.opensAt, close: p.closesAt });
-    return t("hours.unknown", { raw: p.hoursRaw });
+    if (p.opensAt && p.closesAt) return t.rich("hours.range", { t: time, open: p.opensAt, close: p.closesAt });
+    return t.rich("hours.unknown", { t: time, raw: p.hoursRaw });
   };
 
   /* ---------- fragments ---------- */

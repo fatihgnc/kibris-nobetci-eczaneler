@@ -196,7 +196,14 @@ button { font: inherit; color: inherit; border: 0; background: none; cursor: poi
 .badge.s-closed { background: var(--closed-bg); color: var(--closed); }
 .region { font-size: 12px; color: var(--text-2); padding: 5px 9px; border-radius: 8px; background: var(--bg); border: 1px solid var(--line-soft); }
 .addr { margin: 9px 0 0; font-size: 13px; line-height: 1.45; color: var(--text-2); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-.hours { margin: 6px 0 0; font-family: var(--font-mono); font-size: 11px; color: var(--text-3); letter-spacing: .02em; }
+.hours { margin: 8px 0 0; font-family: var(--font-mono); font-size: 11px; line-height: 2.2; color: var(--text-3); letter-spacing: .02em; }
+/* Only the clock times are chipped, so the hours read at a glance while the
+   sentence around them stays quiet. */
+.hours .t {
+  padding: 3px 6px; border-radius: 6px; background: var(--surface-2);
+  border: 1px solid var(--line-soft); color: var(--text); font-weight: 700;
+  white-space: nowrap;
+}
 .acts { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 11px; }
 .btn {
   min-height: 46px; border-radius: 12px; display: flex; align-items: center; justify-content: center; gap: 7px;
@@ -265,6 +272,10 @@ button { font: inherit; color: inherit; border: 0; background: none; cursor: poi
   margin-top: 12px; padding: 11px 12px; border-radius: 12px; background: var(--oncall-bg);
   border: 1px dashed color-mix(in oklab, var(--oncall) 55%, transparent); font-size: 12.5px; line-height: 1.5; color: var(--text-2);
 }
+.nopinnote {
+  margin-top: 12px; padding: 11px 12px; border-radius: 12px; background: var(--surface-2);
+  border: 1px dashed var(--line); font-size: 12.5px; line-height: 1.5; color: var(--text-3);
+}
 .dsource { margin: 14px 0 0; font-size: 11.5px; line-height: 1.5; color: var(--text-3); }
 .dsource b { color: var(--text-2); }
 .dsource .warn { color: var(--warn); }
@@ -285,8 +296,15 @@ button { font: inherit; color: inherit; border: 0; background: none; cursor: poi
   max-height: calc(100% - 36px); overflow-y: auto;
 }
 .deskdetail .dbody { padding: 18px; }
-.deskbar { display: flex; align-items: center; gap: 12px; padding: 14px 18px; border-bottom: 1px solid var(--line-soft); }
-.deskbar .datechip { text-align: left; flex: 0 1 auto; }
+.deskbar { display: flex; align-items: center; gap: 12px; padding: 14px 18px 0; margin-bottom: 8px; border-bottom: 1px solid var(--line-soft); }
+.deskbar .datechip { text-align: left; flex: 0 1 auto; line-height: 16px; }
+/* The locate button here is chrome-free: it only picks up a faint surface and
+   a hint of shadow on hover. The box stays 32px so the date keeps its 8px off
+   the rule below, so the icon shrinks instead to breathe inside it. */
+.deskbar .iconbtn { width: 32px; height: 32px; background: none; border-color: transparent; }
+.deskbar .iconbtn svg { width: 16px; height: 16px; }
+.deskbar .iconbtn.on { background: none; border-color: transparent; color: var(--accent); }
+.deskbar .iconbtn:hover { background: var(--surface-2); border-color: transparent; box-shadow: 0 1px 3px rgba(0, 0, 0, .10); }
 .deskbar .spacer { flex: 1; }
 .selectwrap { padding: 12px 18px 0; }
 .selectfield { position: relative; }

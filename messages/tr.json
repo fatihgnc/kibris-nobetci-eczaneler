@@ -38,9 +38,9 @@
     "distance": "MESAFE"
   },
   "hours": {
-    "range": "Nöbet saatleri {open}–{close}",
-    "oncall": "Nöbet {open}–{close} · eczacı {until}'a kadar telefonda",
-    "unknown": "Nöbet saatleri: {raw}"
+    "range": "Nöbet saatleri <t>{open}–{close}</t>",
+    "oncall": "Nöbet <t>{open}–{close}</t> · eczacı <t>{until}</t>'a kadar telefonda",
+    "unknown": "Nöbet saatleri: <t>{raw}</t>"
   },
   "actions": {
     "call": "Ara",
@@ -85,6 +85,7 @@
     "dutyNight": "{date} gecesi nöbeti",
     "drive": "{distance} · araçla {duration}",
     "oncallNote": "<b>On-Call:</b> Eczane kapısı kapalı. Eczacı {until}'a kadar telefonda; ilacınızı teyit ettikten sonra buluşma noktasını size söyleyecek.",
+    "noPin": "Bu eczanenin konumu kaynakta bulunmadığı için haritada işaretlenemiyor. Yol tarifi, adı ve adresiyle Google Haritalar’da aranır.",
     "source": "Nöbet bilgisi <b>Kıbrıs Türk Eczacılar Birliği</b> listesinden alınmıştır. <warn>Yola çıkmadan önce telefonla teyit ediniz.</warn>"
   },
   "foot": {

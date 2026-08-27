@@ -17,7 +17,9 @@ const archivo = Archivo({
 });
 const plexMono = IBM_Plex_Mono({
   subsets: ["latin", "latin-ext"],
-  weight: ["400", "500"],
+  // 700 carries the clock-time chips on the cards; without it the browser
+  // would synthesise a smeared fake bold over 500.
+  weight: ["400", "500", "700"],
   variable: "--font-plex-mono",
   display: "swap",
 });
