@@ -74,7 +74,8 @@
   },
   "stale": {
     "label": "Last updated {ago} · {time}",
-    "never": "Duty data has not been synced yet"
+    "never": "Duty data has not been synced yet",
+    "missing": "Tonight's duty list has not arrived yet"
   },
   "detail": {
     "address": "Address",

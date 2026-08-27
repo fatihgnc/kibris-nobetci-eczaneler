@@ -387,12 +387,17 @@ export default function AppShell() {
     data?.stale && !showInitialSkeleton ? (
       <div className="stale" role="status">
         <span className="dot" aria-hidden="true" />
-        {data.lastSyncedAt
-          ? t("stale.label", {
-              ago: formatAgo(data.lastSyncedAt, locale),
-              time: formatClock(data.lastSyncedAt, locale),
-            })
-          : t("stale.never")}
+        {/* An empty roster is flagged stale even when the sync itself is
+            recent, and "last updated 2 hours ago" above an empty list would
+            read as a reassurance. Say what is actually missing instead. */}
+        {data.pharmacies.length === 0
+          ? t("stale.missing")
+          : data.lastSyncedAt
+            ? t("stale.label", {
+                ago: formatAgo(data.lastSyncedAt, locale),
+                time: formatClock(data.lastSyncedAt, locale),
+              })
+            : t("stale.never")}
         <button onClick={() => load()}>{t("actions.refresh")}</button>
       </div>
     ) : null;

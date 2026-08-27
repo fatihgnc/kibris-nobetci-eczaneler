@@ -74,7 +74,8 @@
   },
   "stale": {
     "label": "Son güncelleme {ago} · {time}",
-    "never": "Nöbet verisi henüz eşitlenmedi"
+    "never": "Nöbet verisi henüz eşitlenmedi",
+    "missing": "Bu gecenin nöbet listesi henüz gelmedi"
   },
   "detail": {
     "address": "Adres",

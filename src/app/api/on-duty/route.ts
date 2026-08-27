@@ -3,12 +3,19 @@ import { NextRequest, NextResponse } from "next/server";
 import { dutyDateFor, dutyMinutesFor } from "@/lib/duty-date";
 import { isRegionCode } from "@/lib/regions";
 import { deriveStatus } from "@/lib/status";
+import { isStale } from "@/lib/staleness";
 import { supabaseAnon } from "@/lib/supabase";
 import type { OnDutyPharmacy, OnDutyResponse } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
-const STALE_AFTER_MS = 12 * 60 * 60 * 1000;
+/** One row as on_duty_nearby returns it. */
+type Row = {
+  pharmacy_id: number; name: string; region: string | null; address: string | null;
+  phone: string | null; phone_alt: string | null; lat: number | null; lng: number | null;
+  hours_raw: string; opens_at: string | null; closes_at: string | null;
+  oncall_from: string | null; oncall_to: string | null; distance_km: number | null;
+};
 
 function num(v: string | null): number | null {
   if (v === null || v === "") return null;
@@ -70,19 +77,14 @@ export async function GET(req: NextRequest) {
   }
 
   const lastSyncedAt: string | null = sync.data?.finished_at ?? null;
-  const stale = !lastSyncedAt || Date.now() - new Date(lastSyncedAt).getTime() > STALE_AFTER_MS;
+  const rows = (rpc.data ?? []) as Row[];
+  // Counted before the region filter: an empty region is a normal night.
+  const stale = isStale(lastSyncedAt, rows.length);
 
   const nowMinutes = dutyMinutesFor();
   const short = (t: string | null) => (t ? t.slice(0, 5) : null);
 
-  type Row = {
-    pharmacy_id: number; name: string; region: string | null; address: string | null;
-    phone: string | null; phone_alt: string | null; lat: number | null; lng: number | null;
-    hours_raw: string; opens_at: string | null; closes_at: string | null;
-    oncall_from: string | null; oncall_to: string | null; distance_km: number | null;
-  };
-
-  const pharmacies: OnDutyPharmacy[] = ((rpc.data ?? []) as Row[])
+  const pharmacies: OnDutyPharmacy[] = rows
     .filter((r) => !region || r.region === region)
     .map((r) => {
       const opensAt = short(r.opens_at);
