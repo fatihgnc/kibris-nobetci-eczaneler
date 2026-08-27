@@ -68,6 +68,27 @@ function useIsDesktop(): boolean {
   return v;
 }
 
+/**
+ * Roster and fix, kept outside the component so a locale switch does not throw
+ * them away.
+ *
+ * Switching TR/EN is a route change: /tr and /en are different segments, so
+ * React unmounts this component and mounts a fresh one with empty state. That
+ * used to mean a refetch and a second permission round on every switch — the
+ * list blinked back to skeletons and the map lost its pins, for a change that
+ * touches nothing but the labels. The roster is locale-independent (names,
+ * addresses and hours come from KTEB untranslated), so the same response is
+ * correct on both sides of the switch.
+ *
+ * Module scope, not sessionStorage: this only has to outlive a client-side
+ * navigation within one page load, and a hard reload should still go to the
+ * network. TTL is short — the duty roster changes at the day boundary, and a
+ * stale one at 3am is exactly the failure this app exists to prevent.
+ */
+const ROSTER_TTL_MS = 60_000;
+let rosterCache: { data: OnDutyResponse; at: number } | null = null;
+let coordsCache: [number, number] | null = null;
+
 type Listed = OnDutyPharmacy & { liveStatus: DutyStatus; dist: number | null };
 
 export default function AppShell() {
@@ -81,11 +102,12 @@ export default function AppShell() {
   const regionParam = searchParams.get("region");
   const region: RegionCode | null = isRegionCode(regionParam) ? regionParam : null;
 
-  const [data, setData] = useState<OnDutyResponse | null>(null);
-  const [loading, setLoading] = useState(true);
+  const cachedRoster = rosterCache && Date.now() - rosterCache.at < ROSTER_TTL_MS ? rosterCache : null;
+  const [data, setData] = useState<OnDutyResponse | null>(cachedRoster?.data ?? null);
+  const [loading, setLoading] = useState(!cachedRoster);
   const [error, setError] = useState(false);
-  const [locMode, setLocMode] = useState<LocMode>("preask");
-  const [coords, setCoords] = useState<[number, number] | null>(null);
+  const [locMode, setLocMode] = useState<LocMode>(coordsCache ? "granted" : "preask");
+  const [coords, setCoords] = useState<[number, number] | null>(coordsCache);
   const [sel, setSel] = useState<number | null>(null);
   const [snap, setSnap] = useState(1);
   const [nowMin, setNowMin] = useState(() => dutyMinutesFor());
@@ -112,7 +134,9 @@ export default function AppShell() {
     try {
       const res = await fetch("/api/on-duty");
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      setData((await res.json()) as OnDutyResponse);
+      const json = (await res.json()) as OnDutyResponse;
+      rosterCache = { data: json, at: Date.now() };
+      setData(json);
       // Re-fit once the roster lands: the first fit runs while the map is still
       // empty, so without this the pins stay off the visible strip.
       setFitSignal((n) => n + 1);
@@ -132,6 +156,7 @@ export default function AppShell() {
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         const c: [number, number] = [pos.coords.latitude, pos.coords.longitude];
+        coordsCache = c;
         setCoords(c);
         setLocMode("granted");
         setShowLocHelp(false);
@@ -160,8 +185,11 @@ export default function AppShell() {
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      await load();
-      if (cancelled || typeof navigator === "undefined") return;
+      // A fresh cache means this mount is a locale switch, not an arrival:
+      // the list is already on screen and the fix already known, so neither
+      // the network nor the user is asked again.
+      if (!cachedRoster) await load();
+      if (cancelled || typeof navigator === "undefined" || coordsCache) return;
       if (!navigator.permissions?.query) {
         // Safari before 16 has no Permissions API for geolocation; asking is
         // the only way to find out where we stand.
