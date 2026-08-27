@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { Analytics } from "@vercel/analytics/next";
 import { hasLocale, NextIntlClientProvider } from "next-intl";
 import { getMessages, getTranslations, setRequestLocale } from "next-intl/server";
 import { Archivo, IBM_Plex_Mono } from "next/font/google";
@@ -99,6 +100,8 @@ export default async function LocaleLayout({
         <NextIntlClientProvider messages={messages}>
           {children}
           <RegisterSW />
+          {/* No-op off Vercel, so dev and self-hosted runs stay untouched. */}
+          <Analytics />
         </NextIntlClientProvider>
       </body>
     </html>
