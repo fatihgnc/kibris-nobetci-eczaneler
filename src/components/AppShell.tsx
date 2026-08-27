@@ -772,8 +772,6 @@ export default function AppShell() {
               <div className="datechip">
                 {t.rich("header.dutyNightShort", { b: (c) => <strong>{c}</strong>, ...dutyParts })}
               </div>
-              <div className="spacer" />
-              {locButton}
             </div>
             <div className="selectwrap">
               <div className="selectfield">
