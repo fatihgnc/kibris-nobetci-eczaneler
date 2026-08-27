@@ -14,9 +14,7 @@
     "recenter": "Haritayı ortala",
     "switchLocale": "Switch to English",
     "dutyNightShort": "<b>{dayMonth}</b> {weekday} gecesi",
-    "dutyDateShort": "<b>{dayMonth}</b> {weekday}",
-    "themeToLight": "Açık temaya geç",
-    "themeToDark": "Koyu temaya geç"
+    "dutyDateShort": "<b>{dayMonth}</b> {weekday}"
   },
   "chips": {
     "all": "Tümü",

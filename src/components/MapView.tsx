@@ -20,7 +20,6 @@ interface Props {
   fitSignal: number;
   onSelect: (id: number) => void;
   /** Which basemap to draw. */
-  theme?: "light" | "dark";
   /**
    * Height in px of the map container hidden behind the bottom sheet. Leaflet
    * fits to the whole container, so without this the pins are centred behind
@@ -32,57 +31,76 @@ interface Props {
 const CYPRUS_CENTER: [number, number] = [35.25, 33.45];
 
 /**
- * A basemap built for each theme, rather than one map put through a CSS
- * filter. Inverting a light map to fake a dark one turns the land a muddy
- * olive and inverts the label text along with it, which is tiring to read.
+ * OpenStreetMap's standard tiles: no account, no API key, no quota to babysit.
  *
- * Both are CARTO basemaps, free to use with the attribution below.
+ * There used to be a CARTO basemap per theme, light and dark. CARTO closed off
+ * keyless access and started stamping "API KEY REQUIRED" across the tiles it
+ * serves, so both are gone. OSM ships one style only, and the map now looks the
+ * same in dark mode as it does in light — a deliberate trade for not owing an
+ * account to anyone. Inverting it with a CSS filter is not an option: that
+ * turns the land a muddy olive and inverts the label text along with it.
  */
-const BASEMAPS = {
-  dark: "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",
-  light: "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png",
-} as const;
+const BASEMAP = "https://tile.openstreetmap.org/{z}/{x}/{y}.png";
 
 const TILE_ATTRIBUTION =
-  '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors © <a href="https://carto.com/attributions">CARTO</a>';
+  '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors';
 
 /**
- * The island plus a small margin. Every pharmacy this app will ever show is
- * inside it, so panning beyond serves no purpose and only loses the user —
- * at 3am, scrolling off into the Mediterranean is a real way to get lost.
+ * The island and almost nothing else. Cyprus spans roughly 34.56-35.71 N and
+ * 32.27-34.60 E; this is that box plus a coastline's worth of sea.
  *
- * Cyprus spans roughly 34.56–35.70 N and 32.27–34.60 E. The margin is wider to
- * the south because the mobile fit puts the island in the strip above the
- * sheet, which means the map centre sits south of the island — with a tight
- * box the centre could not get there and the outermost pharmacies fell off
- * screen. The extra room is open sea; the north edge stays below the Turkish
- * coast.
+ * Panning beyond it serves no purpose and only loses the user — at 3am,
+ * scrolling off into the Mediterranean is a real way to get lost.
  */
-const CYPRUS_BOUNDS = L.latLngBounds([33.60, 31.70], [35.95, 35.10]);
+const ISLAND = L.latLngBounds([34.45, 32.15], [35.80, 34.72]);
+
+/**
+ * The wall the user cannot drag through: the island, dropped at the bottom by
+ * however much the sheet covers.
+ *
+ * The two pull against each other. Leaflet knows only the container, so it
+ * centres on the whole of it — but on mobile the visible map is the strip
+ * above the sheet, and putting the island in that strip means the centre sits
+ * south of the coast. A box drawn tight to the island would clamp that centre
+ * back and drag the northern pharmacies off screen.
+ *
+ * So the south edge alone gives way, by exactly the sheet's height converted
+ * to degrees at the current zoom. Everywhere else stays tight to the water.
+ * Computed right after a fit, when the map is at its most zoomed-out and a
+ * pixel is worth the most latitude it will ever be worth — minZoom is pinned
+ * there, so the allowance can only ever be too generous, never too mean.
+ */
+function wallFor(m: L.Map, inset: number): L.LatLngBounds {
+  if (inset <= 0) return ISLAND;
+  const z = m.getZoom();
+  const sw = m.project(ISLAND.getSouthWest(), z);
+  const south = m.unproject(L.point(sw.x, sw.y + inset), z).lat;
+  return L.latLngBounds([south, ISLAND.getWest()], [ISLAND.getNorth(), ISLAND.getEast()]);
+}
 
 /** Zoom at which the whole island fits the current container. */
 function islandZoom(m: L.Map): number {
-  const z = m.getBoundsZoom(CYPRUS_BOUNDS);
+  const z = m.getBoundsZoom(ISLAND);
   return Number.isFinite(z) ? z : 8;
 }
 
 /**
  * Floor for user-driven zoom-out, applied after a programmatic fit.
  *
- * These two pull against each other on mobile: the sheet covers half the map,
- * so fitting every pin into the strip that is left needs a wider view than
- * "the island fills the container". Constraining the fit to the island zoom
- * pushed the outermost pharmacies back out of sight.
+ * On mobile the fit needs a wider view than "the island fills the container",
+ * for the same reason the wall does: the pins have to land in the strip the
+ * sheet leaves. Constraining the fit to the island zoom pushed the outermost
+ * pharmacies back out of sight.
  *
  * So the fit is left free and the floor is set to whatever it settled on —
  * never tighter than the island zoom. The user cannot pull further out than
- * the view they were given, and maxBounds still stops them wandering off.
+ * the view they were given, and the wall stops them wandering off.
  */
 function lockZoomOut(m: L.Map) {
   m.setMinZoom(Math.min(m.getZoom(), islandZoom(m)));
 }
 
-export default function MapView({ points, me, selId, fitSignal, onSelect, theme = "light", bottomInset = 0 }: Props) {
+export default function MapView({ points, me, selId, fitSignal, onSelect, bottomInset = 0 }: Props) {
   const elRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<L.Map | null>(null);
   const layerRef = useRef<L.LayerGroup | null>(null);
@@ -90,9 +108,6 @@ export default function MapView({ points, me, selId, fitSignal, onSelect, theme 
   onSelectRef.current = onSelect;
   const insetRef = useRef(bottomInset);
   insetRef.current = bottomInset;
-  const tileRef = useRef<L.TileLayer | null>(null);
-  const themeRef = useRef(theme);
-  themeRef.current = theme;
 
   useEffect(() => {
     if (!elRef.current || mapRef.current) return;
@@ -103,13 +118,12 @@ export default function MapView({ points, me, selId, fitSignal, onSelect, theme 
       fadeAnimation: false,
       // A solid wall rather than a rubber band: viscosity 1 stops the drag at
       // the edge instead of letting it spring past and snap back.
-      maxBounds: CYPRUS_BOUNDS,
+      maxBounds: ISLAND,
       maxBoundsViscosity: 1,
     });
-    tileRef.current = L.tileLayer(BASEMAPS[themeRef.current], {
+    L.tileLayer(BASEMAP, {
       attribution: TILE_ATTRIBUTION,
-      maxZoom: 18,
-      subdomains: "abcd",
+      maxZoom: 19,
     }).addTo(m);
     m.setView(CYPRUS_CENTER, 9);
     lockZoomOut(m);
@@ -155,13 +169,6 @@ export default function MapView({ points, me, selId, fitSignal, onSelect, theme 
     m.invalidateSize();
   }, [points, me, selId]);
 
-  // Swap the basemap when the theme changes.
-  useEffect(() => {
-    const m = mapRef.current;
-    if (!m || !tileRef.current) return;
-    tileRef.current.setUrl(BASEMAPS[theme]);
-  }, [theme]);
-
   // Fit all points (recenter button, data / filter changes)
   useEffect(() => {
     const m = mapRef.current;
@@ -189,6 +196,7 @@ export default function MapView({ points, me, selId, fitSignal, onSelect, theme 
       } else if (pts.length === 1) m.setView(pts[0], 13);
       else m.setView(CYPRUS_CENTER, 9);
       lockZoomOut(m);
+      m.setMaxBounds(wallFor(m, insetRef.current));
     };
     fit();
     const t = setTimeout(fit, 80);

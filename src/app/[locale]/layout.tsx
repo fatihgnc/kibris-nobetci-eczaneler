@@ -4,7 +4,6 @@ import { getMessages, getTranslations, setRequestLocale } from "next-intl/server
 import { Archivo, IBM_Plex_Mono } from "next/font/google";
 import { notFound } from "next/navigation";
 import RegisterSW from "@/components/RegisterSW";
-import { THEME_INIT_SCRIPT } from "@/components/theme-init";
 import { routing } from "@/i18n/routing";
 import { SITE_URL } from "@/lib/site";
 import "../globals.css";
@@ -77,8 +76,8 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
-  // One colour, not a prefers-color-scheme pair: the app defaults to light
-  // regardless of the system setting.
+  // The app has one theme, so this is a single colour rather than a
+  // prefers-color-scheme pair.
   themeColor: "#fafafc",
 };
 
@@ -95,17 +94,8 @@ export default async function LocaleLayout({
   const messages = await getMessages();
 
   return (
-    <html
-      lang={locale}
-      className={`${archivo.variable} ${plexMono.variable}`}
-      // data-theme is written by the inline script below before React
-      // hydrates, so the server markup will not match by design.
-      suppressHydrationWarning
-    >
+    <html lang={locale} className={`${archivo.variable} ${plexMono.variable}`}>
       <body>
-        {/* Resolves the theme onto <html> before the page paints, so someone
-            who chose dark never sees a light flash on load. */}
-        <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
         <NextIntlClientProvider messages={messages}>
           {children}
           <RegisterSW />

@@ -2,49 +2,17 @@
 
 /* ================================================================
    Design tokens — ported 1:1 from the approved prototype.
-   Dark is the default (night-time app).
 
-   The active theme is always an explicit data-theme on <html>: the inline
-   script in the layout resolves the stored choice, or the system preference
-   when there is none, before the first paint. A media query is not used —
-   it would fight an explicit choice, and the app needs JavaScript for
-   everything else anyway.
+   One theme, light. There used to be a dark set on :root with light behind
+   data-theme, an inline script resolving the stored choice before paint, and
+   a switch in the header. It went when the basemap did: CARTO closed off
+   keyless tiles, OSM standard ships in one style only, and a dark chrome
+   wrapped around a bright white map is worse than no dark mode at all.
    ================================================================ */
 :root {
   --font-ui: var(--font-archivo), "Archivo", Helvetica, Arial, sans-serif;
   --font-mono: var(--font-plex-mono), "IBM Plex Mono", ui-monospace, monospace;
 
-  --bg: oklch(0.17 0.012 250);
-  --surface: oklch(0.215 0.013 250);
-  --surface-2: oklch(0.255 0.014 250);
-  --line: oklch(0.32 0.014 250);
-  --line-soft: oklch(0.27 0.013 250);
-  --text: oklch(0.965 0.004 250);
-  --text-2: oklch(0.775 0.012 250);
-  --text-3: oklch(0.62 0.012 250);
-  --accent: oklch(0.72 0.11 235);
-  --accent-ink: oklch(0.19 0.03 245);
-  --accent-soft: oklch(0.32 0.045 240);
-  --open: oklch(0.76 0.14 155);
-  --open-bg: oklch(0.30 0.06 158);
-  --warn: oklch(0.82 0.13 78);
-  --warn-bg: oklch(0.32 0.055 72);
-  --oncall: oklch(0.74 0.012 250);
-  --oncall-bg: oklch(0.28 0.008 250);
-  /* Closed is the ordinary case here, not a fault: a muted bordeaux, far
-     enough from --me that the two never read as the same signal. */
-  --closed: oklch(0.70 0.075 22);
-  --closed-bg: oklch(0.275 0.04 20);
-  /* The "you are here" dot. Red so it never reads as one more pharmacy pin. */
-  --me: oklch(0.70 0.18 25);
-  --shadow: 0 -18px 40px rgba(0, 0, 0, .55);
-  --stage: oklch(0.115 0.01 250);
-  /* Dark Matter renders the land near-black and the sea a shade lighter, so
-     lifting brightness separates the two rather than washing the map out.
-     Kept small: this is a night-time app and the pins carry the colour. */
-  --tilefx: brightness(1.15);
-}
-:root[data-theme="light"] {
   --bg: oklch(0.985 0.004 250);
   --surface: oklch(1 0 0);
   --surface-2: oklch(0.965 0.006 250);
@@ -62,13 +30,14 @@
   --warn-bg: oklch(0.95 0.05 78);
   --oncall: oklch(0.48 0.01 250);
   --oncall-bg: oklch(0.94 0.004 250);
+  /* Closed is the ordinary case here, not a fault: a muted bordeaux, far
+     enough from --me that the two never read as the same signal. */
   --closed: oklch(0.52 0.11 25);
   --closed-bg: oklch(0.955 0.03 25);
+  /* The "you are here" dot. Red so it never reads as one more pharmacy pin. */
   --me: oklch(0.55 0.21 27);
   --shadow: 0 -14px 34px rgba(20, 28, 40, .14);
   --stage: oklch(0.90 0.008 250);
-  /* Voyager is drawn for light backgrounds already. */
-  --tilefx: none;
 }
 
 * { box-sizing: border-box; }
@@ -133,20 +102,6 @@ button { font: inherit; color: inherit; border: 0; background: none; cursor: poi
 .localesw > .on { color: var(--text); font-weight: 700; }
 .localesw .sep { color: var(--line); }
 
-/* Theme toggle as a switch: the knob carries the icon for the theme in use. */
-.themesw {
-  position: relative; flex: none; width: 56px; height: 32px; padding: 0; border-radius: 999px;
-  background: var(--surface-2); border: 1px solid var(--line);
-}
-.themesw .knob {
-  position: absolute; top: 2px; left: 2px; width: 26px; height: 26px; border-radius: 50%;
-  display: grid; place-items: center; background: var(--bg); border: 1px solid var(--line);
-  color: var(--text-2); transition: transform .18s ease;
-}
-.themesw.on .knob { transform: translateX(24px); background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
-.themesw .knob svg { width: 15px; height: 15px; stroke: currentColor; fill: none; stroke-width: 1.7; }
-@media (prefers-reduced-motion: reduce) { .themesw .knob { transition: none; } }
-
 /* filters */
 .chips {
   display: flex; gap: 7px; overflow-x: auto; padding: 2px 14px 12px; scrollbar-width: none;
@@ -177,7 +132,6 @@ button { font: inherit; color: inherit; border: 0; background: none; cursor: poi
 /* map */
 .mapwrap { position: absolute; left: 0; right: 0; overflow: hidden; background: var(--surface); }
 .map { position: absolute; inset: 0; }
-.leaflet-tile-pane { filter: var(--tilefx); }
 .leaflet-container { background: var(--surface); font-family: var(--font-ui); }
 .leaflet-control-attribution {
   background: color-mix(in oklab, var(--bg) 78%, transparent) !important; color: var(--text-3) !important;
@@ -200,7 +154,6 @@ button { font: inherit; color: inherit; border: 0; background: none; cursor: poi
   box-shadow: 0 2px 8px rgba(0, 0, 0, .45), 0 0 0 6px color-mix(in oklab, var(--accent) 30%, transparent);
 }
 .mepin { width: 16px; height: 16px; border-radius: 50%; background: var(--me); border: 3px solid var(--bg); box-shadow: 0 0 0 7px color-mix(in oklab, var(--me) 26%, transparent); }
-/* flex-end so the wider theme switch and the square buttons share a right edge. */
 .mapbtns { position: absolute; right: 12px; bottom: 14px; z-index: 420; display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
 
 /* bottom sheet */
@@ -256,7 +209,7 @@ button { font: inherit; color: inherit; border: 0; background: none; cursor: poi
 .btn.sec:hover { border-color: var(--accent); }
 /* A true ghost: no edge at all, so it never competes with the filled button
    beside it. The affordance shows up on hover as a faint wash, mixed from
-   --text so it lifts on the dark theme and deepens on the light one. */
+   --text so it deepens against the surface behind it. */
 .btn.ghost { background: transparent; color: var(--text-2); border: 0; }
 .btn.ghost:hover { background: color-mix(in oklab, var(--text) 9%, transparent); color: var(--text); }
 

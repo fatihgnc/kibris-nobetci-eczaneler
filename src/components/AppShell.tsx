@@ -27,8 +27,7 @@ import {
 import { isRegionCode, REGION_LABEL, REGION_ORDER, type RegionCode } from "@/lib/regions";
 import { deriveStatus, type DutyStatus } from "@/lib/status";
 import type { OnDutyPharmacy, OnDutyResponse } from "@/lib/types";
-import { CloseIcon, LocateIcon, MoonIcon, NavIcon, PhoneIcon, RecenterIcon, SunIcon } from "./icons";
-import { useTheme } from "./useTheme";
+import { CloseIcon, LocateIcon, NavIcon, PhoneIcon, RecenterIcon } from "./icons";
 import type { MapPoint } from "./MapView";
 
 const MapView = dynamic(() => import("./MapView"), { ssr: false });
@@ -76,7 +75,6 @@ export default function AppShell() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const isDesktop = useIsDesktop();
-  const { theme, toggle: toggleTheme } = useTheme();
 
   const regionParam = searchParams.get("region");
   const region: RegionCode | null = isRegionCode(regionParam) ? regionParam : null;
@@ -682,23 +680,6 @@ export default function AppShell() {
     </div>
   );
 
-  const themeLabel = theme === "dark" ? t("header.themeToLight") : t("header.themeToDark");
-  const themeSwitch = (
-    <button
-      type="button"
-      className={`themesw ${theme === "dark" ? "on" : ""}`}
-      role="switch"
-      aria-checked={theme === "dark"}
-      onClick={toggleTheme}
-      title={themeLabel}
-      aria-label={themeLabel}
-    >
-      <span className="knob" aria-hidden="true">
-        {theme === "dark" ? <MoonIcon /> : <SunIcon />}
-      </span>
-    </button>
-  );
-
   const locButton = (
     <button
       className={`iconbtn ${locMode === "granted" ? "on" : ""}`}
@@ -723,7 +704,6 @@ export default function AppShell() {
       selId={sel}
       fitSignal={fitSignal}
       onSelect={select}
-      theme={theme}
       bottomInset={isDesktop ? 0 : mapInset}
     />
   );
@@ -739,7 +719,6 @@ export default function AppShell() {
                 <b>{t("app.name")}</b>
               </div>
               <div className="datechip" style={{ visibility: "hidden" }} />
-              {themeSwitch}
               {localeSwitch}
             </div>
             <div className="deskbar">
@@ -817,7 +796,6 @@ export default function AppShell() {
             anchored to it end up behind the sheet and cannot be tapped.
             Lift them by however much the sheet currently covers. */}
         <div className="mapbtns" style={{ bottom: mapInset + 14 }}>
-          {themeSwitch}
           {recenterButton}
         </div>
       </div>
