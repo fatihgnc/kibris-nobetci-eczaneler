@@ -65,8 +65,8 @@
   },
   "empty": {
     "title": "{region} bölgesinde nöbetçi eczane yok",
-    "titleAll": "Bu gece için nöbet kaydı bulunamadı",
-    "body": "Bu gece için kayıtlı nöbet bulunmuyor. Filtreyi genişleterek diğer bölgelere bakabilirsiniz."
+    "titleAll": "Bu gece için nöbetçi eczane bulunamadı",
+    "body": "Bu gece açık nöbetçi eczane görünmüyor. Filtreyi genişleterek diğer bölgelere bakabilirsiniz."
   },
   "error": {
     "title": "Liste yüklenemedi",
