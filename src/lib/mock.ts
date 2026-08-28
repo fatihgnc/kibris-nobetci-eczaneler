@@ -35,8 +35,8 @@ const ROWS: Row[] = [
   { id: 9, name: "Cengiz Topel Eczanesi", region: "LEFKE", address: "Cengiz Topel Cd. No:7, Lefke", phone: "(0392) 000 00 09", opensAt: "08:00", closesAt: "19:00", onCall: { from: "19:00", to: "00:00" }, lat: 35.1104, lng: 32.8479 },
   { id: 10, name: "Boğaz Eczanesi", region: "ISKELE", address: "Boğaz Anıtı Yolu No:2, Boğaz, İskele", phone: "(0392) 000 00 10", opensAt: "08:00", closesAt: "22:00", onCall: null, lat: 35.2861, lng: 33.8899 },
   { id: 11, name: "Yenierenköy Eczanesi", region: "KARPAZ", address: "Atatürk Cd. No:18, Yenierenköy, Karpaz", phone: "(0392) 000 00 11", opensAt: "08:00", closesAt: "19:00", onCall: { from: "19:00", to: "00:00" }, lat: 35.4796, lng: 34.1961 },
-  { id: 12, name: "Değirmenlik Eczanesi", region: "UST_MESARYA", address: "Şht. Salih Terzi Cd. No:9, Değirmenlik", phone: "(0392) 000 00 12", opensAt: "08:00", closesAt: "22:00", onCall: null, lat: 35.2072, lng: 33.4753 },
-  { id: 13, name: "Serdarlı Eczanesi", region: "ALT_MESARYA", address: "Cumhuriyet Cd. No:31, Serdarlı", phone: "(0392) 000 00 13", opensAt: "08:00", closesAt: "19:00", onCall: { from: "19:00", to: "00:00" }, lat: 35.2402, lng: 33.6684 },
+  { id: 12, name: "Değirmenlik Eczanesi", region: "MESARYA", address: "Şht. Salih Terzi Cd. No:9, Değirmenlik", phone: "(0392) 000 00 12", opensAt: "08:00", closesAt: "22:00", onCall: null, lat: 35.2072, lng: 33.4753 },
+  { id: 13, name: "Serdarlı Eczanesi", region: "MESARYA", address: "Cumhuriyet Cd. No:31, Serdarlı", phone: "(0392) 000 00 13", opensAt: "08:00", closesAt: "19:00", onCall: { from: "19:00", to: "00:00" }, lat: 35.2402, lng: 33.6684 },
 ];
 
 function kmBetween(aLat: number, aLng: number, bLat: number, bLng: number): number {

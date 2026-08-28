@@ -8,8 +8,7 @@ export type RegionCode =
   | "GAZIMAGUSA"
   | "GUZELYURT"
   | "LEFKE"
-  | "UST_MESARYA"
-  | "ALT_MESARYA"
+  | "MESARYA"
   | "ISKELE"
   | "KARPAZ";
 
@@ -19,8 +18,7 @@ export const REGION_LABEL: Record<RegionCode, string> = {
   GAZIMAGUSA: "Gazimağusa",
   GUZELYURT: "Güzelyurt",
   LEFKE: "Lefke",
-  UST_MESARYA: "Üst Mesarya",
-  ALT_MESARYA: "Alt Mesarya",
+  MESARYA: "Mesarya",
   ISKELE: "İskele",
   KARPAZ: "Karpaz",
 };
@@ -34,8 +32,7 @@ export const REGION_ORDER: RegionCode[] = [
   "LEFKE",
   "ISKELE",
   "KARPAZ",
-  "UST_MESARYA",
-  "ALT_MESARYA",
+  "MESARYA",
 ];
 
 /**
@@ -55,8 +52,11 @@ const REGION_ALIASES: Record<string, RegionCode> = {
   "gazimağusa": "GAZIMAGUSA",
   "güzelyurt": "GUZELYURT",
   "lefke": "LEFKE",
-  "üst mesarya": "UST_MESARYA",
-  "alt mesarya": "ALT_MESARYA",
+  // The source splits Mesarya in two, but a duty night there is rare enough
+  // that two filter chips mostly sit empty. Both headings fold into one region.
+  "mesarya": "MESARYA",
+  "üst mesarya": "MESARYA",
+  "alt mesarya": "MESARYA",
   "iskele": "ISKELE",
   "karpaz": "KARPAZ",
 };
@@ -73,6 +73,23 @@ export function normalizeRegion(raw: string | null | undefined): RegionCode | nu
 
 export function isRegionCode(v: string | null | undefined): v is RegionCode {
   return typeof v === "string" && v in REGION_LABEL;
+}
+
+/**
+ * Codes that were written to the database before Üst/Alt Mesarya were folded
+ * into one. Rows synced earlier still carry them, so reads translate rather
+ * than dropping a pharmacy's region on the floor.
+ */
+const LEGACY_CODES: Record<string, RegionCode> = {
+  UST_MESARYA: "MESARYA",
+  ALT_MESARYA: "MESARYA",
+};
+
+/** A stored region value as a current code — legacy values included. */
+export function toRegionCode(v: string | null | undefined): RegionCode | null {
+  if (!v) return null;
+  if (isRegionCode(v)) return v;
+  return LEGACY_CODES[v] ?? null;
 }
 
 /**

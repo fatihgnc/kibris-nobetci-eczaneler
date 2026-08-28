@@ -191,8 +191,7 @@ type RegionCode =
   | 'GAZIMAGUSA'
   | 'GUZELYURT'
   | 'LEFKE'
-  | 'UST_MESARYA'
-  | 'ALT_MESARYA'
+  | 'MESARYA'
   | 'ISKELE'
   | 'KARPAZ';
 
@@ -202,15 +201,18 @@ const REGION_LABEL: Record<RegionCode, string> = {
   GAZIMAGUSA: 'Gazimağusa',
   GUZELYURT: 'Güzelyurt',
   LEFKE: 'Lefke',
-  UST_MESARYA: 'Üst Mesarya',
-  ALT_MESARYA: 'Alt Mesarya',
+  MESARYA: 'Mesarya',
   ISKELE: 'İskele',
   KARPAZ: 'Karpaz',
 };
 ```
 
 The alias map must absorb the Turkish variants (`MAĞUSA`, `GAZİMAĞUSA`, case
-differences, the trailing `BÖLGESİ`). When normalising Turkish text use
+differences, the trailing `BÖLGESİ`). It also folds the source's two Mesarya
+headings — `ÜST MESARYA` and `ALT MESARYA` — into the single `MESARYA` code: a
+duty night falls there rarely enough that splitting it gives the filter two
+chips that are almost always empty. Rows written before the fold still carry
+`UST_MESARYA` / `ALT_MESARYA`, so reads translate them (`toRegionCode`). When normalising Turkish text use
 `toLocaleLowerCase('tr-TR')` — beware the dotted/dotless `I/ı/İ/i` trap, which
 silently breaks naive matching.
 
@@ -252,7 +254,7 @@ Runs three times a day (§6).
 5. Record the outcome in `sync_runs`.
 
 **Sanity check:** if fewer than **7** records parse, mark the run `failed` and
-**do not delete existing data**. Northern Cyprus has at least nine regions
+**do not delete existing data**. Northern Cyprus has at least eight regions
 covered every day; a count below seven is almost certainly a parsing failure,
 not a real roster.
 
@@ -481,7 +483,7 @@ the DOM.
       (`scrape/__tests__/sync-duty.test.ts`); the banner renders in both
       locales
 - [x] Every region has at least one listed pharmacy (data integrity check)
-      — 432 pharmacies, all nine regions populated (Lefkoşa 168 … Karpaz 8),
+      — 432 pharmacies, all eight regions populated (Lefkoşa 168 … Karpaz 8),
       no NULL region
 - [x] Attribution and the confirmation warning are visible in both locales
 - [x] Switching to English translates the interface while pharmacy names,

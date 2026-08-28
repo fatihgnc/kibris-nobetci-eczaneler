@@ -68,7 +68,7 @@ describe("parseDirectory", () => {
     expect(new Set(map.values())).toEqual(
       new Set([
         "LEFKOSA", "GIRNE", "GAZIMAGUSA", "GUZELYURT", "LEFKE",
-        "UST_MESARYA", "ALT_MESARYA", "ISKELE", "KARPAZ",
+        "MESARYA", "ISKELE", "KARPAZ",
       ])
     );
   });
@@ -101,8 +101,8 @@ describe("parseDutyPage", () => {
     expect(entries.filter((e) => !e.opensAt || !e.closesAt)).toHaveLength(0);
   });
 
-  it("covers all nine regions", () => {
-    expect(new Set(entries.map((e) => e.region)).size).toBe(9);
+  it("covers all eight regions", () => {
+    expect(new Set(entries.map((e) => e.region)).size).toBe(8);
   });
 
   it("parses the date as YYYY-MM-DD", () => {

@@ -1,7 +1,7 @@
 // GET /api/on-duty (SPEC §6) — data and status codes only, never display strings.
 import { NextRequest, NextResponse } from "next/server";
 import { dutyDateFor, dutyMinutesFor } from "@/lib/duty-date";
-import { isRegionCode } from "@/lib/regions";
+import { isRegionCode, toRegionCode } from "@/lib/regions";
 import { deriveStatus } from "@/lib/status";
 import { isStale } from "@/lib/staleness";
 import { supabaseAnon } from "@/lib/supabase";
@@ -85,7 +85,9 @@ export async function GET(req: NextRequest) {
   const short = (t: string | null) => (t ? t.slice(0, 5) : null);
 
   const pharmacies: OnDutyPharmacy[] = rows
-    .filter((r) => !region || r.region === region)
+    // Through toRegionCode, so a row still stored under a folded-away code
+    // (UST_MESARYA / ALT_MESARYA) is matched by the chip that replaced it.
+    .filter((r) => !region || toRegionCode(r.region) === region)
     .map((r) => {
       const opensAt = short(r.opens_at);
       const closesAt = short(r.closes_at);
@@ -94,7 +96,7 @@ export async function GET(req: NextRequest) {
       return {
         id: r.pharmacy_id,
         name: r.name,
-        region: isRegionCode(r.region) ? r.region : null,
+        region: toRegionCode(r.region),
         address: r.address,
         phone: r.phone,
         phoneAlt: r.phone_alt,
