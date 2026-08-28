@@ -236,7 +236,17 @@ export default function MapView({ points, me, selId, fitSignal, onSelect, bottom
       const pts: [number, number][] = points
         .filter((p) => !p.muted)
         .map((p) => [p.lat, p.lng] as [number, number]);
-      if (me) pts.push(me);
+      /*
+       * "Me" joins the fit only when it belongs in the same frame.
+       *
+       * A muted pin means a region filter is on, and the whole point of that
+       * filter is to look at one region — stretching the box to reach the user
+       * standing in another one undoes it. Off the island it is worse: someone
+       * opening the app from Turkey pulled the fit across the Mediterranean and
+       * got the sea, with Cyprus a smudge in the corner.
+       */
+      const filtered = points.some((p) => p.muted);
+      if (me && !filtered && ISLAND.contains(me)) pts.push(me);
       m.invalidateSize();
       // Let the fit choose freely; the floor is applied to its result below.
       m.setMinZoom(0);
