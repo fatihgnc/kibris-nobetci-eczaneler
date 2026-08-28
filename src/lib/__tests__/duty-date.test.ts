@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { dutyDateFor, dutyMinutesFor, nicosiaParts } from "../duty-date";
+import { addDutyDays, dutyDateFor, dutyMinutesFor, nicosiaParts, toKtebDate } from "../duty-date";
 
 // Europe/Nicosia is UTC+3 in August (EEST) and UTC+2 in winter (EET).
 const utc = (s: string) => new Date(s);
@@ -52,5 +52,34 @@ describe("nicosiaParts", () => {
   it("converts UTC to Nicosia wall clock", () => {
     const p = nicosiaParts(utc("2026-08-23T21:01:00Z"));
     expect(p).toMatchObject({ year: 2026, month: 8, day: 24, hour: 0, minute: 1 });
+  });
+});
+
+describe("addDutyDays", () => {
+  it("walks forward a day at a time", () => {
+    expect(addDutyDays("2026-08-23", 1)).toBe("2026-08-24");
+    expect(addDutyDays("2026-08-23", 14)).toBe("2026-09-06");
+  });
+
+  it("crosses month and year ends", () => {
+    expect(addDutyDays("2026-08-31", 1)).toBe("2026-09-01");
+    expect(addDutyDays("2026-12-31", 1)).toBe("2027-01-01");
+    expect(addDutyDays("2028-02-28", 1)).toBe("2028-02-29");
+  });
+
+  it("crosses the DST change without losing or gaining a day", () => {
+    // Nicosia moves EEST → EET on the last Sunday of October.
+    expect(addDutyDays("2026-10-24", 1)).toBe("2026-10-25");
+    expect(addDutyDays("2026-10-25", 1)).toBe("2026-10-26");
+  });
+
+  it("goes backwards too", () => {
+    expect(addDutyDays("2026-09-01", -1)).toBe("2026-08-31");
+  });
+});
+
+describe("toKtebDate", () => {
+  it("renders the day in the format the KTEB form expects", () => {
+    expect(toKtebDate("2026-09-06")).toBe("06.09.2026");
   });
 });

@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
-import { parseDetailPage, parseDirectory, parseDutyPage } from "../parse";
+import { parseDetailPage, parseDirectory, parseDutyForm, parseDutyPage } from "../parse";
 
 // Fixtures are unmodified KTEB responses (the directory one is trimmed to a
 // row per region, markup untouched). They exist because these parsers are the
@@ -131,5 +131,31 @@ describe("parseDutyPage", () => {
   it("does not emit the same pharmacy twice", () => {
     const ids = entries.map((e) => e.pharmacyId);
     expect(new Set(ids).size).toBe(ids.length);
+  });
+});
+
+describe("parseDutyForm", () => {
+  const form = parseDutyForm(fixture("duty-list.html"));
+
+  it("finds the date field by id suffix, not by the generated prefix", () => {
+    // ctl00$ctl00$CpAll$DutyPharmacies_7$… — the _7 moves when KTEB edits the
+    // page, so nothing may depend on it.
+    expect(form?.dateField).toMatch(/\$txtDutyDate$/);
+    expect(form?.regionField).toMatch(/\$ddlRegion$/);
+  });
+
+  it("carries every hidden state field back verbatim", () => {
+    expect(form?.hidden.__VIEWSTATE).toBeTruthy();
+    expect(form?.hidden.__VIEWSTATEGENERATOR).toBe("CA0B0334");
+    // Anything ASP.NET adds later (__EVENTVALIDATION) has to survive too.
+    expect(Object.keys(form?.hidden ?? {}).every((k) => k.startsWith("__"))).toBe(true);
+  });
+
+  it("reads the day the page is currently showing", () => {
+    expect(form?.shownDate).toBe("2026-08-23");
+  });
+
+  it("returns null when the picker is not on the page", () => {
+    expect(parseDutyForm("<html><body>Site under maintenance</body></html>")).toBeNull();
   });
 });

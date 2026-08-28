@@ -248,10 +248,29 @@ Runs three times a day (§6).
      - on-call: `/\((\d{2}:\d{2})\s*-\s*(\d{2}:\d{2})\s*On-?Call\)/i`
    - Region: from the nearest preceding `... BÖLGESİ` heading.
      **Fallback:** if the heading cannot be parsed, use `pharmacies.region`.
-3. If an unknown `pdp` appears, fetch that detail page on the spot, insert into
-   `pharmacies`, then continue. This covers newly opened pharmacies.
-4. Upsert into `duty_shifts` on `(duty_date, pharmacy_id)`.
-5. Record the outcome in `sync_runs`.
+3. Walk the coming days. `/dp/` serves today by default, but its datepicker
+   posts back to the same URL for any other day, and KTEB publishes roughly a
+   month ahead. Read the form off the page — hidden `__`-prefixed inputs echoed
+   back verbatim, the date input's `name` doubling as `__EVENTTARGET`, region
+   set to `-1` — and POST `DD.MM.YYYY` for each of the next
+   **`DUTY_HORIZON_DAYS` (14)** days, parsing each response with the same duty
+   parser.
+   - **Discard any response whose cards do not carry the date that was asked
+     for.** An ignored postback still answers 200, with today's roster; stored
+     under a future date it would show the wrong pharmacies to someone planning
+     around them.
+   - Stop at the first day that parses to nothing: the published range is
+     contiguous, so that is where KTEB has stopped. A day whose *request* fails
+     is skipped, not treated as the end.
+   - Future days never fail the run. Today is what the app serves and what the
+     sanity check guards; the horizon is a bonus, and its collapse shows up as
+     `daysCovered` in the run result rather than as an alert.
+4. If an unknown `pdp` appears, fetch that detail page on the spot, insert into
+   `pharmacies`, then continue. This covers newly opened pharmacies. Run this
+   over the union of all days pulled in step 3 — a future day can introduce a
+   pharmacy just as today can.
+5. Upsert into `duty_shifts` on `(duty_date, pharmacy_id)`.
+6. Record the outcome in `sync_runs`.
 
 **Sanity check:** if fewer than **7** records parse, mark the run `failed` and
 **do not delete existing data**. Northern Cyprus has at least eight regions

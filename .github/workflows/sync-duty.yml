@@ -81,14 +81,20 @@ jobs:
               field() { printf '%s' "${body}" | sed -n "s/.*\"$1\"[[:space:]]*:[[:space:]]*\"\([^\"]*\)\".*/\1/p"; }
               status=$(field status)
               rows=$(printf '%s' "${body}" | sed -n 's/.*"rowsWritten"[[:space:]]*:[[:space:]]*\([0-9]*\).*/\1/p')
+              days=$(printf '%s' "${body}" | sed -n 's/.*"daysCovered"[[:space:]]*:[[:space:]]*\([0-9]*\).*/\1/p')
               date=$(field dutyDate)
-              : "${status:=unknown}" "${rows:=0}" "${date:=—}"
+              horizon=$(field horizonEnd)
+              : "${status:=unknown}" "${rows:=0}" "${days:=0}" "${date:=—}" "${horizon:=—}"
 
               if [ "${status}" = "ok" ]; then
                 echo "### ✅ Duty roster synced" >> "$GITHUB_STEP_SUMMARY"
                 echo "" >> "$GITHUB_STEP_SUMMARY"
                 echo "- Duty date: \`${date}\`" >> "$GITHUB_STEP_SUMMARY"
                 echo "- Rows written: \`${rows}\`" >> "$GITHUB_STEP_SUMMARY"
+                # A quiet drop here — 15 days one run, 1 the next — is how a
+                # broken postback would show up: today still syncs, so
+                # nothing else fails or alerts.
+                echo "- Days covered: \`${days}\` (through \`${horizon}\`)" >> "$GITHUB_STEP_SUMMARY"
                 exit 0
               fi
 

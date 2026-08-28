@@ -67,3 +67,23 @@ export function dutyMinutesFor(now: Date = new Date()): number {
   const minutes = p.hour * 60 + p.minute;
   return p.hour < DUTY_ROLLOVER_HOUR ? minutes + 24 * 60 : minutes;
 }
+
+/**
+ * `date` (YYYY-MM-DD) shifted by `days`, staying on the calendar.
+ *
+ * Anchored at UTC noon for the same reason `dutyDateFor` is: the arithmetic
+ * must be a plain day count, never something a timezone offset can nudge over
+ * a boundary.
+ */
+export function addDutyDays(date: string, days: number): string {
+  const [y, m, d] = date.split("-").map(Number);
+  const anchor = new Date(Date.UTC(y, m - 1, d, 12));
+  anchor.setUTCDate(anchor.getUTCDate() + days);
+  return anchor.toISOString().slice(0, 10);
+}
+
+/** YYYY-MM-DD → DD.MM.YYYY, the format the KTEB duty form expects. */
+export function toKtebDate(date: string): string {
+  const [y, m, d] = date.split("-");
+  return `${d}.${m}.${y}`;
+}

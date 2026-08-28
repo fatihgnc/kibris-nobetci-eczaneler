@@ -182,3 +182,53 @@ export function parseDutyPage(html: string): DutyEntry[] {
 
   return entries;
 }
+
+/**
+ * The postback form behind the duty page's date picker.
+ *
+ * `/dp/?lang=tr` serves today by default, but the page carries a datepicker
+ * that posts back to itself for any other day — which is the only way to reach
+ * the roster KTEB has already published for the coming weeks. There is no
+ * button: the picker submits the form with the text input as the event target.
+ *
+ * Nothing here is hardcoded. The control names carry an ASP.NET-generated
+ * prefix (`ctl00$ctl00$CpAll$DutyPharmacies_7$`) whose numeric suffix moves
+ * when the page is edited, and the hidden state fields differ between ASP.NET
+ * configurations — `__EVENTVALIDATION` is absent today but would have to be
+ * echoed back if it ever appeared. So ids are matched by suffix and every
+ * `__`-prefixed hidden input is carried over untouched.
+ */
+export interface DutyForm {
+  /** Hidden state fields (__VIEWSTATE and friends) to echo back verbatim. */
+  hidden: Record<string, string>;
+  /** POST name of the date input; doubles as the __EVENTTARGET. */
+  dateField: string;
+  /** POST name of the region dropdown, if the page still has one. */
+  regionField: string | null;
+  /** The date the page is currently showing, as YYYY-MM-DD. */
+  shownDate: string | null;
+}
+
+export function parseDutyForm(html: string): DutyForm | null {
+  const $ = cheerio.load(html);
+
+  const dateInput = $('input[id$="txtDutyDate"]').first();
+  const dateField = dateInput.attr("name");
+  if (!dateField) return null;
+
+  const hidden: Record<string, string> = {};
+  $('input[type="hidden"]').each((_, el) => {
+    const name = $(el).attr("name");
+    if (name?.startsWith("__")) hidden[name] = $(el).attr("value") ?? "";
+  });
+  if (!hidden.__VIEWSTATE) return null;
+
+  const dm = DATE_RE.exec(dateInput.attr("value") ?? "");
+
+  return {
+    hidden,
+    dateField,
+    regionField: $('select[id$="ddlRegion"]').first().attr("name") ?? null,
+    shownDate: dm ? `${dm[3]}-${dm[2]}-${dm[1]}` : null,
+  };
+}

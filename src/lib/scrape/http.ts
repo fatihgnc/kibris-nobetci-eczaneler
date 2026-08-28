@@ -23,6 +23,30 @@ export async function fetchHtml(url: string): Promise<string> {
 }
 
 /**
+ * POST a urlencoded form and return the HTML.
+ *
+ * ASP.NET postbacks need the session cookie the page was served with only when
+ * the site enables session state; kteb.org does not, so a plain POST with the
+ * echoed hidden fields is enough. The Referer is sent because the form is a
+ * self-post and some hosts reject one without it.
+ */
+export async function postForm(url: string, form: Record<string, string>): Promise<string> {
+  const res = await fetch(url, {
+    method: "POST",
+    headers: {
+      "User-Agent": USER_AGENT,
+      "Accept-Language": "tr",
+      "Content-Type": "application/x-www-form-urlencoded",
+      Referer: url,
+    },
+    body: new URLSearchParams(form).toString(),
+    redirect: "follow",
+  });
+  if (!res.ok) throw new HttpError(res.status, url);
+  return res.text();
+}
+
+/**
  * Run `fn` over `items` with bounded concurrency; each worker waits
  * `delayMs` between requests so the KTEB server is never hammered.
  */
