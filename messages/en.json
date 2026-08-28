@@ -28,7 +28,8 @@
     "count": "{count} pharmacies",
     "sortDistance": "By distance",
     "sortRegion": "By region",
-    "title": "On-duty pharmacies"
+    "title": "On-duty pharmacies",
+    "onDate": "On duty {date}"
   },
   "status": {
     "OPEN": "Open",
@@ -91,5 +92,17 @@
   "foot": {
     "sourceLabel": "Data source:",
     "confirm": "Call the pharmacy to confirm before travelling."
+  },
+  "days": {
+    "open": "Pick another day",
+    "close": "Close the day picker",
+    "label": "Duty day",
+    "today": "Today",
+    "tomorrow": "Tomorrow",
+    "backToToday": "Back to today",
+    "planTitle": "Future date",
+    "planBody": "The roster planned for <b>{date}</b> — not the pharmacies open right now. It can still change.",
+    "emptyTitle": "No roster published for {date} yet",
+    "emptyBody": "The Pharmacists' Association has not announced this day yet. Try a nearer day."
   }
 }

@@ -25,3 +25,11 @@ export interface OnDutyResponse {
   stale: boolean;
   pharmacies: OnDutyPharmacy[];
 }
+
+/** Days the roster covers, for the date strip (GET /api/duty-days). */
+export interface DutyDaysResponse {
+  /** Today's duty date, decided server-side so the client's clock cannot skew it. */
+  today: string;
+  /** Every covered day from today forward, ascending. Always contains `today`. */
+  days: string[];
+}

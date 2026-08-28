@@ -28,7 +28,8 @@
     "count": "{count} eczane",
     "sortDistance": "Mesafeye göre",
     "sortRegion": "Bölgeye göre",
-    "title": "Nöbetçi eczaneler"
+    "title": "Nöbetçi eczaneler",
+    "onDate": "{date} nöbetçi"
   },
   "status": {
     "OPEN": "Açık",
@@ -91,5 +92,17 @@
   "foot": {
     "sourceLabel": "Veri kaynağı:",
     "confirm": "Gitmeden önce telefonla teyit ediniz."
+  },
+  "days": {
+    "open": "Başka bir gün seç",
+    "close": "Gün seçimini kapat",
+    "label": "Nöbet günü",
+    "today": "Bugün",
+    "tomorrow": "Yarın",
+    "backToToday": "Bugüne dön",
+    "planTitle": "İleri tarih",
+    "planBody": "<b>{date}</b> için planlanmış nöbet — şu an açık olan eczaneler değil. Liste değişebilir.",
+    "emptyTitle": "{date} için nöbet listesi henüz yayınlanmadı",
+    "emptyBody": "Eczacılar Birliği bu günü henüz duyurmamış. Daha yakın bir güne bakabilirsiniz."
   }
 }

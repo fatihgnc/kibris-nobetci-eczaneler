@@ -99,3 +99,24 @@ export function formatDriveTime(minutes: number, locale: string): string {
   if (m === 0) return hours;
   return tr ? `${hours} ${m} dk` : `${hours} ${m} min`;
 }
+
+/**
+ * A day-strip chip, split into its parts: "Cts" over "30".
+ *
+ * The month is returned separately because the strip only prints it where it
+ * changes — a bare "1" between "31" and "2" would be the one date in the row
+ * nobody could place.
+ */
+export function formatDayChipParts(
+  date: string,
+  locale: string
+): { weekday: string; day: string; month: string } {
+  const d = new Date(`${date}T12:00:00Z`);
+  const fmt = (opts: Intl.DateTimeFormatOptions) =>
+    new Intl.DateTimeFormat(locale, { ...opts, timeZone: "UTC" }).format(d);
+  return {
+    weekday: fmt({ weekday: "short" }),
+    day: fmt({ day: "numeric" }),
+    month: fmt({ month: "short" }),
+  };
+}

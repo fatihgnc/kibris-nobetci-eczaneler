@@ -14,7 +14,7 @@ import {
   useState,
 } from "react";
 import { Link, usePathname, useRouter } from "@/i18n/navigation";
-import { dutyDateFor, dutyMinutesFor } from "@/lib/duty-date";
+import { addDutyDays, dutyDateFor, dutyMinutesFor } from "@/lib/duty-date";
 import {
   directionsUrl,
   mapSearchUrl,
@@ -22,13 +22,14 @@ import {
   formatClock,
   formatDistanceKm,
   formatDriveTime,
+  formatDayChipParts,
   formatDutyDate,
   formatDutyDateParts,
   telHref,
 } from "@/lib/format";
 import { isRegionCode, REGION_LABEL, REGION_ORDER, type RegionCode } from "@/lib/regions";
 import { deriveStatus, type DutyStatus } from "@/lib/status";
-import type { OnDutyPharmacy, OnDutyResponse } from "@/lib/types";
+import type { DutyDaysResponse, OnDutyPharmacy, OnDutyResponse } from "@/lib/types";
 import { CloseIcon, NavIcon, PhoneIcon, RecenterIcon } from "./icons";
 import type { MapPoint } from "./MapView";
 
@@ -86,10 +87,30 @@ function useIsDesktop(): boolean {
  * stale one at 3am is exactly the failure this app exists to prevent.
  */
 const ROSTER_TTL_MS = 60_000;
-let rosterCache: { data: OnDutyResponse; at: number } | null = null;
+/**
+ * Keyed by duty date: the strip lets one visit look at several days, and
+ * stepping back to a day already seen should not go to the network again.
+ * Today and a planned Tuesday are different rosters, so one slot would make
+ * the second lookup serve the first one's list.
+ */
+const rosterCache = new Map<string, { data: OnDutyResponse; at: number }>();
+let daysCache: DutyDaysResponse | null = null;
 let coordsCache: [number, number] | null = null;
 
-type Listed = OnDutyPharmacy & { liveStatus: DutyStatus; dist: number | null };
+const freshRoster = (date: string) => {
+  const hit = rosterCache.get(date);
+  return hit && Date.now() - hit.at < ROSTER_TTL_MS ? hit : null;
+};
+
+/**
+ * `liveStatus` is null on a future day.
+ *
+ * Open / closing soon / on-call are all statements about the clock right now.
+ * Printed against next Tuesday's roster they would be false, and false in the
+ * most costly direction: someone reading "Açık" drives to a pharmacy that is
+ * shut. Null forces every render site to decide what to show instead.
+ */
+type Listed = OnDutyPharmacy & { liveStatus: DutyStatus | null; dist: number | null };
 
 export default function AppShell() {
   const t = useTranslations();
@@ -102,7 +123,22 @@ export default function AppShell() {
   const regionParam = searchParams.get("region");
   const region: RegionCode | null = isRegionCode(regionParam) ? regionParam : null;
 
-  const cachedRoster = rosterCache && Date.now() - rosterCache.at < ROSTER_TTL_MS ? rosterCache : null;
+  const [days, setDays] = useState<DutyDaysResponse | null>(daysCache);
+  /**
+   * Today comes from the server, not from `new Date()` here.
+   *
+   * The duty day rolls over at 08:00 Nicosia time, and a device whose clock or
+   * timezone is off would otherwise label the wrong chip "Bugün" — on a strip
+   * whose entire job is telling today apart from the days after it. The local
+   * fallback only covers the moment before the days request lands.
+   */
+  const todayDate = days?.today ?? dutyDateFor();
+
+  const dateParam = searchParams.get("date");
+  const date = dateParam && /^\d{4}-\d{2}-\d{2}$/.test(dateParam) ? dateParam : todayDate;
+  const isFuture = date > todayDate;
+
+  const cachedRoster = freshRoster(date);
   const [data, setData] = useState<OnDutyResponse | null>(cachedRoster?.data ?? null);
   const [loading, setLoading] = useState(!cachedRoster);
   const [error, setError] = useState(false);
@@ -114,8 +150,65 @@ export default function AppShell() {
   const [fitSignal, setFitSignal] = useState(0);
   const [showLocHelp, setShowLocHelp] = useState(false);
   const [mapInset, setMapInset] = useState(0);
+  const [pickerOpen, setPickerOpen] = useState(true);
 
   const bumpFit = useCallback(() => setFitSignal((n) => n + 1), []);
+
+  /**
+   * Drag the day strip sideways with a mouse.
+   *
+   * `overflow-x: auto` is scrollable by touch and by a trackpad's sideways
+   * gesture, and by nothing a mouse can do — no horizontal wheel, no grab. On
+   * a desktop panel showing six of fifteen days that made the rest of the
+   * strip unreachable. Touch is left alone: it already pans natively, and
+   * intercepting it here would fight the browser.
+   */
+  const stripRef = useRef<HTMLDivElement>(null);
+  const stripDrag = useRef({ down: false, startX: 0, startLeft: 0, moved: false });
+
+  const onStripDown = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
+    const el = stripRef.current;
+    if (!el || e.pointerType !== "mouse") return;
+    stripDrag.current = { down: true, startX: e.clientX, startLeft: el.scrollLeft, moved: false };
+  }, []);
+
+  const onStripMove = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
+    const el = stripRef.current;
+    const d = stripDrag.current;
+    if (!d.down || !el) return;
+    const dx = e.clientX - d.startX;
+    // A few pixels of slop, so a click that trembles still selects a day.
+    if (!d.moved && Math.abs(dx) < 4) return;
+    d.moved = true;
+    el.scrollLeft = d.startLeft - dx;
+  }, []);
+
+  const onStripUp = useCallback(() => {
+    stripDrag.current.down = false;
+    // The click that follows this release fires first, so the flag is still
+    // set when it is checked; clearing it a task later keeps it from sitting
+    // there and swallowing an unrelated click — a keyboard Enter on a focused
+    // chip, say, which arrives with no pointerdown to reset it.
+    setTimeout(() => {
+      stripDrag.current.moved = false;
+    }, 0);
+  }, []);
+
+  // A drag that ends on a chip must not also pick that day.
+  const onStripClickCapture = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    if (!stripDrag.current.moved) return;
+    stripDrag.current.moved = false;
+    e.preventDefault();
+    e.stopPropagation();
+  }, []);
+
+  /** Vertical wheel over the strip scrolls it sideways — a mouse has no other way. */
+  const onStripWheel = useCallback((e: React.WheelEvent<HTMLDivElement>) => {
+    const el = stripRef.current;
+    if (!el || el.scrollWidth <= el.clientWidth) return;
+    if (Math.abs(e.deltaY) <= Math.abs(e.deltaX)) return; // already a sideways gesture
+    el.scrollLeft += e.deltaY;
+  }, []);
 
   /**
    * The roster is fetched without the user's coordinates, and distances are
@@ -128,14 +221,17 @@ export default function AppShell() {
    * sort locally. It also means every visitor shares one cached response
    * instead of fragmenting the edge cache by coordinate.
    */
-  const load = useCallback(async () => {
+  const load = useCallback(async (forDate: string) => {
     setLoading(true);
     setError(false);
     try {
-      const res = await fetch("/api/on-duty");
+      // Today is the bare URL: it keeps the default view on one edge-cached
+      // response instead of splitting it by a date every visitor sends.
+      const qs = forDate === todayDate ? "" : `?date=${forDate}`;
+      const res = await fetch(`/api/on-duty${qs}`);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const json = (await res.json()) as OnDutyResponse;
-      rosterCache = { data: json, at: Date.now() };
+      rosterCache.set(forDate, { data: json, at: Date.now() });
       setData(json);
       // Re-fit once the roster lands: the first fit runs while the map is still
       // empty, so without this the pins stay off the visible strip.
@@ -145,7 +241,23 @@ export default function AppShell() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [todayDate]);
+
+  /** Serve the day from the cache when it is there, fetch it when it is not. */
+  const ensureRoster = useCallback(
+    async (forDate: string) => {
+      const hit = freshRoster(forDate);
+      if (hit) {
+        setData(hit.data);
+        setLoading(false);
+        setError(false);
+        setFitSignal((n) => n + 1);
+        return;
+      }
+      await load(forDate);
+    },
+    [load]
+  );
 
   const locate = useCallback(() => {
     if (!("geolocation" in navigator)) {
@@ -188,7 +300,7 @@ export default function AppShell() {
       // A fresh cache means this mount is a locale switch, not an arrival:
       // the list is already on screen and the fix already known, so neither
       // the network nor the user is asked again.
-      if (!cachedRoster) await load();
+      if (!cachedRoster) await load(date);
       if (cancelled || typeof navigator === "undefined" || coordsCache) return;
       if (!navigator.permissions?.query) {
         // Safari before 16 has no Permissions API for geolocation; asking is
@@ -211,6 +323,40 @@ export default function AppShell() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  /**
+   * Which days the roster covers. Fetched once, and allowed to fail quietly:
+   * without it the strip simply does not appear and the app is what it was.
+   */
+  useEffect(() => {
+    if (daysCache) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch("/api/duty-days");
+        if (!res.ok) return;
+        const json = (await res.json()) as DutyDaysResponse;
+        if (!Array.isArray(json.days) || !json.today) return;
+        daysCache = json;
+        if (!cancelled) setDays(json);
+      } catch {
+        /* no strip, no harm */
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  // A day picked from the strip. Skipped on mount, where the arrival effect
+  // above already loads the day in the URL.
+  const loadedDate = useRef(date);
+  useEffect(() => {
+    if (loadedDate.current === date) return;
+    loadedDate.current = date;
+    setSel(null);
+    ensureRoster(date);
+  }, [date, ensureRoster]);
+
   // Re-derive status badges as time passes.
   useEffect(() => {
     const id = setInterval(() => setNowMin(dutyMinutesFor()), 30000);
@@ -224,22 +370,24 @@ export default function AppShell() {
     if (!data) return [];
     return data.pharmacies.map((p) => ({
       ...p,
-      liveStatus: deriveStatus(
-        {
-          opensAt: p.opensAt,
-          closesAt: p.closesAt,
-          oncallFrom: p.onCall?.from ?? null,
-          oncallTo: p.onCall?.to ?? null,
-        },
-        nowMin
-      ),
+      liveStatus: isFuture
+        ? null
+        : deriveStatus(
+            {
+              opensAt: p.opensAt,
+              closesAt: p.closesAt,
+              oncallFrom: p.onCall?.from ?? null,
+              oncallTo: p.onCall?.to ?? null,
+            },
+            nowMin
+          ),
       dist:
         p.distanceKm ??
         (coords && p.lat !== null && p.lng !== null
           ? Math.round(kmBetween(coords, [p.lat, p.lng]) * 10) / 10
           : null),
     }));
-  }, [data, coords, nowMin]);
+  }, [data, coords, nowMin, isFuture]);
 
   const list: Listed[] = useMemo(() => {
     const filtered = all.filter((p) => !region || p.region === region);
@@ -247,10 +395,11 @@ export default function AppShell() {
       filtered.sort((a, b) => (a.dist ?? Infinity) - (b.dist ?? Infinity));
     } else {
       const order: DutyStatus[] = ["OPEN", "CLOSING_SOON", "ON_CALL", "CLOSED"];
+      const rank = (p: Listed) => (p.liveStatus ? order.indexOf(p.liveStatus) : 0);
       filtered.sort(
         (a, b) =>
           (a.region ? REGION_ORDER.indexOf(a.region) : 99) - (b.region ? REGION_ORDER.indexOf(b.region) : 99) ||
-          order.indexOf(a.liveStatus) - order.indexOf(b.liveStatus) ||
+          rank(a) - rank(b) ||
           a.name.localeCompare(b.name, "tr")
       );
     }
@@ -265,7 +414,7 @@ export default function AppShell() {
           id: p.id,
           lat: p.lat as number,
           lng: p.lng as number,
-          statusClass: STATUS_CLASS[p.liveStatus],
+          statusClass: p.liveStatus ? STATUS_CLASS[p.liveStatus] : "s-future",
           // Outside the filter: context only, so it is dimmed, ignored by the
           // fit, and not clickable — its card is not in the list to open.
           muted: region !== null && p.region !== region,
@@ -285,6 +434,20 @@ export default function AppShell() {
       router.replace(`${pathname}${qs ? `?${qs}` : ""}`, { scroll: false });
     },
     [searchParams, router, pathname]
+  );
+
+  const setDate = useCallback(
+    (d: string) => {
+      setSel(null);
+      const params = new URLSearchParams(searchParams.toString());
+      // Today is the bare URL: a link to "today" that pins a date would be
+      // wrong the moment it is opened tomorrow.
+      if (d === todayDate) params.delete("date");
+      else params.set("date", d);
+      const qs = params.toString();
+      router.replace(`${pathname}${qs ? `?${qs}` : ""}`, { scroll: false });
+    },
+    [searchParams, router, pathname, todayDate]
   );
 
   // Refit once the region has actually landed in the URL. setRegion only asks
@@ -407,24 +570,21 @@ export default function AppShell() {
   };
 
   /* ---------- shared strings ---------- */
-  const dutyDate = data?.dutyDate ?? dutyDateFor();
+  const dutyDate = data?.dutyDate ?? date;
   const dutyDateText = formatDutyDate(dutyDate, locale);
-  const dutyParts = formatDutyDateParts(dutyDate, locale);
-  // "23 Ağu Paz" rather than "23 Ağustos Pazar gecesi": the long form does not
-  // fit the phone header beside a name as long as a domain, and truncating it
-  // mid-word reads worse than saying less.
-  const dutyPartsShort = formatDutyDateParts(dutyDate, locale, "short");
   const titleTxt =
     coords && locMode === "granted"
       ? t("list.nearest")
       : region
         ? t("list.regionOnDuty", { region: REGION_LABEL[region] })
-        : t("list.tonight");
+        : isFuture
+          ? t("list.onDate", { date: formatDutyDateParts(date, locale, "short").dayMonth })
+          : t("list.tonight");
   const showInitialSkeleton = loading && !data;
   const countTxt = showInitialSkeleton ? "" : t("list.count", { count: list.length });
 
   const badgeLabel = (p: Listed) =>
-    t(`status.${p.liveStatus}`, { time: p.closesAt ?? "" });
+    p.liveStatus ? t(`status.${p.liveStatus}`, { time: p.closesAt ?? "" }) : "";
 
   // The clock times carry the chip; the words around them stay plain text, so
   // the eye lands on the hours without the whole sentence shouting.
@@ -438,8 +598,92 @@ export default function AppShell() {
   };
 
   /* ---------- fragments ---------- */
+
+  // Only offer the picker once there is more than one day to pick. When the
+  // days request fails the chip stays the plain label it has always been.
+  const canPickDay = (days?.days.length ?? 0) > 1;
+  const tomorrow = addDutyDays(todayDate, 1);
+
+  // Short form on the phone — "23 Ağu Paz" rather than "23 Ağustos Pazar
+  // gecesi": the long one does not fit the header beside a name as long as a
+  // domain, and truncating it mid-word reads worse than saying less.
+  const dateChipInner = (short: boolean) =>
+    t.rich(short ? "header.dutyDateShort" : "header.dutyNightShort", {
+      b: (c) => <strong>{c}</strong>,
+      ...formatDutyDateParts(dutyDate, locale, short ? "short" : "long"),
+    });
+
+  const dateChip = (short: boolean) =>
+    canPickDay ? (
+      <button
+        className={`datechip pick ${pickerOpen ? "on" : ""}`}
+        onClick={() => setPickerOpen((v) => !v)}
+        aria-expanded={pickerOpen}
+        aria-label={pickerOpen ? t("days.close") : t("days.open")}
+      >
+        {dateChipInner(short)}
+        <span className="caret" aria-hidden="true" />
+      </button>
+    ) : (
+      <div className="datechip">{dateChipInner(short)}</div>
+    );
+
+  const dayStrip =
+    canPickDay && pickerOpen ? (
+      <div
+        className="daystrip"
+        ref={stripRef}
+        role="group"
+        aria-label={t("days.label")}
+        onPointerDown={onStripDown}
+        onPointerMove={onStripMove}
+        onPointerUp={onStripUp}
+        onPointerLeave={onStripUp}
+        onClickCapture={onStripClickCapture}
+        onWheel={onStripWheel}
+      >
+        {days!.days.map((d) => {
+          const parts = formatDayChipParts(d, locale);
+          const top = d === todayDate ? t("days.today") : d === tomorrow ? t("days.tomorrow") : parts.weekday;
+          return (
+            <button key={d} className="day" aria-pressed={d === date} onClick={() => setDate(d)}>
+              <span className="w">{top}</span>
+              {/* Every chip carries its month. Printing it only where it
+                  changed left most of the row as bare numbers, which reads as
+                  a count rather than a date. */}
+              <span className="d">{`${parts.day} ${parts.month}`}</span>
+            </button>
+          );
+        })}
+      </div>
+    ) : null;
+
+  /**
+   * What a future day says about itself.
+   *
+   * It takes the freshness banner's place rather than sitting beside it: on
+   * this day nothing on screen is a live reading, and the one thing the reader
+   * must not do is act on it as if it were tonight. It has to survive being
+   * arrived at from a shared link, at 3am, by someone who did not choose the
+   * date — hence the way back to today, always in reach.
+   */
+  const planBar = isFuture ? (
+    <div className="planbar" role="status">
+      {/* The way back shares the heading's row rather than standing beside the
+          sentence: on a phone a button in that column squeezes the text into a
+          third line, and the bar is already taking room from the map. */}
+      <div className="pbtop">
+        <b>{t("days.planTitle")}</b>
+        <button className="pbback" onClick={() => setDate(todayDate)}>
+          {t("days.backToToday")}
+        </button>
+      </div>
+      <p>{t.rich("days.planBody", { b: (c) => <b>{c}</b>, date: formatDutyDate(date, locale) })}</p>
+    </div>
+  ) : null;
+
   const staleBanner =
-    data?.stale && !showInitialSkeleton ? (
+    data?.stale && !showInitialSkeleton && !isFuture ? (
       <div className="stale" role="status">
         <span className="dot" aria-hidden="true" />
         {/* An empty roster is flagged stale even when the sync itself is
@@ -453,7 +697,7 @@ export default function AppShell() {
                 time: formatClock(data.lastSyncedAt, locale),
               })
             : t("stale.never")}
-        <button onClick={() => load()}>{t("actions.refresh")}</button>
+        <button onClick={() => load(date)}>{t("actions.refresh")}</button>
       </div>
     ) : null;
 
@@ -475,7 +719,7 @@ export default function AppShell() {
         mapSearchUrl(p.name, p.address ?? (p.region ? REGION_LABEL[p.region] : null), "KKTC");
 
   const card = (p: Listed) => {
-    const cls = STATUS_CLASS[p.liveStatus];
+    const cls = p.liveStatus ? STATUS_CLASS[p.liveStatus] : "s-future";
     return (
       <article key={p.id} className={`card ${sel === p.id ? "sel" : ""}`} onClick={() => select(p.id)}>
         <div className="row1">
@@ -498,16 +742,21 @@ export default function AppShell() {
           )}
         </div>
         <div className="meta">
-          <span className={`badge ${cls}`}>
-            <span className="b" aria-hidden="true" />
-            {badgeLabel(p)}
-          </span>
+          {p.liveStatus && (
+            <span className={`badge ${cls}`}>
+              <span className="b" aria-hidden="true" />
+              {badgeLabel(p)}
+            </span>
+          )}
           {p.region && <span className="region">{REGION_LABEL[p.region]}</span>}
         </div>
         {p.address && <p className="addr">{p.address}</p>}
         <p className="hours">{hoursLine(p)}</p>
         <div className="acts">
-          {p.phone && (
+          {/* Ringing a pharmacy about a shift days away puts a real person on
+              the line for nothing, so a future day is informational: the hours
+              and the way there. The number stays in the detail sheet. */}
+          {p.phone && !isFuture && (
             <a
               className="btn sec"
               href={telHref(p.phone)}
@@ -581,7 +830,7 @@ export default function AppShell() {
           <h4>{t("error.title")}</h4>
           <p>{t("error.body")}</p>
           <div className="acts">
-            <button className="btn sec" onClick={() => load()}>
+            <button className="btn sec" onClick={() => load(date)}>
               {t("actions.retry")}
             </button>
           </div>
@@ -591,8 +840,14 @@ export default function AppShell() {
           <div className="glyph" aria-hidden="true">
             —
           </div>
-          <h4>{region ? t("empty.title", { region: REGION_LABEL[region] }) : t("empty.titleAll")}</h4>
-          <p>{t("empty.body")}</p>
+          <h4>
+            {region
+              ? t("empty.title", { region: REGION_LABEL[region] })
+              : isFuture
+                ? t("days.emptyTitle", { date: formatDutyDate(date, locale) })
+                : t("empty.titleAll")}
+          </h4>
+          <p>{isFuture && !region ? t("days.emptyBody") : t("empty.body")}</p>
           {region && (
             <div className="acts">
               <button className="btn sec" onClick={() => setRegion(null)}>
@@ -620,7 +875,7 @@ export default function AppShell() {
   );
 
   const detailBody = (p: Listed) => {
-    const cls = STATUS_CLASS[p.liveStatus];
+    const cls = p.liveStatus ? STATUS_CLASS[p.liveStatus] : "s-future";
     return (
       <>
         <div className="grab" onClick={closeDetail}>
@@ -631,10 +886,12 @@ export default function AppShell() {
         </button>
         <div className="dbody">
           <div className="meta" style={{ margin: "0 0 10px" }}>
-            <span className={`badge ${cls}`}>
-              <span className="b" aria-hidden="true" />
-              {badgeLabel(p)}
-            </span>
+            {p.liveStatus && (
+              <span className={`badge ${cls}`}>
+                <span className="b" aria-hidden="true" />
+                {badgeLabel(p)}
+              </span>
+            )}
             {p.region && <span className="region">{REGION_LABEL[p.region]}</span>}
             {p.dist !== null && (
               <span className="region" style={{ fontFamily: "var(--font-mono)" }}>
@@ -644,7 +901,7 @@ export default function AppShell() {
           </div>
           <h2>{p.name}</h2>
           <div className="acts">
-            {p.phone && (
+            {p.phone && !isFuture && (
               <a className="btn sec" href={telHref(p.phone)}>
                 <PhoneIcon />
                 {t("actions.call")}
@@ -789,11 +1046,8 @@ export default function AppShell() {
                 phone's topbar already shares one tight row with the date and
                 the locate button. */}
             <p className="tagline">{t("app.tagline")}</p>
-            <div className="deskbar">
-              <div className="datechip">
-                {t.rich("header.dutyNightShort", { b: (c) => <strong>{c}</strong>, ...dutyParts })}
-              </div>
-            </div>
+            <div className="deskbar">{dateChip(false)}</div>
+            {dayStrip}
             <div className="selectwrap">
               <div className="selectfield">
                 <select
@@ -814,7 +1068,7 @@ export default function AppShell() {
                 <span className="selectcaret" aria-hidden="true" />
               </div>
             </div>
-            {staleBanner && <div className="dstale">{staleBanner}</div>}
+            {(planBar ?? staleBanner) && <div className="dstale">{planBar ?? staleBanner}</div>}
             <div className="sheethead">
               <h2>{titleTxt}</h2>
               <span className="n">{countTxt}</span>
@@ -839,22 +1093,27 @@ export default function AppShell() {
         <div className="brand">
           <b>{t("app.name")}</b>
         </div>
-        <div className="datechip">
-          {t.rich("header.dutyDateShort", { b: (c) => <strong>{c}</strong>, ...dutyPartsShort })}
-        </div>
+        {dateChip(true)}
         {localeSwitch}
       </div>
-      <div className="chips" ref={chipsRef} role="group" aria-label={t("chips.regionFilter")}>
-        <button className="chip" aria-pressed={region === null} onClick={() => setRegion(null)}>
-          {t("chips.all")}
-        </button>
-        {REGION_ORDER.map((r) => (
-          <button key={r} className="chip" aria-pressed={region === r} onClick={() => setRegion(r)}>
-            {REGION_LABEL[r]}
+      {/* Region and day are different questions, so they get their own rows —
+          on one line they read as a single filter and the day is lost in it.
+          Both live inside the measured wrapper: the sheet is positioned from
+          its bottom edge, so a strip outside it would sit under the map. */}
+      <div ref={chipsRef}>
+        <div className="chips" role="group" aria-label={t("chips.regionFilter")}>
+          <button className="chip" aria-pressed={region === null} onClick={() => setRegion(null)}>
+            {t("chips.all")}
           </button>
-        ))}
+          {REGION_ORDER.map((r) => (
+            <button key={r} className="chip" aria-pressed={region === r} onClick={() => setRegion(r)}>
+              {REGION_LABEL[r]}
+            </button>
+          ))}
+        </div>
+        {dayStrip}
       </div>
-      <div ref={staleRef}>{staleBanner}</div>
+      <div ref={staleRef}>{planBar ?? staleBanner}</div>
       <div className="mapwrap" ref={mapwrapRef}>
         {mapView}
         {/* The map container runs to the bottom of the screen, so buttons
