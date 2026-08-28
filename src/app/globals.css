@@ -216,13 +216,21 @@ button { font: inherit; color: inherit; border: 0; background: none; cursor: poi
 .badge.s-closed { background: var(--closed-bg); color: var(--closed); }
 .region { font-size: 12px; color: var(--text-2); padding: 5px 9px; border-radius: 8px; background: var(--bg); border: 1px solid var(--line-soft); }
 .addr { margin: 9px 0 0; font-size: 13px; line-height: 1.45; color: var(--text-2); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-.hours { margin: 8px 0 0; font-family: var(--font-mono); font-size: 11px; line-height: 2.2; color: var(--text-3); letter-spacing: .02em; }
+.hours { margin: 8px 0 0; font-family: var(--font-ui); font-size: 12px; line-height: 2.1; color: var(--text-3); }
 /* Only the clock times are chipped, so the hours read at a glance while the
-   sentence around them stays quiet. */
+   sentence around them stays quiet. The whole range shares one chip, so it
+   reads as a single span of time rather than two separate clocks.
+
+   The clocks are set in the UI face, not the mono one. Plex Mono at 11/700
+   packed the digits, the colons and the dash into a dense little block that
+   had to be decoded rather than read; Archivo's numerals are wider apart and
+   its punctuation sits clear of them. tabular-nums keeps the chip the same
+   width down the list. */
 .hours .t {
-  padding: 3px 6px; border-radius: 6px; background: var(--surface-2);
-  border: 1px solid var(--line-soft); color: var(--text); font-weight: 700;
-  white-space: nowrap;
+  padding: 3px 7px; border-radius: 6px; background: var(--surface-2);
+  border: 1px solid var(--line-soft); color: var(--text); font-weight: 600;
+  font-size: 12.5px; letter-spacing: .01em; white-space: nowrap;
+  font-variant-numeric: tabular-nums;
 }
 .acts { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 11px; }
 .btn {

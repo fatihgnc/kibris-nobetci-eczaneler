@@ -476,7 +476,6 @@ export default function AppShell() {
 
   const card = (p: Listed) => {
     const cls = STATUS_CLASS[p.liveStatus];
-    const callFirst = p.liveStatus === "ON_CALL" || p.liveStatus === "CLOSED";
     return (
       <article key={p.id} className={`card ${sel === p.id ? "sel" : ""}`} onClick={() => select(p.id)}>
         <div className="row1">
@@ -510,7 +509,7 @@ export default function AppShell() {
         <div className="acts">
           {p.phone && (
             <a
-              className={`btn ${callFirst ? "pri" : "sec"}`}
+              className="btn sec"
               href={telHref(p.phone)}
               onClick={(e) => e.stopPropagation()}
             >
@@ -519,7 +518,7 @@ export default function AppShell() {
             </a>
           )}
           <a
-            className={`btn ${callFirst ? "sec" : "pri"}`}
+            className="btn pri"
             href={mapsHref(p)}
             target="_blank"
             rel="noopener noreferrer"
@@ -622,7 +621,6 @@ export default function AppShell() {
 
   const detailBody = (p: Listed) => {
     const cls = STATUS_CLASS[p.liveStatus];
-    const callFirst = p.liveStatus === "ON_CALL" || p.liveStatus === "CLOSED";
     return (
       <>
         <div className="grab" onClick={closeDetail}>
@@ -647,13 +645,13 @@ export default function AppShell() {
           <h2>{p.name}</h2>
           <div className="acts">
             {p.phone && (
-              <a className={`btn ${callFirst ? "pri" : "sec"}`} href={telHref(p.phone)}>
+              <a className="btn sec" href={telHref(p.phone)}>
                 <PhoneIcon />
                 {t("actions.call")}
               </a>
             )}
             <a
-              className={`btn ${callFirst ? "sec" : "pri"}`}
+              className="btn pri"
               href={mapsHref(p)}
               target="_blank"
               rel="noopener noreferrer"

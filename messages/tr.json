@@ -38,8 +38,8 @@
     "distance": "MESAFE"
   },
   "hours": {
-    "range": "Nöbet saatleri <t>{open}–{close}</t>",
-    "oncall": "Nöbet <t>{open}–{close}</t> · eczacı <t>{until}</t>'a kadar telefonda",
+    "range": "Nöbet saatleri <t>{open} – {close}</t>",
+    "oncall": "Nöbet <t>{open} – {close}</t> · eczacı <t>{until}</t>'a kadar telefonda",
     "unknown": "Nöbet saatleri: <t>{raw}</t>"
   },
   "actions": {

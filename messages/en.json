@@ -38,8 +38,8 @@
     "distance": "DISTANCE"
   },
   "hours": {
-    "range": "Duty hours <t>{open}–{close}</t>",
-    "oncall": "Duty <t>{open}–{close}</t> · pharmacist on the phone until <t>{until}</t>",
+    "range": "Duty hours <t>{open} – {close}</t>",
+    "oncall": "Duty <t>{open} – {close}</t> · pharmacist on the phone until <t>{until}</t>",
     "unknown": "Duty hours: <t>{raw}</t>"
   },
   "actions": {
