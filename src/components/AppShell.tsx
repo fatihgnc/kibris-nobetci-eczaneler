@@ -754,8 +754,9 @@ export default function AppShell() {
   );
 
   const recenterButton = (
-    <button className="iconbtn" onClick={bumpFit} title={t("header.recenter")} aria-label={t("header.recenter")}>
+    <button className="mapbtn" onClick={coords ? bumpFit : locate} title={t("header.recenter")}>
       <RecenterIcon />
+      {t("header.recenter")}
     </button>
   );
 

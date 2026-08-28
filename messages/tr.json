@@ -11,7 +11,7 @@
   },
   "header": {
     "dutyNight": "<b>{dayMonth}</b> {weekday} gecesi nöbeti",
-    "recenter": "Haritayı ortala",
+    "recenter": "Konumum",
     "switchLocale": "Switch to English",
     "dutyNightShort": "<b>{dayMonth}</b> {weekday} gecesi",
     "dutyDateShort": "<b>{dayMonth}</b> {weekday}"

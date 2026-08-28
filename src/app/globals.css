@@ -164,6 +164,26 @@ button { font: inherit; color: inherit; border: 0; background: none; cursor: poi
 .mepin { width: 16px; height: 16px; border-radius: 50%; background: var(--me); border: 3px solid var(--bg); box-shadow: 0 0 0 7px color-mix(in oklab, var(--me) 26%, transparent); }
 .mapbtns { position: absolute; right: 12px; bottom: 14px; z-index: 420; display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
 
+/* The map's own control: a pill, icon and label together, so it says what it
+   does instead of asking the user to guess a crosshair. White like every other
+   surface on the site; the border and the shadow are what hold it off the
+   basemap. */
+.mapbtn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 40px;
+  /* Equal on both sides: with the icon inside the pill, an extra pixel on the
+     right pushes the whole icon+label block visibly off centre. */
+  padding: 0 14px;
+  border-radius: 999px; white-space: nowrap; line-height: 1;
+  background: var(--surface); color: var(--text);
+  border: 1px solid var(--line);
+  box-shadow: 0 1px 2px rgba(20, 28, 40, .10), 0 6px 16px rgba(20, 28, 40, .14);
+  font-size: 13px; font-weight: 600; letter-spacing: -.005em;
+  transition: border-color .16s ease, color .16s ease, transform .16s ease;
+}
+.mapbtn:hover { border-color: var(--accent); color: var(--accent); }
+.mapbtn:active { transform: scale(.97); }
+.mapbtn svg { width: 17px; height: 17px; stroke: currentColor; fill: none; stroke-width: 1.8; flex: none; }
+
 /* bottom sheet */
 .sheet {
   position: absolute; left: 0; right: 0; bottom: 0; z-index: 450; display: flex; flex-direction: column;
