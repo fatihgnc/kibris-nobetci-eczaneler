@@ -11,7 +11,8 @@
     "titleOnDate": "On-Duty Pharmacies for {date} — North Cyprus",
     "descriptionOnDate": "Pharmacies on duty in North Cyprus on {date}. See their locations, phone numbers and duty hours on the map.",
     "ogTitleOnDate": "Which pharmacies are on duty on {date} in North Cyprus?",
-    "ogDescriptionOnDate": "The on-duty roster for {date}: locations, phone numbers and duty hours."
+    "ogDescriptionOnDate": "The on-duty roster for {date}: locations, phone numbers and duty hours.",
+    "taglineDays": "Rosters published for the days ahead can be viewed too, from the day picker below."
   },
   "header": {
     "dutyNight": "Night duty, {weekday} <b>{dayMonth}</b>",
@@ -113,7 +114,7 @@
     "description": "Pharmacies on duty in {region} on {date}. See each one’s address, phone number and duty hours on the map.",
     "ogTitle": "Which pharmacy is on duty tonight in {region}?",
     "ogDescription": "The on-duty roster for {region}: locations, phone numbers and duty hours. Find the one nearest you on the map.",
-    "intro": "The pharmacies on duty in {region} on {date} are listed below. A duty shift starts in the evening and runs until the next morning; for part of that time the pharmacy may be closed and taking calls instead, so it is worth phoning ahead before setting off."
+    "intro": "The pharmacies that will be on duty in {region} on {date} are listed below. A duty shift starts in the evening and runs until the next morning; for part of that time the pharmacy may be closed and taking calls instead, so it is worth phoning ahead before setting off."
   },
   "pharmacy": {
     "title": "{name} — {region} | Address, Phone and Duty Dates",

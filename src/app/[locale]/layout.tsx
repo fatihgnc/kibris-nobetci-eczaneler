@@ -2,7 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Analytics } from "@vercel/analytics/next";
 import { hasLocale, NextIntlClientProvider } from "next-intl";
 import { getMessages, getTranslations, setRequestLocale } from "next-intl/server";
-import { Archivo, IBM_Plex_Mono } from "next/font/google";
+import { IBM_Plex_Mono, Outfit } from "next/font/google";
 import { notFound } from "next/navigation";
 import RegisterSW from "@/components/RegisterSW";
 import SiteJsonLd from "@/components/SiteJsonLd";
@@ -11,10 +11,12 @@ import { clientMessages } from "@/lib/messages";
 import { SITE_URL } from "@/lib/site";
 import "../globals.css";
 
-const archivo = Archivo({
+const outfit = Outfit({
+  // latin-ext is not optional here: ş, ğ, ı and İ live in that subset, and
+  // half of this interface is Turkish.
   subsets: ["latin", "latin-ext"],
   weight: ["400", "500", "600", "700"],
-  variable: "--font-archivo",
+  variable: "--font-outfit",
   display: "swap",
 });
 const plexMono = IBM_Plex_Mono({
@@ -102,7 +104,7 @@ export default async function LocaleLayout({
   const t = await getTranslations({ locale, namespace: "app" });
 
   return (
-    <html lang={locale} className={`${archivo.variable} ${plexMono.variable}`}>
+    <html lang={locale} className={`${outfit.variable} ${plexMono.variable}`}>
       <body>
         <SiteJsonLd locale={locale} name={t("name")} />
         <NextIntlClientProvider messages={messages}>

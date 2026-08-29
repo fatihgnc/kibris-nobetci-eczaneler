@@ -1187,6 +1187,11 @@ export default function AppShell({
                 phone's topbar already shares one tight row with the date and
                 the locate button. */}
             <p className="tagline">{t("app.tagline")}</p>
+            {/* Its own paragraph rather than a second sentence: the strip below
+                is the only part of this panel nobody thinks to touch, and a
+                clause buried at the end of the first paragraph was not going
+                to change that. */}
+            <p className="tagline">{t("app.taglineDays")}</p>
             <div className="deskbar">{dateChip(false)}</div>
             {dayStrip}
             <div className="selectwrap">
