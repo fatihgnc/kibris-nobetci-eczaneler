@@ -7,7 +7,11 @@
     "description": "Kuzey Kıbrıs'ta bu gece nöbetçi olan eczaneler. Haritadan açık olan nöbetçi eczanelerin konumunu, telefon numarasını ve nöbet saatini görüntüleyin.",
     "ogTitle": "KKTC'de bu gece hangi eczane nöbetçi?",
     "ogDescription": "Size en yakın nöbetçi eczaneyi haritada görün, tek dokunuşla arayın. Nöbet saatleri ve yol tarifi dahil.",
-    "ogImageAlt": "acikeczanevarmi.com — KKTC nöbetçi eczane haritası"
+    "ogImageAlt": "acikeczanevarmi.com — KKTC nöbetçi eczane haritası",
+    "titleOnDate": "{date} Nöbetçi Eczaneler — KKTC",
+    "descriptionOnDate": "{date} günü Kuzey Kıbrıs'ta nöbetçi olan eczaneler. Haritadan konumlarını, telefon numaralarını ve nöbet saatlerini görüntüleyin.",
+    "ogTitleOnDate": "{date} KKTC'de hangi eczaneler nöbetçi?",
+    "ogDescriptionOnDate": "{date} nöbetçi eczane listesi: konum, telefon ve nöbet saatleri."
   },
   "header": {
     "dutyNight": "<b>{dayMonth}</b> {weekday} gecesi nöbeti",

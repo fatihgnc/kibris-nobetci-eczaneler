@@ -7,7 +7,11 @@
     "description": "Pharmacies on duty tonight in Northern Cyprus. See every open pharmacy's location, phone number and duty hours on the map.",
     "ogTitle": "Which pharmacy is on duty tonight in North Cyprus?",
     "ogDescription": "Find the nearest on-duty pharmacy on the map and call it in one tap. Duty hours and directions included.",
-    "ogImageAlt": "acikeczanevarmi.com — map of on-duty pharmacies in North Cyprus"
+    "ogImageAlt": "acikeczanevarmi.com — map of on-duty pharmacies in North Cyprus",
+    "titleOnDate": "On-Duty Pharmacies for {date} — North Cyprus",
+    "descriptionOnDate": "Pharmacies on duty in North Cyprus on {date}. See their locations, phone numbers and duty hours on the map.",
+    "ogTitleOnDate": "Which pharmacies are on duty on {date} in North Cyprus?",
+    "ogDescriptionOnDate": "The on-duty roster for {date}: locations, phone numbers and duty hours."
   },
   "header": {
     "dutyNight": "Night duty, {weekday} <b>{dayMonth}</b>",
