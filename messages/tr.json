@@ -67,6 +67,10 @@
     "body": "Mesafe gösterilemiyor. Bölge seçerek devam edebilir ya da tarayıcı ayarlarından izni açabilirsiniz.",
     "help": "Tarayıcınızın adres çubuğundaki kilit simgesine dokunup Konum iznini açın, ardından sayfayı yenileyin."
   },
+  "unavailable": {
+    "title": "Konumunuza ulaşılamadı",
+    "body": "İzin açık ama konumunuz şu an okunamadı. Tekrar deneyebilir ya da aşağıdan bölge seçerek devam edebilirsiniz."
+  },
   "empty": {
     "title": "{region} bölgesinde nöbetçi eczane yok",
     "titleAll": "Bu gece için nöbetçi eczane bulunamadı",

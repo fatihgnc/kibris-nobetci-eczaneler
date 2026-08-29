@@ -42,7 +42,14 @@ import type { MapPoint } from "./MapView";
 
 const MapView = dynamic(() => import("./MapView"), { ssr: false });
 
-type LocMode = "preask" | "locating" | "granted" | "denied";
+/**
+ * `denied` is only ever a refusal — the user said no, or the browser has no
+ * geolocation to offer. A fix that fails for any other reason (the OS location
+ * service is off, no signal, the 12s timeout ran out) is `unavailable`: same
+ * loss of distances, but telling someone who already granted the permission to
+ * go and grant it is wrong, and it was the one thing they could not act on.
+ */
+type LocMode = "preask" | "locating" | "granted" | "denied" | "unavailable";
 
 const STATUS_CLASS: Record<DutyStatus, string> = {
   OPEN: "s-open",
@@ -355,7 +362,8 @@ export default function AppShell({
 
   const locate = useCallback(() => {
     if (!("geolocation" in navigator)) {
-      setLocMode("denied");
+      // Nothing to grant here, so this is not a refusal either.
+      setLocMode("unavailable");
       return;
     }
     setLocMode("locating");
@@ -369,7 +377,12 @@ export default function AppShell({
         // No refetch: the roster does not depend on where the user is.
         setFitSignal((n) => n + 1);
       },
-      () => setLocMode("denied"),
+      (err) =>
+        // PERMISSION_DENIED is the only code that means "no". TIMEOUT and
+        // POSITION_UNAVAILABLE happen with the permission granted, and used to
+        // land on the same panel — which is why the prompt to enable location
+        // kept coming back to people who had already enabled it.
+        setLocMode(err.code === err.PERMISSION_DENIED ? "denied" : "unavailable"),
       { enableHighAccuracy: false, timeout: 12000, maximumAge: 120000 }
     );
   }, []);
@@ -420,6 +433,43 @@ export default function AppShell({
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  /**
+   * Follow the permission after the first read.
+   *
+   * Granting location in the browser's own settings does not reload the page,
+   * so without this the notice sits there — asking for something the user has
+   * already given — until they think to refresh. The same subscription catches
+   * a permission revoked mid-visit, where the coordinates on screen have just
+   * become something we are no longer allowed to hold.
+   */
+  useEffect(() => {
+    if (typeof navigator === "undefined" || !navigator.permissions?.query) return;
+    let status: PermissionStatus | null = null;
+    let cancelled = false;
+    const onChange = () => {
+      if (!status) return;
+      if (status.state === "denied") {
+        coordsCache = null;
+        setCoords(null);
+        setLocMode("denied");
+      } else if (status.state === "granted" && !coordsCache) {
+        locate();
+      }
+    };
+    navigator.permissions
+      .query({ name: "geolocation" })
+      .then((s) => {
+        if (cancelled) return;
+        status = s;
+        s.addEventListener("change", onChange);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+      status?.removeEventListener("change", onChange);
+    };
+  }, [locate]);
 
   /**
    * Which days the roster covers. Fetched once, and allowed to fail quietly:
@@ -943,6 +993,17 @@ export default function AppShell({
             </button>
             <button className="btn ghost" onClick={() => setShowLocHelp((v) => !v)}>
               {t("actions.howTo")}
+            </button>
+          </div>
+        </div>
+      )}
+      {locMode === "unavailable" && !showInitialSkeleton && (
+        <div className="notice">
+          <h4>{t("unavailable.title")}</h4>
+          <p>{t("unavailable.body")}</p>
+          <div className="acts">
+            <button className="btn sec" onClick={locate}>
+              {t("actions.retry")}
             </button>
           </div>
         </div>

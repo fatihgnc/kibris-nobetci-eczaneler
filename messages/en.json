@@ -67,6 +67,10 @@
     "body": "Distances can't be shown. Continue by picking a region, or enable the permission in your browser settings.",
     "help": "Tap the lock icon in your browser's address bar, allow Location, then reload the page."
   },
+  "unavailable": {
+    "title": "Couldn’t get your location",
+    "body": "Permission is on, but your position couldn’t be read just now. Try again, or pick a region below to carry on."
+  },
   "empty": {
     "title": "No on-duty pharmacy in {region}",
     "titleAll": "No on-duty pharmacy found for tonight",
