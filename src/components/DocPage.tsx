@@ -20,6 +20,7 @@ export default function DocPage({
   brand,
   navLabels,
   current,
+  children,
 }: {
   h1: string;
   lead: string;
@@ -27,6 +28,9 @@ export default function DocPage({
   brand: string;
   navLabels: NavLabels;
   current: AppPathname;
+  /** Rendered between the lead and the sections, for anything that is not a
+      paragraph of prose — the contact page's address, for instance. */
+  children?: React.ReactNode;
 }) {
   return (
     <>
@@ -35,6 +39,7 @@ export default function DocPage({
         <article className="prose">
           <h1>{h1}</h1>
           <p className="lede">{lead}</p>
+          {children}
           {sections.map((s) => (
             <section key={s.heading}>
               <h2>{s.heading}</h2>

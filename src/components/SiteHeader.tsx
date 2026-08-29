@@ -9,13 +9,14 @@ import type { AppPathname } from "@/i18n/routing";
 import type { NavKey, NavLabels } from "@/lib/nav";
 
 /** Only the pathnames that take no parameters, so each is a href on its own. */
-type StaticPathname = Extract<AppPathname, "/" | "/pharmacies" | "/about" | "/privacy">;
+type StaticPathname = Extract<AppPathname, "/" | "/pharmacies" | "/about" | "/privacy" | "/contact">;
 
 const NAV: { href: StaticPathname; key: NavKey }[] = [
   { href: "/", key: "home" },
   { href: "/pharmacies", key: "pharmacies" },
   { href: "/about", key: "about" },
   { href: "/privacy", key: "privacy" },
+  { href: "/contact", key: "contact" },
 ];
 
 export default function SiteHeader({

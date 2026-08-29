@@ -103,7 +103,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   // Rarely touched, and that is the point of listing them: they are what a
   // crawler reads to decide there is a publisher behind the roster.
-  const docs = (["/about", "/privacy"] as const).flatMap((pathname) =>
+  const docs = (["/about", "/privacy", "/contact"] as const).flatMap((pathname) =>
     localised((l) => getPathname({ locale: l, href: pathname }), {
       priority: 0.3,
       changeFrequency: "yearly",

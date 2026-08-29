@@ -104,7 +104,7 @@
     "tomorrow": "Tomorrow",
     "backToToday": "Back to today",
     "planTitle": "Future date",
-    "planBody": "The pharmacies planned to be on duty on <b>{date}</b> — not the ones open right now. It can still change.",
+    "planBody": "You are viewing the pharmacies planned to be on duty on <b>{date}</b> — not the ones open right now. It can still change.",
     "emptyTitle": "No roster published for {date} yet",
     "emptyBody": "The Pharmacists' Association has not announced this day yet. Try a nearer day."
   },
@@ -168,7 +168,8 @@
     "home": "On-duty pharmacies",
     "pharmacies": "Pharmacies",
     "about": "About",
-    "privacy": "Privacy"
+    "privacy": "Privacy",
+    "contact": "Contact"
   },
   "directory": {
     "title": "Pharmacies in North Cyprus — The Full List by Region",
@@ -184,5 +185,18 @@
     "retry": "Try again",
     "notFoundTitle": "Page not found",
     "notFoundBody": "That address does not exist, or it has moved. You can carry on from the on-duty pharmacies page."
+  },
+  "contact": {
+    "title": "Contact — acikeczanevarmi.com",
+    "description": "Report a problem with the site, suggest something, or get in touch.",
+    "h1": "Contact",
+    "p1": "This site is run by one person. Write to the address below; replies usually take a few days.",
+    "emailLabel": "Email",
+    "dutyTitle": "Something wrong in the duty roster?",
+    "dutyP": "This site does not produce the roster; it passes on what the Cyprus Turkish Pharmacists Association publishes. If a pharmacy or an hour looks wrong, the source most likely published it that way, and the correction has to be made there. Write anyway — I will check whether it is our transcription at fault.",
+    "pharmacyTitle": "If your pharmacy’s details are wrong",
+    "pharmacyP": "Tell me if the address, phone number or map position is incorrect. That data comes from the source too, but coordinates can be corrected by hand.",
+    "bugTitle": "A problem with the site",
+    "bugP": "A page that will not open, something that looks wrong, or a suggestion — write in. Mentioning your device and browser makes it much easier to find."
   }
 }

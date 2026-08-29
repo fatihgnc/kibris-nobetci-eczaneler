@@ -160,7 +160,7 @@ button { font: inherit; color: inherit; border: 0; background: none; cursor: poi
 .datechip.pick.on .caret { transform: translateY(1px) rotate(-135deg); }
 
 .daystrip {
-  display: flex; gap: 6px; overflow-x: auto; padding: 0 14px 12px; scrollbar-width: none;
+  display: flex; gap: 14px; overflow-x: auto; padding: 0 14px 12px; scrollbar-width: none;
   /* Same gesture claim as the region row: without it the browser reads a
      sideways drag as its own back-swipe and the strip never moves. */
   touch-action: pan-x;
@@ -174,19 +174,32 @@ button { font: inherit; color: inherit; border: 0; background: none; cursor: poi
 }
 .daystrip:active { cursor: grabbing; }
 .daystrip::-webkit-scrollbar { display: none; }
+/* Tabs, not cards.
+   Sixteen outlined boxes competed with the pharmacy cards underneath for the
+   same kind of attention, and the roster is what the page is for. The days
+   read as plain text now and only the chosen one is marked.
+
+   min-height stays at 52px on purpose: the box is gone but the thing a thumb
+   has to land on is not, and that is the part a person cannot see. The
+   transparent border on every day holds the row still, so gaining the marker
+   does not shift the strip by two pixels. */
 .day {
-  flex: none; min-width: 62px; min-height: 52px; padding: 7px 9px; border-radius: 12px;
+  flex: none; min-width: 62px; min-height: 52px; padding: 7px 9px;
   display: grid; gap: 3px; place-items: center; white-space: nowrap;
-  background: var(--surface-2); border: 1px solid var(--line-soft);
-  transition: color .16s ease, background-color .16s ease, border-color .16s ease;
+  background: none; border: 0; border-bottom: 2px solid transparent; opacity: .6;
+  transition: color .16s ease, border-color .16s ease, opacity .16s ease;
 }
-.day .w { font-size: 10px; letter-spacing: .05em; text-transform: uppercase; color: var(--text-3); }
-/* 500, not 600: only 400 and 500 of the mono face are loaded, so 600 was
-   drawn as synthetic bold — heavier and blurrier than the real weight. */
-.day .d { font-family: var(--font-mono); font-size: 13.5px; font-weight: 500; color: var(--text-2); }
+.day .w { font-size: 9px; letter-spacing: .05em; text-transform: uppercase; color: var(--text-3); }
+/* The UI face, not the mono one. Mono earns its place where figures line up
+   in a column — clock times, distances — and these dates sit in a row of
+   varying widths where it only read as a different typeface. */
+.day .d { font-size: 12.5px; font-weight: 500; color: var(--text-2); }
+.day:hover { opacity: 1; }
+.day:hover .w { color: var(--text-2); }
 .day:hover .d { color: var(--text); }
-.day[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); }
-.day[aria-pressed="true"] .w, .day[aria-pressed="true"] .d { color: var(--accent-ink); }
+.day[aria-pressed="true"] { border-bottom-color: var(--accent); opacity: 1; }
+.day[aria-pressed="true"] .w { color: var(--accent); }
+.day[aria-pressed="true"] .d { color: var(--text); }
 
 /* A day that is not today. It takes the freshness banner's place, because on
    such a day nothing on screen is a live reading — and it is loud on purpose:

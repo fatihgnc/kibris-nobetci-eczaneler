@@ -26,6 +26,7 @@ export const routing = defineRouting({
     "/pharmacy/[slug]": { tr: "/eczane/[slug]", en: "/pharmacy/[slug]" },
     "/about": { tr: "/hakkinda", en: "/about" },
     "/privacy": { tr: "/gizlilik", en: "/privacy" },
+    "/contact": { tr: "/iletisim", en: "/contact" },
   },
 });
 

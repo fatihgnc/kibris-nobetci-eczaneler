@@ -1006,6 +1006,8 @@ export default function AppShell({
         <Link href="/about">{t("nav.about")}</Link>
         <i aria-hidden="true">·</i>
         <Link href="/privacy">{t("nav.privacy")}</Link>
+        <i aria-hidden="true">·</i>
+        <Link href="/contact">{t("nav.contact")}</Link>
       </span>
     </div>
   );

@@ -104,7 +104,7 @@
     "tomorrow": "Yarın",
     "backToToday": "Bugüne dön",
     "planTitle": "İleri tarih",
-    "planBody": "<b>{date}</b> için planlanmış nöbetçi eczaneler — şu an açık olanlar değil. Liste değişebilir.",
+    "planBody": "<b>{date}</b> için planlanmış nöbetçi eczaneleri görüntülüyorsunuz — şu an açık olanlar değil. Liste değişebilir.",
     "emptyTitle": "{date} için nöbet listesi henüz yayınlanmadı",
     "emptyBody": "Eczacılar Birliği bu günü henüz duyurmamış. Daha yakın bir güne bakabilirsiniz."
   },
@@ -168,7 +168,8 @@
     "home": "Nöbetçi eczaneler",
     "pharmacies": "Eczaneler",
     "about": "Hakkında",
-    "privacy": "Gizlilik"
+    "privacy": "Gizlilik",
+    "contact": "İletişim"
   },
   "directory": {
     "title": "KKTC Eczaneleri — Bölgeye Göre Tüm Eczaneler",
@@ -184,5 +185,18 @@
     "retry": "Tekrar dene",
     "notFoundTitle": "Sayfa bulunamadı",
     "notFoundBody": "Aradığınız adres yok ya da taşınmış. Nöbetçi eczaneler sayfasından devam edebilirsiniz."
+  },
+  "contact": {
+    "title": "İletişim — acikeczanevarmi.com",
+    "description": "Siteyle ilgili hata bildirimi, öneri ve iletişim.",
+    "h1": "İletişim",
+    "p1": "Bu site tek kişi tarafından yürütülüyor. Aşağıdaki adrese yazabilirsiniz; genellikle birkaç gün içinde dönüş yapılır.",
+    "emailLabel": "E-posta",
+    "dutyTitle": "Nöbet listesinde bir hata mı var?",
+    "dutyP": "Nöbet çizelgesini bu site üretmiyor; Kıbrıs Türk Eczacılar Birliği’nin yayınından olduğu gibi aktarıyor. Listede yanlış bir eczane veya saat görüyorsanız kaynak da büyük olasılıkla öyle yayınlanmıştır — düzeltmenin kaynakta yapılması gerekir. Yine de yazın, hatanın bizim aktarımımızdan mı kaynaklandığına bakayım.",
+    "pharmacyTitle": "Eczanenizin bilgileri yanlışsa",
+    "pharmacyP": "Adres, telefon veya harita konumu hatalıysa bildirin. Bu bilgiler de kaynaktan geliyor, ama koordinatları elle düzeltebiliyoruz.",
+    "bugTitle": "Sitede bir sorun",
+    "bugP": "Açılmayan bir sayfa, yanlış görünen bir şey ya da öneriniz varsa yazın. Hangi cihaz ve tarayıcıyı kullandığınızı eklerseniz bulması kolaylaşır."
   }
 }
