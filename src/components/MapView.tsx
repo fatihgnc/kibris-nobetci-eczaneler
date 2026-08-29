@@ -132,6 +132,18 @@ let keptLayer: L.LayerGroup | null = null;
 let carriedOver = false;
 /** Whether the pins have ever been framed. Until they have, every mount fits. */
 let everFitted = false;
+/**
+ * The set of pins the current view was framed for.
+ *
+ * A remount is not a reason to re-frame — unless it is showing something else.
+ * Regions are pages of their own, so picking one unmounts and remounts this
+ * component, and "keep the view you had" was swallowing exactly the refit the
+ * user asked for by picking it. Comparing what is about to be framed against
+ * what was framed last tells the two cases apart without this component having
+ * to know what a region is: a locale switch arrives with the same pins and
+ * keeps its view, a new filter arrives with different ones and gets a fit.
+ */
+let fittedKey = "";
 
 export default function MapView({ points, me, selId, fitSignal, onSelect, bottomInset = 0 }: Props) {
   const hostRef = useRef<HTMLDivElement>(null);
@@ -230,6 +242,11 @@ export default function MapView({ points, me, selId, fitSignal, onSelect, bottom
   useEffect(() => {
     const m = mapRef.current;
     if (!m) return;
+    // What this pass would frame, named before anything decides to skip it.
+    const key = points
+      .filter((p) => !p.muted)
+      .map((p) => p.id)
+      .join(",");
     const fit = () => {
       // Only what the filter actually selected: fitting the muted pins too
       // would zoom back out to the whole island on every region change.
@@ -279,8 +296,9 @@ export default function MapView({ points, me, selId, fitSignal, onSelect, bottom
     };
     // A remount is not a reason to re-frame: the user's pan and zoom is the
     // view they left behind, and a locale switch should not take it. Until the
-    // pins have been framed once, though, every mount still owes them a fit.
-    if (carriedOver && everFitted) {
+    // pins have been framed once, though, every mount still owes them a fit —
+    // and so does a mount that arrived with a different set of them.
+    if (carriedOver && everFitted && key === fittedKey) {
       carriedOver = false;
       // Deferred for the same reason as the fit below: the mount into the
       // phone layout must not re-measure a map it is about to hand over.
@@ -314,6 +332,7 @@ export default function MapView({ points, me, selId, fitSignal, onSelect, bottom
      */
     const t = setTimeout(() => {
       everFitted = true;
+      fittedKey = key;
       fit();
     }, 90);
     return () => clearTimeout(t);

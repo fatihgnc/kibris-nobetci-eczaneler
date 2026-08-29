@@ -181,7 +181,9 @@ button { font: inherit; color: inherit; border: 0; background: none; cursor: poi
   transition: color .16s ease, background-color .16s ease, border-color .16s ease;
 }
 .day .w { font-size: 10px; letter-spacing: .05em; text-transform: uppercase; color: var(--text-3); }
-.day .d { font-family: var(--font-mono); font-size: 13.5px; font-weight: 600; color: var(--text-2); }
+/* 500, not 600: only 400 and 500 of the mono face are loaded, so 600 was
+   drawn as synthetic bold — heavier and blurrier than the real weight. */
+.day .d { font-family: var(--font-mono); font-size: 13.5px; font-weight: 500; color: var(--text-2); }
 .day:hover .d { color: var(--text); }
 .day[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); }
 .day[aria-pressed="true"] .w, .day[aria-pressed="true"] .d { color: var(--accent-ink); }
@@ -271,7 +273,10 @@ button { font: inherit; color: inherit; border: 0; background: none; cursor: poi
 .sheethead h1 { margin: 0; font-size: 15.5px; font-weight: 600; letter-spacing: -.01em; }
 .sheethead .n { font-family: var(--font-mono); font-size: 12px; color: var(--text-3); }
 .sheethead .sortbtn { margin-left: auto; font-size: 12px; color: var(--accent); font-weight: 600; min-height: 32px; }
-.list { flex: 1; overflow-y: auto; overscroll-behavior: contain; padding: 0 12px 8px; display: flex; flex-direction: column; gap: 13px; }
+/* The 6px at the top is room for the hover lift. A card rises 2px and casts a
+   wider shadow, and with no padding the first one did that straight through
+   the top edge of a scroll container and came out looking sliced. */
+.list { flex: 1; overflow-y: auto; overscroll-behavior: contain; padding: 6px 12px 8px; display: flex; flex-direction: column; gap: 21px; }
 .list::-webkit-scrollbar { width: 8px; }
 .list::-webkit-scrollbar-thumb { background: var(--line); border-radius: 4px; }
 
@@ -358,14 +363,13 @@ button { font: inherit; color: inherit; border: 0; background: none; cursor: poi
 
 /* footer note */
 .foot {
-  padding: 10px 16px 14px; font-size: 10.5px; line-height: 1.5; color: var(--text-3);
+  padding: 10px 16px 14px; font-size: 11.5px; line-height: 1.5; color: var(--text-3);
   padding-bottom: max(14px, env(safe-area-inset-bottom));
-  border-top: 1px solid var(--line-soft); display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap;
+  border-top: 1px solid var(--line-soft); display: flex; gap: 4px 8px; align-items: baseline; flex-wrap: wrap;
 }
 .foot b { color: var(--text-2); font-weight: 600; }
 .foot a { color: inherit; }
 .foot a:hover { color: var(--accent); }
-.foot .warn { color: var(--warn); }
 
 /* detail overlay (mobile) */
 .scrim { position: absolute; inset: 0; z-index: 600; background: oklch(0.12 0.01 250 / .62); opacity: 0; pointer-events: none; transition: opacity .25s; }
@@ -410,7 +414,7 @@ button { font: inherit; color: inherit; border: 0; background: none; cursor: poi
    the pharmacy the reader came for. Aligned to the topbar's own gutter so the
    two rows read as one block. */
 .tagline { margin: 0; padding: 0 18px 12px; font-size: 12px; line-height: 1.45; color: var(--text-3); }
-.panel .list { padding: 0 14px 10px; flex: 1; min-height: 0; }
+.panel .list { padding: 6px 14px 10px; flex: 1; min-height: 0; }
 .deskmap { position: relative; min-height: 0; overflow: hidden; }
 .deskmap .mapwrap { inset: 0; }
 .deskdetail {
@@ -473,10 +477,6 @@ button { font: inherit; color: inherit; border: 0; background: none; cursor: poi
 .prose a { color: var(--accent); text-decoration: none; }
 .prose a:hover { text-decoration: underline; }
 
-.faq { margin: 0; }
-.faq dt { font-weight: 600; color: var(--text); margin-top: 12px; }
-.faq dd { margin: 4px 0 0; }
-
 .dirlist, .regionlinks, .dutydates { list-style: none; margin: 0; padding: 0; }
 .dirlist li { padding: 9px 0; border-bottom: 1px solid var(--line-soft); display: flex; flex-direction: column; gap: 2px; }
 .dirlist li:last-child { border-bottom: 0; }
@@ -517,7 +517,10 @@ button { font: inherit; color: inherit; border: 0; background: none; cursor: poi
 .doc .prose { padding: 0; font-size: 14px; }
 .doc .prose h2 { margin: 26px 0 8px; font-size: 15px; }
 
-.foot .links { display: flex; gap: 14px; margin-top: 2px; }
+/* A dot between the links rather than a wide gap: at this size the space alone
+   read as three stray words rather than one row of them. */
+.foot .links { display: flex; align-items: baseline; gap: 6px; }
+.foot .links i { font-style: normal; color: var(--text-3); opacity: .65; }
 .foot .links a { color: var(--text-3); text-decoration: none; }
 .foot .links a:hover { color: var(--text-2); text-decoration: underline; }
 
@@ -591,3 +594,14 @@ button { font: inherit; color: inherit; border: 0; background: none; cursor: poi
 .regiongroup > summary h2 { margin: 0; }
 .regiongroup > summary h2 .note { font-weight: 400; }
 .regiongroup > p { margin-top: 0; }
+
+/* The one line of prose on a region page, sitting with the filter that put it
+   there: under the region select on desktop, at the head of the list on a
+   phone. Between the chips and the map it would have cost the map a paragraph
+   of height, which on the screen this app is mostly used on is the wrong
+   trade. */
+.regionintro {
+  flex: none; margin: 0; padding: 0 4px 2px;
+  color: var(--text-3); font-size: 12.5px; line-height: 1.55;
+}
+.panel .regionintro { padding: 8px 18px 10px; }

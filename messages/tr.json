@@ -94,8 +94,7 @@
     "source": "Nöbet bilgisi <b>Kıbrıs Türk Eczacılar Birliği</b> listesinden alınmıştır. <warn>Yola çıkmadan önce telefonla teyit ediniz.</warn>"
   },
   "foot": {
-    "sourceLabel": "Veri kaynağı:",
-    "confirm": "Gitmeden önce telefonla teyit ediniz."
+    "sourceLabel": "Veri kaynağı:"
   },
   "days": {
     "open": "Başka bir gün seç",
@@ -105,7 +104,7 @@
     "tomorrow": "Yarın",
     "backToToday": "Bugüne dön",
     "planTitle": "İleri tarih",
-    "planBody": "<b>{date}</b> için planlanmış nöbet — şu an açık olan eczaneler değil. Liste değişebilir.",
+    "planBody": "<b>{date}</b> için planlanmış nöbetçi eczaneler — şu an açık olanlar değil. Liste değişebilir.",
     "emptyTitle": "{date} için nöbet listesi henüz yayınlanmadı",
     "emptyBody": "Eczacılar Birliği bu günü henüz duyurmamış. Daha yakın bir güne bakabilirsiniz."
   },
@@ -114,19 +113,7 @@
     "description": "{date} tarihinde {region} bölgesinde nöbetçi olan eczaneler. Adres, telefon numarası ve nöbet saatleriyle birlikte haritada görüntüleyin.",
     "ogTitle": "{region} bölgesinde bu gece hangi eczane nöbetçi?",
     "ogDescription": "{region} nöbetçi eczane listesi: konum, telefon ve nöbet saatleri. Size en yakın olanı haritada görün.",
-    "intro": "{region} bölgesinde {date} günü nöbet tutan eczaneler aşağıda listelenmiştir. Nöbet akşam saatlerinde başlar ve ertesi sabaha kadar sürer; bu saatlerin bir bölümünde eczane kapalı olup telefon nöbeti tutuyor olabilir, o yüzden yola çıkmadan önce aramanız önerilir.",
-    "faqTitle": "Sıkça sorulan sorular",
-    "faq1q": "{region} bölgesinde bu gece hangi eczane nöbetçi?",
-    "faq1a": "Bu sayfanın üstündeki liste, {region} bölgesinde bugün nöbetçi olan eczaneleri gösterir. Her satırda eczanenin adı, adresi, telefonu ve nöbet saatleri yer alır; konum izni verirseniz liste size en yakın olandan başlar.",
-    "faq2q": "Nöbetçi eczaneler saat kaça kadar açık?",
-    "faq2a": "Nöbet saatleri eczaneden eczaneye değişir. Çoğu eczane akşam nöbetini gece geç saatlere kadar açık geçirir, sonrasında telefon nöbetine geçer. Her eczanenin kendi saatleri listede yazılıdır.",
-    "faq3q": "Nöbetçi eczane listesi ne sıklıkla güncelleniyor?",
-    "faq3a": "Liste her gün birkaç kez Kıbrıs Türk Eczacılar Birliği’nin yayınından otomatik olarak çekilir. Veriler beklenenden eskiyse sayfada bir uyarı gösterilir.",
-    "faq4q": "Başka bölgelerdeki nöbetçi eczaneleri de görebilir miyim?",
-    "faq4a": "Evet. Sayfanın üstündeki bölge filtresinden başka bir bölgeyi seçebilir ya da Tümü seçeneğiyle Kuzey Kıbrıs genelindeki listeye dönebilirsiniz.",
-    "allTitle": "{region} bölgesindeki eczaneler",
-    "allNote": "Nöbetçi olsun olmasın, {region} bölgesinde kayıtlı eczaneler. Her biri için adres, telefon ve nöbet tarihlerini görebilirsiniz.",
-    "otherRegions": "Diğer bölgeler"
+    "intro": "{region} bölgesinde {date} günü nöbet tutan eczaneler aşağıda listelenmiştir. Nöbet akşam saatlerinde başlar ve ertesi sabaha kadar sürer; bu saatlerin bir bölümünde eczane kapalı olup telefon nöbeti tutuyor olabilir, o yüzden yola çıkmadan önce aramanız önerilir."
   },
   "pharmacy": {
     "title": "{name} — {region} | Adres, Telefon ve Nöbet Tarihleri",

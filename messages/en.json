@@ -94,8 +94,7 @@
     "source": "Duty information is taken from the <b>Kıbrıs Türk Eczacılar Birliği</b> list. <warn>Call to confirm before travelling.</warn>"
   },
   "foot": {
-    "sourceLabel": "Data source:",
-    "confirm": "Call the pharmacy to confirm before travelling."
+    "sourceLabel": "Data source:"
   },
   "days": {
     "open": "Pick another day",
@@ -105,7 +104,7 @@
     "tomorrow": "Tomorrow",
     "backToToday": "Back to today",
     "planTitle": "Future date",
-    "planBody": "The roster planned for <b>{date}</b> — not the pharmacies open right now. It can still change.",
+    "planBody": "The pharmacies planned to be on duty on <b>{date}</b> — not the ones open right now. It can still change.",
     "emptyTitle": "No roster published for {date} yet",
     "emptyBody": "The Pharmacists' Association has not announced this day yet. Try a nearer day."
   },
@@ -114,19 +113,7 @@
     "description": "Pharmacies on duty in {region} on {date}. See each one’s address, phone number and duty hours on the map.",
     "ogTitle": "Which pharmacy is on duty tonight in {region}?",
     "ogDescription": "The on-duty roster for {region}: locations, phone numbers and duty hours. Find the one nearest you on the map.",
-    "intro": "The pharmacies on duty in {region} on {date} are listed below. A duty shift starts in the evening and runs until the next morning; for part of that time the pharmacy may be closed and taking calls instead, so it is worth phoning ahead before setting off.",
-    "faqTitle": "Frequently asked questions",
-    "faq1q": "Which pharmacy is on duty tonight in {region}?",
-    "faq1a": "The list at the top of this page shows every pharmacy on duty in {region} today, with its name, address, phone number and duty hours. Allow location access and the list starts from the one nearest you.",
-    "faq2q": "How late are on-duty pharmacies open?",
-    "faq2a": "Duty hours vary from pharmacy to pharmacy. Most stay open late into the evening and then switch to taking calls. Each pharmacy’s own hours are shown in the list.",
-    "faq3q": "How often is the on-duty list updated?",
-    "faq3a": "The list is pulled automatically from the Cyprus Turkish Pharmacists Association several times a day. If the data is older than expected, a warning is shown on the page.",
-    "faq4q": "Can I see on-duty pharmacies in other regions?",
-    "faq4a": "Yes. Use the region filter at the top of the page to switch region, or choose All to go back to the roster for the whole of Northern Cyprus.",
-    "allTitle": "Pharmacies in {region}",
-    "allNote": "Every pharmacy registered in {region}, on duty or not. Each one has its address, phone number and duty dates.",
-    "otherRegions": "Other regions"
+    "intro": "The pharmacies on duty in {region} on {date} are listed below. A duty shift starts in the evening and runs until the next morning; for part of that time the pharmacy may be closed and taking calls instead, so it is worth phoning ahead before setting off."
   },
   "pharmacy": {
     "title": "{name} — {region} | Address, Phone and Duty Dates",

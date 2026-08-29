@@ -130,6 +130,15 @@ const ROSTER_TTL_MS = 60_000;
 const rosterCache = new Map<string, { data: OnDutyResponse; at: number }>();
 let daysCache: DutyDaysResponse | null = null;
 let coordsCache: [number, number] | null = null;
+/**
+ * The region last shown. Module scope, like the caches above, and for the same
+ * reason: a region is a page of its own now, so moving between regions unmounts
+ * this component instead of changing its state, and a ref would forget on every
+ * move. The framing itself is MapView's decision — it compares the pins it is
+ * about to frame against the ones it framed last — so this is only what closes
+ * an open detail card that the new region may not contain.
+ */
+let lastRegion: RegionCode | null | undefined = undefined;
 
 const freshRoster = (date: string) => {
   const hit = rosterCache.get(date);
@@ -171,14 +180,15 @@ export interface AppShellProps {
   /** Region fixed by the URL path, on a region page. Null on the homepage. */
   initialRegion?: RegionCode | null;
   /**
-   * Prose rendered under the roster, inside the scrollable list.
+   * A sentence or two about the region being shown, rendered with the filter.
    *
-   * The app container is `position: fixed; inset: 0`, so anything placed after
-   * it in the document would sit behind it with no way to scroll to it. The
-   * list is the one column on the page that already scrolls, which makes it the
-   * only honest home for copy a reader is meant to be able to reach.
+   * Under the region control on desktop; at the head of the list on a phone,
+   * where putting it between the chips and the map would cost the map the
+   * height of a paragraph. A region page is otherwise this same component over
+   * a filtered list, and this is what keeps each of the sixteen of them a page
+   * of its own rather than a near-copy of the other fifteen.
    */
-  belowList?: ReactNode;
+  regionIntro?: ReactNode;
 }
 
 export default function AppShell({
@@ -186,7 +196,7 @@ export default function AppShell({
   initialDays = null,
   initialNowMinutes,
   initialRegion = null,
-  belowList = null,
+  regionIntro = null,
 }: AppShellProps = {}) {
   const t = useTranslations();
   const locale = useLocale();
@@ -561,11 +571,10 @@ export default function AppShell({
   // the new set only exists after the navigation, not when it is clicked. The
   // open detail card is closed here for the same reason: it may well belong to
   // a pharmacy the new region does not contain.
-  const fittedRegion = useRef<RegionCode | null | undefined>(undefined);
   useEffect(() => {
-    const first = fittedRegion.current === undefined;
-    fittedRegion.current = region;
-    if (first) return;
+    const changed = lastRegion !== undefined && lastRegion !== region;
+    lastRegion = region;
+    if (!changed) return;
     setSel(null);
     bumpFit();
   }, [region, bumpFit]);
@@ -866,10 +875,12 @@ export default function AppShell({
         {p.address && <p className="addr">{p.address}</p>}
         <p className="hours">{hoursLine(p)}</p>
         <div className="acts">
-          {/* Ringing a pharmacy about a shift days away puts a real person on
-              the line for nothing, so a future day is informational: the hours
-              and the way there. The number stays in the detail sheet. */}
-          {p.phone && !isFuture && (
+          {/* Calling is offered on a planned day too. It was withheld on the
+              grounds that ringing about a shift days away puts a real person on
+              the line for nothing — but the person deciding to make that call
+              is better placed to judge it than we are, and someone planning
+              around a pharmacy usually wants to confirm it. */}
+          {p.phone && (
             <a
               className="btn sec"
               href={telHref(p.phone)}
@@ -983,13 +994,17 @@ export default function AppShell({
           Kıbrıs Türk Eczacılar Birliği
         </a>
       </span>
-      <span className="warn">{t("foot.confirm")}</span>
-      {/* The only path to these two pages. Naming the publisher and saying what
+      {/* The only path to these pages. Naming the publisher and saying what
           happens to a location reading is table stakes for a health listing —
           and unreachable pages are the same as unwritten ones. */}
       <span className="links">
         <Link href="/pharmacies">{t("nav.pharmacies")}</Link>
+        {/* Real elements rather than an ::before on the links. A pseudo-element
+            lives inside the anchor, so the dot picked up the hover underline
+            and sat inside the click target — a separator you could click. */}
+        <i aria-hidden="true">·</i>
         <Link href="/about">{t("nav.about")}</Link>
+        <i aria-hidden="true">·</i>
         <Link href="/privacy">{t("nav.privacy")}</Link>
       </span>
     </div>
@@ -1022,7 +1037,7 @@ export default function AppShell({
           </div>
           <h2>{p.name}</h2>
           <div className="acts">
-            {p.phone && !isFuture && (
+            {p.phone && (
               <a className="btn sec" href={telHref(p.phone)}>
                 <PhoneIcon />
                 {t("actions.call")}
@@ -1192,15 +1207,13 @@ export default function AppShell({
                 <span className="selectcaret" aria-hidden="true" />
               </div>
             </div>
+            {regionIntro && <p className="regionintro">{regionIntro}</p>}
             {(planBar ?? staleBanner) && <div className="dstale">{planBar ?? staleBanner}</div>}
             <div className="sheethead">
               <h1>{titleTxt}</h1>
               <span className="n">{countTxt}</span>
             </div>
-            <div className="list">
-              {listContent}
-              {belowList}
-            </div>
+            <div className="list">{listContent}</div>
             {foot}
           </div>
           <div className="deskmap">
@@ -1289,8 +1302,8 @@ export default function AppShell({
           </div>
         </div>
         <div className="list">
+          {regionIntro && <p className="regionintro">{regionIntro}</p>}
           {listContent}
-          {belowList}
         </div>
         {foot}
       </section>

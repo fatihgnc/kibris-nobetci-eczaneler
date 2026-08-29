@@ -5,15 +5,12 @@ import { Suspense } from "react";
 import AppShell from "@/components/AppShell";
 import DutyJsonLd from "@/components/DutyJsonLd";
 import BreadcrumbJsonLd from "@/components/BreadcrumbJsonLd";
-import FaqJsonLd, { type FaqEntry } from "@/components/FaqJsonLd";
-import RegionProse from "@/components/RegionProse";
 import { getPathname } from "@/i18n/navigation";
-import { navLabels } from "@/lib/nav";
 import { routing } from "@/i18n/routing";
 import { addDutyDays, dutyDateFor } from "@/lib/duty-date";
 import { MAX_LOOKAHEAD_DAYS } from "@/lib/duty-days";
 import { formatDutyDate } from "@/lib/format";
-import { listPharmaciesIn } from "@/lib/pharmacies";
+import { navLabels } from "@/lib/nav";
 import { REGION_ORDER, REGION_SLUG, regionDisplay, regionFromSlug } from "@/lib/regions";
 import { loadRosterPage } from "@/lib/roster-page";
 
@@ -101,10 +98,7 @@ export default async function RegionPage({
   setRequestLocale(locale);
 
   const requested = requestedDate((await searchParams).date);
-  const [{ data, days, nowMinutes, date }, directory] = await Promise.all([
-    loadRosterPage(requested),
-    listPharmaciesIn(region),
-  ]);
+  const { data, days, nowMinutes, date } = await loadRosterPage(requested);
 
   const [t, nav] = await Promise.all([
     getTranslations({ locale, namespace: "region" }),
@@ -112,11 +106,6 @@ export default async function RegionPage({
   ]);
   const values = { region: regionDisplay(region, locale), date: formatDutyDate(date, locale) };
   const loc = locale as "tr" | "en";
-
-  const faq: FaqEntry[] = [1, 2, 3, 4].map((n) => ({
-    q: t(`faq${n}q` as "faq1q", values),
-    a: t(`faq${n}a` as "faq1a", values),
-  }));
 
   // The roster comes back island-wide so the map can still draw the pharmacies
   // outside the filter, dimmed. The structured data must not: it describes this
@@ -128,7 +117,6 @@ export default async function RegionPage({
       {inRegion.length > 0 && (
         <DutyJsonLd date={date} title={t("title", values)} pharmacies={inRegion} />
       )}
-      <FaqJsonLd entries={faq} />
       <BreadcrumbJsonLd
         trail={[
           { name: nav.home, path: getPathname({ locale: loc, href: "/" }) },
@@ -141,19 +129,7 @@ export default async function RegionPage({
           initialDays={days}
           initialNowMinutes={nowMinutes}
           initialRegion={region}
-          belowList={
-            <RegionProse
-              region={region}
-              locale={locale}
-              intro={t("intro", values)}
-              faqTitle={t("faqTitle")}
-              faq={faq}
-              allTitle={t("allTitle", values)}
-              allNote={t("allNote", values)}
-              otherRegionsTitle={t("otherRegions")}
-              pharmacies={directory}
-            />
-          }
+          regionIntro={t("intro", values)}
         />
       </Suspense>
     </>
