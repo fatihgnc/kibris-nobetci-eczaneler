@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { notFound, permanentRedirect } from "next/navigation";
 import BackLink from "@/components/BackLink";
+import BreadcrumbJsonLd, { type Crumb } from "@/components/BreadcrumbJsonLd";
 import PharmacyJsonLd from "@/components/PharmacyJsonLd";
 import SiteHeader from "@/components/SiteHeader";
 import { getPathname, Link } from "@/i18n/navigation";
@@ -120,6 +121,13 @@ export default async function PharmacyPage({ params }: { params: Params }) {
       })
     : directoryHref;
   const backLabel = pharmacy.region ? t("backToRegion", values) : nav.pharmacies;
+  // Home > region > pharmacy, with the region left out when the source does
+  // not give this pharmacy one.
+  const trail: Crumb[] = [
+    { name: nav.home, path: getPathname({ locale: loc, href: "/" }) },
+    ...(pharmacy.region && regionName ? [{ name: regionName, path: backHref }] : []),
+    { name: pharmacy.name, path: getPathname({ locale: loc, href: href(canonicalSlug) }) },
+  ];
   const maps =
     pharmacy.lat !== null && pharmacy.lng !== null
       ? directionsUrl(pharmacy.lat, pharmacy.lng)
@@ -129,6 +137,7 @@ export default async function PharmacyPage({ params }: { params: Params }) {
     <>
       <SiteHeader brand={app("name")} labels={nav} current="/pharmacy/[slug]" />
       <main className="doc">
+        <BreadcrumbJsonLd trail={trail} />
         <PharmacyJsonLd
           pharmacy={pharmacy}
           url={`${SITE_URL}${getPathname({ locale: locale as "tr" | "en", href: href(canonicalSlug) })}`}

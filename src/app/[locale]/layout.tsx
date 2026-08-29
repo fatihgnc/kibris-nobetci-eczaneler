@@ -7,6 +7,7 @@ import { notFound } from "next/navigation";
 import RegisterSW from "@/components/RegisterSW";
 import SiteJsonLd from "@/components/SiteJsonLd";
 import { routing } from "@/i18n/routing";
+import { clientMessages } from "@/lib/messages";
 import { SITE_URL } from "@/lib/site";
 import "../globals.css";
 
@@ -95,7 +96,9 @@ export default async function LocaleLayout({
   const { locale } = await params;
   if (!hasLocale(routing.locales, locale)) notFound();
   setRequestLocale(locale);
-  const messages = await getMessages();
+  // Trimmed: the server-only namespaces would otherwise be serialised into
+  // the HTML of every page for no one to read.
+  const messages = clientMessages(await getMessages());
   const t = await getTranslations({ locale, namespace: "app" });
 
   return (

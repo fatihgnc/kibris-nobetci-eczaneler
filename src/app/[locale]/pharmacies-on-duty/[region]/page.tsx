@@ -4,9 +4,11 @@ import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import AppShell from "@/components/AppShell";
 import DutyJsonLd from "@/components/DutyJsonLd";
+import BreadcrumbJsonLd from "@/components/BreadcrumbJsonLd";
 import FaqJsonLd, { type FaqEntry } from "@/components/FaqJsonLd";
 import RegionProse from "@/components/RegionProse";
 import { getPathname } from "@/i18n/navigation";
+import { navLabels } from "@/lib/nav";
 import { routing } from "@/i18n/routing";
 import { addDutyDays, dutyDateFor } from "@/lib/duty-date";
 import { MAX_LOOKAHEAD_DAYS } from "@/lib/duty-days";
@@ -104,8 +106,12 @@ export default async function RegionPage({
     listPharmaciesIn(region),
   ]);
 
-  const t = await getTranslations({ locale, namespace: "region" });
+  const [t, nav] = await Promise.all([
+    getTranslations({ locale, namespace: "region" }),
+    navLabels(locale),
+  ]);
   const values = { region: regionDisplay(region, locale), date: formatDutyDate(date, locale) };
+  const loc = locale as "tr" | "en";
 
   const faq: FaqEntry[] = [1, 2, 3, 4].map((n) => ({
     q: t(`faq${n}q` as "faq1q", values),
@@ -123,6 +129,12 @@ export default async function RegionPage({
         <DutyJsonLd date={date} title={t("title", values)} pharmacies={inRegion} />
       )}
       <FaqJsonLd entries={faq} />
+      <BreadcrumbJsonLd
+        trail={[
+          { name: nav.home, path: getPathname({ locale: loc, href: "/" }) },
+          { name: values.region, path: getPathname({ locale: loc, href: href(slug) }) },
+        ]}
+      />
       <Suspense>
         <AppShell
           initialData={data}
