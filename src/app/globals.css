@@ -219,6 +219,14 @@ button { font: inherit; color: inherit; border: 0; background: none; cursor: poi
 }
 .pbback:hover { color: var(--text); }
 
+/* What the map is laid out below on a phone.
+   The banner inside carries the gap as its own bottom margin, and this wrapper
+   has no padding or border of its own — so that margin collapsed straight
+   through it, left the offsetHeight the layout measures, and the map, placed
+   at chips + that height, covered the gap instead of starting after it. A
+   block formatting context keeps the margin inside the number. */
+.mstale { display: flow-root; }
+
 /* map */
 .mapwrap { position: absolute; left: 0; right: 0; overflow: hidden; background: var(--surface); }
 .map { position: absolute; inset: 0; }

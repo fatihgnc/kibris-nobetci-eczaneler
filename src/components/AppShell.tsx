@@ -1335,7 +1335,7 @@ export default function AppShell({
         </nav>
         {dayStrip}
       </div>
-      <div ref={staleRef}>{planBar ?? staleBanner}</div>
+      <div className="mstale" ref={staleRef}>{planBar ?? staleBanner}</div>
       <div className="mapwrap" ref={mapwrapRef}>
         {mapView}
         {/* The map container runs to the bottom of the screen, so buttons
