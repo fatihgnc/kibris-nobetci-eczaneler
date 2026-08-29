@@ -1,95 +1,69 @@
-// Structured data for a dated roster page (server component).
+// Structured data for a day's roster.
 //
-// A crawler that does not run our JavaScript sees an empty shell, so the day's
-// pharmacies reach it here instead: names, addresses, phone numbers and the
-// hours they are on duty, in the vocabulary Google reads for local results.
+// A crawler that does not run our JavaScript used to see an empty shell here;
+// now it sees the rendered list, and this says the same thing again in the
+// vocabulary Google reads for local results: names, addresses, phone numbers
+// and the hours each pharmacy is on duty.
 //
-// Only dated pages get this. The bare /{locale} is prerendered at build time,
-// so structured data baked into it would name whichever pharmacies happened to
-// be on duty the day of the deploy and keep saying so until the next one — the
-// staleness this whole app exists to prevent, published as a machine claim.
-import { REGION_LABEL, toRegionCode } from "@/lib/regions";
-import { supabaseAnon } from "@/lib/supabase";
+// The roster is handed in rather than queried. The page has already fetched it
+// to render, and a component that went back to the database would double every
+// request's query count to repeat what is on screen.
+import { REGION_LABEL } from "@/lib/regions";
+import type { OnDutyPharmacy } from "@/lib/types";
 
-/** The subset of on_duty_nearby this needs. */
-type Row = {
-  pharmacy_id: number;
-  name: string;
-  region: string | null;
-  address: string | null;
-  phone: string | null;
-  lat: number | null;
-  lng: number | null;
-  opens_at: string | null;
-  closes_at: string | null;
-};
-
-const hhmm = (t: string | null) => (t ? t.slice(0, 5) : null);
-
-export default async function DutyJsonLd({ date, title }: { date: string; title: string }) {
-  let rows: Row[] = [];
-  try {
-    const { data, error } = await supabaseAnon().rpc("on_duty_nearby", {
-      p_date: date,
-      p_lat: null,
-      p_lng: null,
-    });
-    if (error) throw new Error(error.message);
-    rows = (data ?? []) as Row[];
-  } catch (err) {
-    // Structured data is a bonus; the page must not fail over it.
-    console.error(`duty JSON-LD query failed: ${err instanceof Error ? err.message : String(err)}`);
-    return null;
-  }
-  if (rows.length === 0) return null;
+export default function DutyJsonLd({
+  date,
+  title,
+  pharmacies,
+}: {
+  date: string;
+  title: string;
+  pharmacies: OnDutyPharmacy[];
+}) {
+  if (pharmacies.length === 0) return null;
 
   const data = {
     "@context": "https://schema.org",
     "@type": "ItemList",
     name: title,
-    numberOfItems: rows.length,
-    itemListElement: rows.map((r, i) => {
-      const opens = hhmm(r.opens_at);
-      const closes = hhmm(r.closes_at);
-      const region = toRegionCode(r.region);
-      return {
-        "@type": "ListItem",
-        position: i + 1,
-        item: {
-          "@type": "Pharmacy",
-          name: r.name,
-          ...(r.address || region
-            ? {
-                address: {
-                  "@type": "PostalAddress",
-                  ...(r.address ? { streetAddress: r.address } : {}),
-                  ...(region ? { addressRegion: REGION_LABEL[region] } : {}),
-                  addressCountry: "CY",
+    numberOfItems: pharmacies.length,
+    itemListElement: pharmacies.map((p, i) => ({
+      "@type": "ListItem",
+      position: i + 1,
+      item: {
+        "@type": "Pharmacy",
+        name: p.name,
+        ...(p.address || p.region
+          ? {
+              address: {
+                "@type": "PostalAddress",
+                ...(p.address ? { streetAddress: p.address } : {}),
+                ...(p.region ? { addressRegion: REGION_LABEL[p.region] } : {}),
+                addressCountry: "CY",
+              },
+            }
+          : {}),
+        ...(p.phone ? { telephone: p.phone } : {}),
+        ...(p.lat !== null && p.lng !== null
+          ? { geo: { "@type": "GeoCoordinates", latitude: p.lat, longitude: p.lng } }
+          : {}),
+        ...(p.opensAt && p.closesAt
+          ? {
+              openingHoursSpecification: [
+                {
+                  "@type": "OpeningHoursSpecification",
+                  opens: p.opensAt,
+                  // A shift running to midnight is stored as 00:00, which as a
+                  // closing time would read as "shuts the moment it opens".
+                  closes: p.closesAt === "00:00" ? "23:59" : p.closesAt,
+                  validFrom: date,
+                  validThrough: date,
                 },
-              }
-            : {}),
-          ...(r.phone ? { telephone: r.phone } : {}),
-          ...(r.lat !== null && r.lng !== null
-            ? { geo: { "@type": "GeoCoordinates", latitude: r.lat, longitude: r.lng } }
-            : {}),
-          ...(opens && closes
-            ? {
-                openingHoursSpecification: [
-                  {
-                    "@type": "OpeningHoursSpecification",
-                    opens,
-                    // A shift running to midnight is stored as 00:00, which as
-                    // a closing time would read as "shuts the moment it opens".
-                    closes: closes === "00:00" ? "23:59" : closes,
-                    validFrom: date,
-                    validThrough: date,
-                  },
-                ],
-              }
-            : {}),
-        },
-      };
-    }),
+              ],
+            }
+          : {}),
+      },
+    })),
   };
 
   return (

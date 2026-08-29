@@ -28,7 +28,7 @@
   "list": {
     "nearest": "Size en yakın",
     "tonight": "Bu gece nöbetçi",
-    "regionOnDuty": "{region} nöbetçi",
+    "regionOnDuty": "{region} nöbetçi eczaneler",
     "count": "{count} eczane",
     "sortDistance": "Mesafeye göre",
     "sortRegion": "Bölgeye göre",
@@ -108,5 +108,94 @@
     "planBody": "<b>{date}</b> için planlanmış nöbet — şu an açık olan eczaneler değil. Liste değişebilir.",
     "emptyTitle": "{date} için nöbet listesi henüz yayınlanmadı",
     "emptyBody": "Eczacılar Birliği bu günü henüz duyurmamış. Daha yakın bir güne bakabilirsiniz."
+  },
+  "region": {
+    "title": "{region} Nöbetçi Eczaneler — {date}",
+    "description": "{date} tarihinde {region} bölgesinde nöbetçi olan eczaneler. Adres, telefon numarası ve nöbet saatleriyle birlikte haritada görüntüleyin.",
+    "ogTitle": "{region} bölgesinde bu gece hangi eczane nöbetçi?",
+    "ogDescription": "{region} nöbetçi eczane listesi: konum, telefon ve nöbet saatleri. Size en yakın olanı haritada görün.",
+    "intro": "{region} bölgesinde {date} günü nöbet tutan eczaneler aşağıda listelenmiştir. Nöbet akşam saatlerinde başlar ve ertesi sabaha kadar sürer; bu saatlerin bir bölümünde eczane kapalı olup telefon nöbeti tutuyor olabilir, o yüzden yola çıkmadan önce aramanız önerilir.",
+    "faqTitle": "Sıkça sorulan sorular",
+    "faq1q": "{region} bölgesinde bu gece hangi eczane nöbetçi?",
+    "faq1a": "Bu sayfanın üstündeki liste, {region} bölgesinde bugün nöbetçi olan eczaneleri gösterir. Her satırda eczanenin adı, adresi, telefonu ve nöbet saatleri yer alır; konum izni verirseniz liste size en yakın olandan başlar.",
+    "faq2q": "Nöbetçi eczaneler saat kaça kadar açık?",
+    "faq2a": "Nöbet saatleri eczaneden eczaneye değişir. Çoğu eczane akşam nöbetini gece geç saatlere kadar açık geçirir, sonrasında telefon nöbetine geçer. Her eczanenin kendi saatleri listede yazılıdır.",
+    "faq3q": "Nöbetçi eczane listesi ne sıklıkla güncelleniyor?",
+    "faq3a": "Liste her gün birkaç kez Kıbrıs Türk Eczacılar Birliği’nin yayınından otomatik olarak çekilir. Veriler beklenenden eskiyse sayfada bir uyarı gösterilir.",
+    "faq4q": "Başka bölgelerdeki nöbetçi eczaneleri de görebilir miyim?",
+    "faq4a": "Evet. Sayfanın üstündeki bölge filtresinden başka bir bölgeyi seçebilir ya da Tümü seçeneğiyle Kuzey Kıbrıs genelindeki listeye dönebilirsiniz.",
+    "allTitle": "{region} bölgesindeki eczaneler",
+    "allNote": "Nöbetçi olsun olmasın, {region} bölgesinde kayıtlı eczaneler. Her biri için adres, telefon ve nöbet tarihlerini görebilirsiniz.",
+    "otherRegions": "Diğer bölgeler"
+  },
+  "pharmacy": {
+    "title": "{name} — {region} | Adres, Telefon ve Nöbet Tarihleri",
+    "description": "{name} ({region}) iletişim bilgileri: adres, telefon numarası ve eczanenin nöbetçi olduğu tarihler.",
+    "regionLabel": "Bölge",
+    "addressLabel": "Adres",
+    "phoneLabel": "Telefon",
+    "phoneAltLabel": "İkinci telefon",
+    "directions": "Yol tarifi al",
+    "onMap": "Haritada göster",
+    "upcomingTitle": "Yaklaşan nöbet tarihleri",
+    "upcomingNote": "Kıbrıs Türk Eczacılar Birliği’nin yayınladığı takvime göre {name} önümüzdeki günlerde şu tarihlerde nöbetçi:",
+    "todayBadge": "bugün",
+    "pastTitle": "Geçmiş nöbetler",
+    "noUpcoming": "{name} için yayınlanan takvimde yaklaşan bir nöbet günü görünmüyor. Nöbet listesi ilerleyen günler için yayınlandıkça bu sayfa güncellenir.",
+    "noHistory": "Bu eczane için henüz kayıtlı nöbet tarihi yok.",
+    "backToRegion": "{region} bölgesindeki nöbetçi eczaneler",
+    "backHome": "Bu gece nöbetçi olan tüm eczaneler",
+    "hoursNote": "Bu sayfa eczanenin normal çalışma saatlerini değil, nöbet tarihlerini gösterir. Nöbet saatleri için ilgili günün nöbet listesine bakabilirsiniz."
+  },
+  "about": {
+    "title": "Hakkında — acikeczanevarmi.com",
+    "description": "acikeczanevarmi.com nedir, veriler nereden gelir ve ne sıklıkla güncellenir.",
+    "h1": "Hakkında",
+    "p1": "acikeczanevarmi.com, Kuzey Kıbrıs’ta o gün nöbetçi olan eczaneleri hızlıca bulmak için yapılmış ücretsiz bir sitedir. Amaç basit: gece yarısı ilaca ihtiyacı olan birinin, reklam ve gereksiz tıklama olmadan en yakın açık eczaneyi ve telefonunu birkaç saniyede görmesi.",
+    "sourceTitle": "Veri kaynağı",
+    "sourceP": "Nöbet listeleri Kıbrıs Türk Eczacılar Birliği’nin (KTEB) yayınladığı resmî nöbet çizelgesinden otomatik olarak alınır. Eczane adları, adresleri, telefon numaraları ve nöbet saatleri kaynakta yayınlandığı şekliyle aktarılır; bu site veriyi kendisi üretmez.",
+    "freshTitle": "Güncelleme sıklığı",
+    "freshP": "Liste gün içinde birkaç kez otomatik olarak yeniden çekilir. Son başarılı güncellemenin üzerinden beklenenden uzun süre geçmişse sayfada bir uyarı gösterilir; böylece elinizdeki bilginin tazeliğinden emin olmadan yola çıkmazsınız.",
+    "limitsTitle": "Sınırlar",
+    "limitsP": "Bu site resmî bir kurum değildir ve KTEB ile bir bağlantısı yoktur. Kaynakta yapılan bir düzeltme buraya gecikmeli yansıyabilir. Acil durumlarda ve yola çıkmadan önce eczaneyi telefonla aramanız önerilir.",
+    "openTitle": "Neyi göremezsiniz",
+    "openP": "Site nöbet tarihlerini gösterir; eczanelerin normal çalışma saatlerini göstermez, çünkü bu bilgi kaynakta yayınlanmıyor."
+  },
+  "privacy": {
+    "title": "Gizlilik Politikası — acikeczanevarmi.com",
+    "description": "Bu sitenin konum bilgisi, çerezler ve ölçümleme konusunda ne yaptığı.",
+    "h1": "Gizlilik Politikası",
+    "p1": "Bu site kullanıcı hesabı tutmaz, kayıt istemez ve kişisel veri toplamak üzere kurulmamıştır. Aşağıda hangi verinin nerede işlendiği açıkça yazılıdır.",
+    "locTitle": "Konum",
+    "locP": "“Konumum” özelliğini kullandığınızda tarayıcınız izninizi ister. Verdiğiniz koordinatlar yalnızca o istek için sunucuya gönderilir ve size en yakın eczaneleri sıralamakta kullanılır. Koordinatlar veritabanına kaydedilmez, bir profille ilişkilendirilmez ve üçüncü taraflara aktarılmaz. İzin vermezseniz site tam olarak çalışmaya devam eder; bölge filtresiyle listeye erişebilirsiniz.",
+    "cookieTitle": "Çerezler",
+    "cookieP": "Site yalnızca dil tercihinizi hatırlamak için bir çerez kullanır. Reklam veya takip çerezi yoktur.",
+    "analyticsTitle": "Ölçümleme",
+    "analyticsP": "Sayfa görüntülenmelerini saymak için Vercel Analytics kullanılır. Bu araç ziyaretçileri kişi bazında tanımlamaz ve takip çerezi yerleştirmez.",
+    "offlineTitle": "Çevrimdışı kullanım",
+    "offlineP": "Son görüntülenen liste, bağlantınız koptuğunda da açılabilmesi için tarayıcınızın kendi önbelleğinde saklanır. Bu veri cihazınızdan çıkmaz; tarayıcı verilerini temizleyerek silebilirsiniz.",
+    "thirdTitle": "Dış bağlantılar",
+    "thirdP": "Yol tarifi ve harita bağlantıları Google Haritalar’a, veri kaynağı bağlantısı KTEB’in sitesine gider. Bu bağlantılara tıkladığınızda ilgili sitenin kendi gizlilik politikası geçerli olur."
+  },
+  "nav": {
+    "home": "Nöbetçi eczaneler",
+    "pharmacies": "Eczaneler",
+    "about": "Hakkında",
+    "privacy": "Gizlilik"
+  },
+  "directory": {
+    "title": "KKTC Eczaneleri — Bölgeye Göre Tüm Eczaneler",
+    "description": "Kuzey Kıbrıs’taki eczanelerin bölgeye göre listesi. Her eczanenin adresi, telefonu ve nöbet tarihleri için sayfasına gidin.",
+    "h1": "KKTC eczaneleri",
+    "lead": "Kuzey Kıbrıs’ta kayıtlı {count} eczane bölgelerine göre aşağıda listelenmiştir. Bu liste nöbet listesi değildir; bugün kimin nöbetçi olduğunu görmek için ana sayfaya bakın. Bir eczanenin sayfasında adresini, telefonunu ve nöbetçi olduğu tarihleri bulabilirsiniz.",
+    "regionLink": "{region} bölgesinde bu gece nöbetçi olanlar",
+    "countInRegion": "{count} eczane"
+  },
+  "errors": {
+    "errorTitle": "Bir şeyler ters gitti",
+    "errorBody": "Bu sayfa yüklenemedi. Nöbet listesi etkilenmedi — tekrar deneyebilir ya da nöbetçi eczaneler sayfasına dönebilirsiniz.",
+    "retry": "Tekrar dene",
+    "notFoundTitle": "Sayfa bulunamadı",
+    "notFoundBody": "Aradığınız adres yok ya da taşınmış. Nöbetçi eczaneler sayfasından devam edebilirsiniz."
   }
 }

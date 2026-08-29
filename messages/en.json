@@ -28,7 +28,7 @@
   "list": {
     "nearest": "Nearest to you",
     "tonight": "On duty tonight",
-    "regionOnDuty": "On duty in {region}",
+    "regionOnDuty": "On-duty pharmacies in {region}",
     "count": "{count} pharmacies",
     "sortDistance": "By distance",
     "sortRegion": "By region",
@@ -108,5 +108,94 @@
     "planBody": "The roster planned for <b>{date}</b> — not the pharmacies open right now. It can still change.",
     "emptyTitle": "No roster published for {date} yet",
     "emptyBody": "The Pharmacists' Association has not announced this day yet. Try a nearer day."
+  },
+  "region": {
+    "title": "On-Duty Pharmacies in {region} — {date}",
+    "description": "Pharmacies on duty in {region} on {date}. See each one’s address, phone number and duty hours on the map.",
+    "ogTitle": "Which pharmacy is on duty tonight in {region}?",
+    "ogDescription": "The on-duty roster for {region}: locations, phone numbers and duty hours. Find the one nearest you on the map.",
+    "intro": "The pharmacies on duty in {region} on {date} are listed below. A duty shift starts in the evening and runs until the next morning; for part of that time the pharmacy may be closed and taking calls instead, so it is worth phoning ahead before setting off.",
+    "faqTitle": "Frequently asked questions",
+    "faq1q": "Which pharmacy is on duty tonight in {region}?",
+    "faq1a": "The list at the top of this page shows every pharmacy on duty in {region} today, with its name, address, phone number and duty hours. Allow location access and the list starts from the one nearest you.",
+    "faq2q": "How late are on-duty pharmacies open?",
+    "faq2a": "Duty hours vary from pharmacy to pharmacy. Most stay open late into the evening and then switch to taking calls. Each pharmacy’s own hours are shown in the list.",
+    "faq3q": "How often is the on-duty list updated?",
+    "faq3a": "The list is pulled automatically from the Cyprus Turkish Pharmacists Association several times a day. If the data is older than expected, a warning is shown on the page.",
+    "faq4q": "Can I see on-duty pharmacies in other regions?",
+    "faq4a": "Yes. Use the region filter at the top of the page to switch region, or choose All to go back to the roster for the whole of Northern Cyprus.",
+    "allTitle": "Pharmacies in {region}",
+    "allNote": "Every pharmacy registered in {region}, on duty or not. Each one has its address, phone number and duty dates.",
+    "otherRegions": "Other regions"
+  },
+  "pharmacy": {
+    "title": "{name} — {region} | Address, Phone and Duty Dates",
+    "description": "Contact details for {name} ({region}): address, phone number and the dates this pharmacy is on duty.",
+    "regionLabel": "Region",
+    "addressLabel": "Address",
+    "phoneLabel": "Phone",
+    "phoneAltLabel": "Second phone",
+    "directions": "Get directions",
+    "onMap": "Show on map",
+    "upcomingTitle": "Upcoming duty dates",
+    "upcomingNote": "According to the roster published by the Cyprus Turkish Pharmacists Association, {name} is on duty on these dates:",
+    "todayBadge": "today",
+    "pastTitle": "Past duty dates",
+    "noUpcoming": "No upcoming duty date is listed for {name} in the published roster. This page updates as the roster is published further ahead.",
+    "noHistory": "No duty dates are on record for this pharmacy yet.",
+    "backToRegion": "On-duty pharmacies in {region}",
+    "backHome": "Every pharmacy on duty tonight",
+    "hoursNote": "This page lists duty dates, not the pharmacy’s ordinary opening hours. For duty hours, see the roster for the day in question."
+  },
+  "about": {
+    "title": "About — acikeczanevarmi.com",
+    "description": "What acikeczanevarmi.com is, where the data comes from and how often it is updated.",
+    "h1": "About",
+    "p1": "acikeczanevarmi.com is a free site for finding the pharmacies on duty in Northern Cyprus today. The aim is simple: someone who needs medicine at midnight should see the nearest open pharmacy and its phone number in a few seconds, without adverts or extra clicks.",
+    "sourceTitle": "Where the data comes from",
+    "sourceP": "The duty rosters are taken automatically from the official schedule published by the Cyprus Turkish Pharmacists Association (KTEB). Pharmacy names, addresses, phone numbers and duty hours are passed on as published at the source; this site does not produce the data itself.",
+    "freshTitle": "How often it updates",
+    "freshP": "The roster is re-fetched automatically several times a day. If the last successful update is older than expected, a warning is shown on the page, so you are never left guessing how fresh what you are reading is.",
+    "limitsTitle": "Limits",
+    "limitsP": "This site is not an official body and has no affiliation with KTEB. A correction made at the source may reach this site with a delay. In an emergency, and before setting off, please phone the pharmacy.",
+    "openTitle": "What you will not find here",
+    "openP": "The site shows duty dates, not the pharmacies’ ordinary opening hours — that information is not published at the source."
+  },
+  "privacy": {
+    "title": "Privacy Policy — acikeczanevarmi.com",
+    "description": "What this site does about location data, cookies and analytics.",
+    "h1": "Privacy Policy",
+    "p1": "This site has no user accounts, asks for no registration, and was not built to collect personal data. What is processed, and where, is set out below.",
+    "locTitle": "Location",
+    "locP": "When you use the location feature, your browser asks for your permission. The coordinates you give are sent to the server for that request only, and are used to sort the pharmacies by how near they are to you. They are not written to the database, not tied to any profile, and not passed to third parties. If you decline, the site works exactly as before — the region filter reaches the whole list.",
+    "cookieTitle": "Cookies",
+    "cookieP": "The site sets one cookie, to remember your language. There are no advertising or tracking cookies.",
+    "analyticsTitle": "Analytics",
+    "analyticsP": "Vercel Analytics is used to count page views. It does not identify visitors individually and sets no tracking cookie.",
+    "offlineTitle": "Offline use",
+    "offlineP": "The last roster you viewed is kept in your browser’s own cache so it still opens if your connection drops. That data never leaves your device; clearing your browser data removes it.",
+    "thirdTitle": "External links",
+    "thirdP": "Directions and map links go to Google Maps, and the data-source link goes to KTEB’s site. Once you follow them, that site’s own privacy policy applies."
+  },
+  "nav": {
+    "home": "On-duty pharmacies",
+    "pharmacies": "Pharmacies",
+    "about": "About",
+    "privacy": "Privacy"
+  },
+  "directory": {
+    "title": "Pharmacies in North Cyprus — The Full List by Region",
+    "description": "Every pharmacy in Northern Cyprus, listed by region. Open a pharmacy for its address, phone number and duty dates.",
+    "h1": "Pharmacies in North Cyprus",
+    "lead": "All {count} pharmacies on record in Northern Cyprus, grouped by region. This is not the duty roster — for who is on duty tonight, see the home page. Each pharmacy has its address, phone number and the dates it is on duty.",
+    "regionLink": "On duty tonight in {region}",
+    "countInRegion": "{count} pharmacies"
+  },
+  "errors": {
+    "errorTitle": "Something went wrong",
+    "errorBody": "This page could not be loaded. The duty roster is unaffected — you can try again or go back to the on-duty pharmacies.",
+    "retry": "Try again",
+    "notFoundTitle": "Page not found",
+    "notFoundBody": "That address does not exist, or it has moved. You can carry on from the on-duty pharmacies page."
   }
 }

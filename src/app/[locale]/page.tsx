@@ -1,12 +1,16 @@
 import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
+import { permanentRedirect } from "next/navigation";
 import { Suspense } from "react";
 import AppShell from "@/components/AppShell";
 import DutyJsonLd from "@/components/DutyJsonLd";
+import { getPathname } from "@/i18n/navigation";
 import { routing } from "@/i18n/routing";
 import { addDutyDays, dutyDateFor } from "@/lib/duty-date";
 import { MAX_LOOKAHEAD_DAYS } from "@/lib/duty-days";
 import { formatDutyDate } from "@/lib/format";
+import { isRegionCode, REGION_SLUG } from "@/lib/regions";
+import { loadRosterPage } from "@/lib/roster-page";
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
@@ -85,20 +89,47 @@ export default async function Page({
   const { locale } = await params;
   setRequestLocale(locale);
 
-  // Structured data for the days the sitemap advertises. Today is excluded for
-  // the same reason it has no canonical of its own: it is the bare URL, and
-  // that one is prerendered — see the note in DutyJsonLd.
-  const date = requestedDate((await searchParams).date);
-  const dated = date && date !== dutyDateFor() ? date : null;
-  const t = dated ? await getTranslations({ locale, namespace: "app" }) : null;
+  const sp = await searchParams;
+
+  // The region used to be a query parameter written after the fact. It is a
+  // path now, so anything still arriving on the old shape — a link pasted into
+  // a group chat months ago, a page held in someone's service worker cache — is
+  // sent on to the address that actually exists.
+  const legacyRegion = Array.isArray(sp.region) ? sp.region[0] : sp.region;
+  if (isRegionCode(legacyRegion)) {
+    const date = requestedDate(sp.date);
+    permanentRedirect(
+      getPathname({
+        locale: locale as "tr" | "en",
+        href: {
+          pathname: "/pharmacies-on-duty/[region]",
+          params: { region: REGION_SLUG[legacyRegion] },
+          ...(date ? { query: { date } } : {}),
+        },
+      })
+    );
+  }
+
+  const requested = requestedDate(sp.date);
+  const { data, days, nowMinutes, date } = await loadRosterPage(requested);
+  const t = await getTranslations({ locale, namespace: "app" });
 
   return (
     <>
-      {dated && t && (
-        <DutyJsonLd date={dated} title={t("titleOnDate", { date: formatDutyDate(dated, locale) })} />
+      {/* Today included. This used to be withheld from the bare URL on the
+          grounds that it was prerendered at build time and the roster baked
+          into it would go stale — but the route reads searchParams, so it has
+          in fact been rendering per request all along, and the day it names is
+          always the day it is serving. */}
+      {data && (
+        <DutyJsonLd
+          date={date}
+          title={t("titleOnDate", { date: formatDutyDate(date, locale) })}
+          pharmacies={data.pharmacies}
+        />
       )}
       <Suspense>
-        <AppShell />
+        <AppShell initialData={data} initialDays={days} initialNowMinutes={nowMinutes} />
       </Suspense>
     </>
   );

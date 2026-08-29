@@ -119,12 +119,16 @@ button { font: inherit; color: inherit; border: 0; background: none; cursor: poi
 }
 .chips::-webkit-scrollbar { display: none; }
 .chip {
+  /* inline-flex, not the block a button gives for free: these are links now,
+     one per region, so the region filter is eight addresses a crawler can
+     follow rather than eight states of one. */
+  display: inline-flex; align-items: center; text-decoration: none;
   flex: none; min-height: 38px; padding: 9px 14px; border-radius: 20px; font-size: 13px; font-weight: 500;
   background: var(--surface-2); border: 1px solid var(--line-soft); color: var(--text-2); white-space: nowrap;
   transition: color .16s ease, background-color .16s ease, border-color .16s ease;
 }
 .chip:hover { color: var(--text); }
-.chip[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); font-weight: 600; }
+.chip[aria-pressed="true"], .chip[aria-current="page"] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); font-weight: 600; }
 
 /* stale banner */
 .stale {
@@ -264,7 +268,7 @@ button { font: inherit; color: inherit; border: 0; background: none; cursor: poi
 .grab { padding: 9px 0 5px; display: grid; place-items: center; }
 .grab span { width: 42px; height: 4px; border-radius: 3px; background: var(--line); }
 .sheethead { display: flex; align-items: baseline; gap: 9px; padding: 1px 16px 10px; }
-.sheethead h2 { margin: 0; font-size: 15.5px; font-weight: 600; letter-spacing: -.01em; }
+.sheethead h1 { margin: 0; font-size: 15.5px; font-weight: 600; letter-spacing: -.01em; }
 .sheethead .n { font-family: var(--font-mono); font-size: 12px; color: var(--text-3); }
 .sheethead .sortbtn { margin-left: auto; font-size: 12px; color: var(--accent); font-weight: 600; min-height: 32px; }
 .list { flex: 1; overflow-y: auto; overscroll-behavior: contain; padding: 0 12px 8px; display: flex; flex-direction: column; gap: 13px; }
@@ -451,3 +455,139 @@ button { font: inherit; color: inherit; border: 0; background: none; cursor: poi
   }
   .card:hover { transform: none; }
 }
+
+/* Region and pharmacy page prose.
+   Rendered at the foot of the scrolling list, because the app container is
+   fixed to the viewport and anything after it in the document would be
+   unreachable. Held to the list's own rhythm so it reads as the end of the
+   page rather than a second page bolted underneath. */
+/* flex: none because this sits inside .list, a scrolling column flex box.
+   Without it the prose is a shrinkable item and the browser is free to crush
+   it under the cards rather than letting the list scroll to reach it. */
+.prose { flex: none; padding: 6px 4px 4px; color: var(--text-2); font-size: 13.5px; line-height: 1.6; }
+.prose .lede { margin: 0 0 4px; }
+.prose h2 { margin: 22px 0 8px; font-size: 14px; font-weight: 600; color: var(--text); letter-spacing: -.01em; }
+.prose h3 { margin: 16px 0 6px; font-size: 13px; font-weight: 600; color: var(--text); }
+.prose p { margin: 0 0 10px; }
+.prose .note { color: var(--text-3); font-size: 12.5px; }
+.prose a { color: var(--accent); text-decoration: none; }
+.prose a:hover { text-decoration: underline; }
+
+.faq { margin: 0; }
+.faq dt { font-weight: 600; color: var(--text); margin-top: 12px; }
+.faq dd { margin: 4px 0 0; }
+
+.dirlist, .regionlinks, .dutydates { list-style: none; margin: 0; padding: 0; }
+.dirlist li { padding: 9px 0; border-bottom: 1px solid var(--line-soft); display: flex; flex-direction: column; gap: 2px; }
+.dirlist li:last-child { border-bottom: 0; }
+.dirlist span { color: var(--text-3); font-size: 12.5px; }
+
+.regionlinks { display: flex; flex-wrap: wrap; gap: 7px; }
+.regionlinks li { display: flex; }
+.regionlinks a {
+  display: inline-flex; align-items: center; min-height: 34px; padding: 7px 13px;
+  border-radius: 18px; background: var(--surface-2); border: 1px solid var(--line-soft);
+  color: var(--text-2); font-size: 13px;
+}
+.regionlinks a:hover { color: var(--text); text-decoration: none; }
+
+/* Duty dates read as data, so they get the mono face the rest of the app uses
+   for times and distances. */
+.dutydates { display: flex; flex-wrap: wrap; gap: 6px; }
+.dutydates li {
+  font-family: var(--font-mono); font-size: 12.5px; padding: 5px 10px; border-radius: 8px;
+  background: var(--surface-2); border: 1px solid var(--line-soft); color: var(--text-2);
+}
+.dutydates li.next { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); font-weight: 500; }
+
+.pharmafacts { margin: 0 0 4px; }
+.pharmafacts div { display: flex; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--line-soft); }
+.pharmafacts dt { color: var(--text-3); min-width: 84px; flex: none; font-size: 12.5px; }
+.pharmafacts dd { margin: 0; color: var(--text); }
+
+/* A document page, not the app.
+   The pharmacy pages are the one part of the site that is a page rather than a
+   tool, so they opt out of the fixed full-viewport shell and simply scroll. */
+/* No min-height. It used to be 100dvh, which made every document page exactly
+   one viewport tall *plus* the header above it — a scrollbar on pages with
+   nothing to scroll. These pages are as tall as their content; the background
+   is the body's, so there is nothing for a full-height box to paint anyway. */
+.doc { max-width: 640px; margin: 0 auto; padding: 20px 18px 56px; }
+.doc h1 { margin: 0 0 14px; font-size: 21px; font-weight: 700; letter-spacing: -.02em; color: var(--text); line-height: 1.25; }
+.doc .prose { padding: 0; font-size: 14px; }
+.doc .prose h2 { margin: 26px 0 8px; font-size: 15px; }
+
+.foot .links { display: flex; gap: 14px; margin-top: 2px; }
+.foot .links a { color: var(--text-3); text-decoration: none; }
+.foot .links a:hover { color: var(--text-2); text-decoration: underline; }
+
+/* The one frame before React runs.
+   The sheet's height and translate are measured from the DOM and applied as
+   inline styles, so the server's HTML has neither and the browser paints the
+   sheet at whatever height its contents want — which, now that the roster is
+   rendered server-side rather than left as skeletons, is the whole screen.
+   Capping it here shapes that first paint into roughly where the sheet is
+   about to settle. The class is dropped on the first client commit, before
+   paint, so it can never fight the inline styles that replace it. */
+.sheet.preboot { max-height: 38dvh; }
+
+/* Header for the document pages.
+   Sticky because these pages scroll — the directory runs to four hundred rows,
+   and a nav you have to scroll back up to reach is a nav you stop using. */
+.dochead {
+  position: sticky; top: 0; z-index: 10;
+  background: var(--bg); border-bottom: 1px solid var(--line);
+}
+/* Same column as .doc, down to the padding, so the brand sits over the h1 and
+   the nav ends where the text ends. */
+.docheadin {
+  max-width: 640px; margin: 0 auto; padding: 13px 18px;
+  display: flex; align-items: center; gap: 10px 18px; flex-wrap: wrap;
+}
+.docbrand { font-weight: 700; font-size: 15px; color: var(--text); text-decoration: none; letter-spacing: -.01em; }
+.docnav { display: flex; gap: 14px; margin-left: auto; flex-wrap: wrap; }
+.docnav a {
+  color: var(--text-3); text-decoration: none; font-size: 13.5px;
+  min-height: 32px; display: inline-flex; align-items: center;
+}
+.docnav a:hover { color: var(--text); }
+.docnav a[aria-current="page"] { color: var(--text); font-weight: 600; }
+
+/* Back control on a detail screen, between the header and the article.
+   A link, not a history step: most people arrive from a search result with
+   nothing behind them, and this edge is also how a crawler walks from a
+   pharmacy back up to its region. The arrow is drawn in CSS so the anchor's
+   text stays exactly the destination's name. */
+.docback {
+  display: inline-flex; align-items: center; gap: 7px;
+  margin: 0 0 14px; min-height: 34px;
+  color: var(--text-3); text-decoration: none; font-size: 13.5px;
+}
+.docback::before {
+  content: ""; flex: none; width: 7px; height: 7px;
+  border-left: 1.7px solid currentColor; border-bottom: 1.7px solid currentColor;
+  transform: rotate(45deg); margin-left: 2px;
+}
+.docback:hover { color: var(--text); }
+
+/* Collapsed region groups in the directory.
+   <details> rather than a scripted accordion: four hundred rows open at once is
+   unreadable, but the links inside a closed <details> are still in the HTML,
+   which is the entire reason this page exists. */
+.regiongroup { border-bottom: 1px solid var(--line-soft); }
+.regiongroup:last-of-type { border-bottom: 0; }
+.regiongroup > summary {
+  display: flex; align-items: center; gap: 9px; cursor: pointer;
+  padding: 14px 2px; list-style: none; min-height: 44px;
+}
+.regiongroup > summary::-webkit-details-marker { display: none; }
+.regiongroup > summary::after {
+  content: ""; flex: none; margin-left: auto; width: 7px; height: 7px;
+  border-right: 1.7px solid var(--text-3); border-bottom: 1.7px solid var(--text-3);
+  transform: translateY(-2px) rotate(45deg); transition: transform .18s ease;
+}
+.regiongroup[open] > summary::after { transform: translateY(2px) rotate(-135deg); }
+.regiongroup > summary:hover::after { border-color: var(--text); }
+.regiongroup > summary h2 { margin: 0; }
+.regiongroup > summary h2 .note { font-weight: 400; }
+.regiongroup > p { margin-top: 0; }

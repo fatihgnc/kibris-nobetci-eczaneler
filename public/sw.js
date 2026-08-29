@@ -1,6 +1,6 @@
 /* Service worker: keep the last successful roster visible offline (SPEC §7). */
-const SHELL_CACHE = "nobetci-shell-v1";
-const DATA_CACHE = "nobetci-data-v1";
+const SHELL_CACHE = "duty-shell-v2";
+const DATA_CACHE = "duty-data-v2";
 
 self.addEventListener("install", (event) => {
   self.skipWaiting();

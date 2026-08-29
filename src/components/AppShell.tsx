@@ -13,7 +13,7 @@ import {
   useRef,
   useState,
 } from "react";
-import { Link, usePathname, useRouter } from "@/i18n/navigation";
+import { Link, useRouter } from "@/i18n/navigation";
 import { addDutyDays, dutyDateFor, dutyMinutesFor } from "@/lib/duty-date";
 import {
   directionsUrl,
@@ -27,7 +27,14 @@ import {
   formatDutyDateParts,
   telHref,
 } from "@/lib/format";
-import { isRegionCode, REGION_LABEL, REGION_ORDER, type RegionCode } from "@/lib/regions";
+import {
+  isRegionCode,
+  REGION_LABEL,
+  REGION_ORDER,
+  REGION_SLUG,
+  regionDisplay,
+  type RegionCode,
+} from "@/lib/regions";
 import { deriveStatus, type DutyStatus } from "@/lib/status";
 import type { DutyDaysResponse, OnDutyPharmacy, OnDutyResponse } from "@/lib/types";
 import { CloseIcon, NavIcon, PhoneIcon, RecenterIcon } from "./icons";
@@ -57,15 +64,42 @@ function kmBetween(a: [number, number], b: [number, number]): number {
   return 2 * R * Math.asin(Math.sqrt(h));
 }
 
+/**
+ * Which layout to render. False until the media query can be read.
+ *
+ * useLayoutEffect, not useEffect: the server cannot know the viewport, so the
+ * phone tree is always what is rendered first and the desktop one replaces it a
+ * commit later. Under useEffect that replacement landed *after* a paint, so a
+ * desktop arrival saw the phone layout full-width and then watched it snap into
+ * a 400px panel. Reading the query before the browser paints makes the swap
+ * invisible — it is the same two renders, just not two pictures.
+ */
 function useIsDesktop(): boolean {
   const [v, setV] = useState(false);
-  useEffect(() => {
+  useLayoutEffect(() => {
     const mq = window.matchMedia("(min-width: 1024px)");
     const on = () => setV(mq.matches);
     on();
     mq.addEventListener("change", on);
     return () => mq.removeEventListener("change", on);
   }, []);
+  return v;
+}
+
+/**
+ * False until the first client commit, on both sides of hydration.
+ *
+ * Everything the sheet's geometry depends on — its height, how far it is
+ * translated down, how much of the map it covers — is measured from the live
+ * DOM, so the server has none of it and the HTML it sends carries no inline
+ * style at all. The browser paints that HTML before React ever runs, and an
+ * unpositioned sheet is simply as tall as its contents: with a real roster in
+ * it, the full height of the screen. This flag exists to let CSS hold it to a
+ * sane size for exactly that one frame.
+ */
+function useHydrated(): boolean {
+  const [v, setV] = useState(false);
+  useLayoutEffect(() => setV(true), []);
   return v;
 }
 
@@ -112,18 +146,62 @@ const freshRoster = (date: string) => {
  */
 type Listed = OnDutyPharmacy & { liveStatus: DutyStatus | null; dist: number | null };
 
-export default function AppShell() {
+/**
+ * Everything the server already knows, handed over so the first HTML carries
+ * the roster instead of a skeleton.
+ *
+ * This component is a client component, but Next still renders it to HTML on
+ * the server — it printed placeholders only because its state started empty.
+ * A crawler that does not run our JavaScript sees whatever this pass produces,
+ * so the roster reaching it is entirely a matter of these props being filled.
+ */
+export interface AppShellProps {
+  /** The day's roster, queried server-side. Ignored if it is for another day. */
+  initialData?: OnDutyResponse | null;
+  /** Which days the roster covers, so the strip is in the HTML too. */
+  initialDays?: DutyDaysResponse | null;
+  /**
+   * Minutes into the duty day as the server saw them.
+   *
+   * Status badges are derived from the clock, so letting each side read its own
+   * would make the server's HTML and the client's first render disagree and
+   * break hydration. Both start from this; the interval below corrects it.
+   */
+  initialNowMinutes?: number;
+  /** Region fixed by the URL path, on a region page. Null on the homepage. */
+  initialRegion?: RegionCode | null;
+  /**
+   * Prose rendered under the roster, inside the scrollable list.
+   *
+   * The app container is `position: fixed; inset: 0`, so anything placed after
+   * it in the document would sit behind it with no way to scroll to it. The
+   * list is the one column on the page that already scrolls, which makes it the
+   * only honest home for copy a reader is meant to be able to reach.
+   */
+  belowList?: ReactNode;
+}
+
+export default function AppShell({
+  initialData = null,
+  initialDays = null,
+  initialNowMinutes,
+  initialRegion = null,
+  belowList = null,
+}: AppShellProps = {}) {
   const t = useTranslations();
   const locale = useLocale();
   const router = useRouter();
-  const pathname = usePathname();
   const searchParams = useSearchParams();
   const isDesktop = useIsDesktop();
+  const hydrated = useHydrated();
 
+  // The path wins over the query: on a region page the region *is* the URL, and
+  // a stray ?region= pointing elsewhere must not quietly override it.
   const regionParam = searchParams.get("region");
-  const region: RegionCode | null = isRegionCode(regionParam) ? regionParam : null;
+  const region: RegionCode | null =
+    initialRegion ?? (isRegionCode(regionParam) ? regionParam : null);
 
-  const [days, setDays] = useState<DutyDaysResponse | null>(daysCache);
+  const [days, setDays] = useState<DutyDaysResponse | null>(daysCache ?? initialDays);
   /**
    * Today comes from the server, not from `new Date()` here.
    *
@@ -139,14 +217,20 @@ export default function AppShell() {
   const isFuture = date > todayDate;
 
   const cachedRoster = freshRoster(date);
-  const [data, setData] = useState<OnDutyResponse | null>(cachedRoster?.data ?? null);
-  const [loading, setLoading] = useState(!cachedRoster);
+  /**
+   * The server's roster counts only for the day it was queried for. Stepping to
+   * another day through the strip changes `date` while this prop stays put, and
+   * showing Tuesday's list under Friday's heading is worse than a skeleton.
+   */
+  const seeded = initialData && initialData.dutyDate === date ? initialData : null;
+  const [data, setData] = useState<OnDutyResponse | null>(cachedRoster?.data ?? seeded);
+  const [loading, setLoading] = useState(!cachedRoster && !seeded);
   const [error, setError] = useState(false);
   const [locMode, setLocMode] = useState<LocMode>(coordsCache ? "granted" : "preask");
   const [coords, setCoords] = useState<[number, number] | null>(coordsCache);
   const [sel, setSel] = useState<number | null>(null);
   const [snap, setSnap] = useState(1);
-  const [nowMin, setNowMin] = useState(() => dutyMinutesFor());
+  const [nowMin, setNowMin] = useState(initialNowMinutes ?? dutyMinutesFor());
   const [fitSignal, setFitSignal] = useState(0);
   const [showLocHelp, setShowLocHelp] = useState(false);
   const [mapInset, setMapInset] = useState(0);
@@ -299,8 +383,12 @@ export default function AppShell() {
     (async () => {
       // A fresh cache means this mount is a locale switch, not an arrival:
       // the list is already on screen and the fix already known, so neither
-      // the network nor the user is asked again.
-      if (!cachedRoster) await load(date);
+      // the network nor the user is asked again. A server-rendered roster is
+      // the same story from the other direction — the list is already here, so
+      // fetching it again would only ask for what we are looking at. It is
+      // filed under the day it belongs to, so a locale switch keeps it too.
+      if (seeded) rosterCache.set(seeded.dutyDate, { data: seeded, at: Date.now() });
+      else if (!cachedRoster) await load(date);
       if (cancelled || typeof navigator === "undefined" || coordsCache) return;
       if (!navigator.permissions?.query) {
         // Safari before 16 has no Permissions API for geolocation; asking is
@@ -329,6 +417,12 @@ export default function AppShell() {
    */
   useEffect(() => {
     if (daysCache) return;
+    // Rendered server-side already: file it so a locale switch keeps the strip
+    // without a round trip, and skip the request.
+    if (initialDays) {
+      daysCache = initialDays;
+      return;
+    }
     let cancelled = false;
     (async () => {
       try {
@@ -357,8 +451,11 @@ export default function AppShell() {
     ensureRoster(date);
   }, [date, ensureRoster]);
 
-  // Re-derive status badges as time passes.
+  // Re-derive status badges as time passes. The first call runs after
+  // hydration, which is where the server's clock — carried in to keep the two
+  // renders identical — hands back over to this device's own.
   useEffect(() => {
+    setNowMin(dutyMinutesFor());
     const id = setInterval(() => setNowMin(dutyMinutesFor()), 30000);
     return () => clearInterval(id);
   }, []);
@@ -424,39 +521,53 @@ export default function AppShell() {
 
   const selected = sel !== null ? list.find((p) => p.id === sel) ?? null : null;
 
+  /**
+   * Where a given region and day live.
+   *
+   * The region is a path segment rather than a query parameter, so every
+   * region is an address a crawler can follow and rank — the filter used to be
+   * client state with a `?region=` written after the fact, which meant the
+   * eight of them shared one URL and none of them existed as far as search was
+   * concerned. The day stays a query: today is the bare URL, because a link to
+   * "today" that pinned a date would be wrong the morning after it was shared.
+   */
+  const rosterHref = useCallback(
+    (r: RegionCode | null, d: string) => {
+      const query = d === todayDate ? undefined : { date: d };
+      return r
+        ? ({ pathname: "/pharmacies-on-duty/[region]", params: { region: REGION_SLUG[r] }, query } as const)
+        : ({ pathname: "/", query } as const);
+    },
+    [todayDate]
+  );
+
   const setRegion = useCallback(
     (r: RegionCode | null) => {
       setSel(null);
-      const params = new URLSearchParams(searchParams.toString());
-      if (r) params.set("region", r);
-      else params.delete("region");
-      const qs = params.toString();
-      router.replace(`${pathname}${qs ? `?${qs}` : ""}`, { scroll: false });
+      router.replace(rosterHref(r, date), { scroll: false });
     },
-    [searchParams, router, pathname]
+    [router, rosterHref, date]
   );
 
   const setDate = useCallback(
     (d: string) => {
       setSel(null);
-      const params = new URLSearchParams(searchParams.toString());
-      // Today is the bare URL: a link to "today" that pins a date would be
-      // wrong the moment it is opened tomorrow.
-      if (d === todayDate) params.delete("date");
-      else params.set("date", d);
-      const qs = params.toString();
-      router.replace(`${pathname}${qs ? `?${qs}` : ""}`, { scroll: false });
+      router.replace(rosterHref(region, d), { scroll: false });
     },
-    [searchParams, router, pathname, todayDate]
+    [router, rosterHref, region]
   );
 
-  // Refit once the region has actually landed in the URL. setRegion only asks
-  // the router to navigate, so fitting inside it would still see the old set.
+  // Refit once the region has actually landed in the URL — a chip is a link, so
+  // the new set only exists after the navigation, not when it is clicked. The
+  // open detail card is closed here for the same reason: it may well belong to
+  // a pharmacy the new region does not contain.
   const fittedRegion = useRef<RegionCode | null | undefined>(undefined);
   useEffect(() => {
     const first = fittedRegion.current === undefined;
     fittedRegion.current = region;
-    if (!first) bumpFit();
+    if (first) return;
+    setSel(null);
+    bumpFit();
   }, [region, bumpFit]);
 
   const select = useCallback(
@@ -576,7 +687,9 @@ export default function AppShell() {
     coords && locMode === "granted"
       ? t("list.nearest")
       : region
-        ? t("list.regionOnDuty", { region: REGION_LABEL[region] })
+        ? // regionDisplay, not the bare label: on the English page this heading
+          // is where "Kyrenia" gets said, since the URL keeps the Turkish slug.
+          t("list.regionOnDuty", { region: regionDisplay(region, locale) })
         : isFuture
           ? t("list.onDate", { date: formatDutyDateParts(date, locale, "short").dayMonth })
           : t("list.tonight");
@@ -871,6 +984,14 @@ export default function AppShell() {
         </a>
       </span>
       <span className="warn">{t("foot.confirm")}</span>
+      {/* The only path to these two pages. Naming the publisher and saying what
+          happens to a location reading is table stakes for a health listing —
+          and unreachable pages are the same as unwritten ones. */}
+      <span className="links">
+        <Link href="/pharmacies">{t("nav.pharmacies")}</Link>
+        <Link href="/about">{t("nav.about")}</Link>
+        <Link href="/privacy">{t("nav.privacy")}</Link>
+      </span>
     </div>
   );
 
@@ -992,7 +1113,10 @@ export default function AppShell() {
       </span>
     ) : (
       <Link
-        href={region ? { pathname: "/", query: { region } } : "/"}
+        // Same view, other language: the region is in the path now and the day
+        // in the query, so both have to be carried across or the switch quietly
+        // sends you back to tonight's island-wide list.
+        href={rosterHref(region, date)}
         locale={l}
         aria-label={t("header.switchLocale")}
       >
@@ -1070,10 +1194,13 @@ export default function AppShell() {
             </div>
             {(planBar ?? staleBanner) && <div className="dstale">{planBar ?? staleBanner}</div>}
             <div className="sheethead">
-              <h2>{titleTxt}</h2>
+              <h1>{titleTxt}</h1>
               <span className="n">{countTxt}</span>
             </div>
-            <div className="list">{listContent}</div>
+            <div className="list">
+              {listContent}
+              {belowList}
+            </div>
             {foot}
           </div>
           <div className="deskmap">
@@ -1101,16 +1228,30 @@ export default function AppShell() {
           Both live inside the measured wrapper: the sheet is positioned from
           its bottom edge, so a strip outside it would sit under the map. */}
       <div ref={chipsRef}>
-        <div className="chips" role="group" aria-label={t("chips.regionFilter")}>
-          <button className="chip" aria-pressed={region === null} onClick={() => setRegion(null)}>
+        {/* Links, not buttons: each region is a page of its own, and a crawler
+            has to be able to walk to it. Scrolling is suppressed so tapping a
+            chip does not also throw the sheet back to the top. */}
+        <nav className="chips" aria-label={t("chips.regionFilter")}>
+          <Link
+            className="chip"
+            href={rosterHref(null, date)}
+            aria-current={region === null ? "page" : undefined}
+            scroll={false}
+          >
             {t("chips.all")}
-          </button>
+          </Link>
           {REGION_ORDER.map((r) => (
-            <button key={r} className="chip" aria-pressed={region === r} onClick={() => setRegion(r)}>
+            <Link
+              key={r}
+              className="chip"
+              href={rosterHref(r, date)}
+              aria-current={region === r ? "page" : undefined}
+              scroll={false}
+            >
               {REGION_LABEL[r]}
-            </button>
+            </Link>
           ))}
-        </div>
+        </nav>
         {dayStrip}
       </div>
       <div ref={staleRef}>{planBar ?? staleBanner}</div>
@@ -1123,7 +1264,11 @@ export default function AppShell() {
           {recenterButton}
         </div>
       </div>
-      <section className="sheet" ref={sheetRef} aria-label={t("list.title")}>
+      <section
+        className={hydrated ? "sheet" : "sheet preboot"}
+        ref={sheetRef}
+        aria-label={t("list.title")}
+      >
         {/* The handle and the heading drag together. On a phone the bar alone
             is a ~18px strip to land a thumb on, and the row under it looks
             just as grabbable — missing it read as a sheet that would not
@@ -1138,12 +1283,15 @@ export default function AppShell() {
             <span />
           </div>
           <div className="sheethead">
-            <h2>{titleTxt}</h2>
+            <h1>{titleTxt}</h1>
             <span className="n">{countTxt}</span>
             <span className="sortbtn">{coords ? t("list.sortDistance") : t("list.sortRegion")}</span>
           </div>
         </div>
-        <div className="list">{listContent}</div>
+        <div className="list">
+          {listContent}
+          {belowList}
+        </div>
         {foot}
       </section>
       <div className={`scrim ${selected ? "on" : ""}`} onClick={closeDetail} aria-hidden="true" />

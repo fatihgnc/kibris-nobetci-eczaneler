@@ -99,3 +99,52 @@ export function toRegionCode(v: string | null | undefined): RegionCode | null {
 export function normalizePharmacyName(raw: string): string {
   return normalizeTr(raw.replace(/\([^)]*\)/g, " ")).replace(/[.’']/g, "").trim();
 }
+
+/**
+ * URL segment for each region, shared by both locales.
+ *
+ * The codes are already ASCII, so the slug is just the lowercase of the code
+ * and the pair can never drift apart. Turkish in an English URL is deliberate:
+ * one slug per region means one page per region, and "Kyrenia" earns its
+ * keyword in the heading and the copy instead of splitting the page in two.
+ */
+export const REGION_SLUG: Record<RegionCode, string> = Object.fromEntries(
+  REGION_ORDER.map((code) => [code, code.toLowerCase()])
+) as Record<RegionCode, string>;
+
+const SLUG_TO_REGION: Record<string, RegionCode> = Object.fromEntries(
+  REGION_ORDER.map((code) => [REGION_SLUG[code], code])
+);
+
+/** A URL segment back to its region, or null if it names no region. */
+export function regionFromSlug(slug: string | null | undefined): RegionCode | null {
+  if (!slug) return null;
+  return SLUG_TO_REGION[slug.toLowerCase()] ?? null;
+}
+
+/**
+ * English exonyms, used only where an English page names a region in prose.
+ *
+ * The URL keeps the Turkish slug in both locales, so this is what carries
+ * "Kyrenia" and "Famagusta" — the words an English speaker actually searches —
+ * onto the page instead of into a second address competing with the first.
+ * Where the two names agree the label is printed once, not twice.
+ */
+const REGION_LABEL_EN: Record<RegionCode, string> = {
+  LEFKOSA: "Nicosia",
+  GIRNE: "Kyrenia",
+  GAZIMAGUSA: "Famagusta",
+  GUZELYURT: "Morphou",
+  LEFKE: "Lefke",
+  MESARYA: "Mesaoria",
+  ISKELE: "Iskele",
+  KARPAZ: "Karpaz",
+};
+
+/** How a region is named to a reader of `locale`. */
+export function regionDisplay(code: RegionCode, locale: string): string {
+  const tr = REGION_LABEL[code];
+  if (locale !== "en") return tr;
+  const en = REGION_LABEL_EN[code];
+  return en === tr ? tr : `${en} (${tr})`;
+}

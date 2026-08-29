@@ -5,6 +5,7 @@ import { getMessages, getTranslations, setRequestLocale } from "next-intl/server
 import { Archivo, IBM_Plex_Mono } from "next/font/google";
 import { notFound } from "next/navigation";
 import RegisterSW from "@/components/RegisterSW";
+import SiteJsonLd from "@/components/SiteJsonLd";
 import { routing } from "@/i18n/routing";
 import { SITE_URL } from "@/lib/site";
 import "../globals.css";
@@ -95,10 +96,12 @@ export default async function LocaleLayout({
   if (!hasLocale(routing.locales, locale)) notFound();
   setRequestLocale(locale);
   const messages = await getMessages();
+  const t = await getTranslations({ locale, namespace: "app" });
 
   return (
     <html lang={locale} className={`${archivo.variable} ${plexMono.variable}`}>
       <body>
+        <SiteJsonLd locale={locale} name={t("name")} />
         <NextIntlClientProvider messages={messages}>
           {children}
           <RegisterSW />
