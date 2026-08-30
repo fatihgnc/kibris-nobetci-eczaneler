@@ -28,6 +28,7 @@ import {
   telHref,
 } from "@/lib/format";
 import {
+  isOnCyprus,
   isRegionCode,
   REGION_LABEL,
   REGION_ORDER,
@@ -146,6 +147,18 @@ let coordsCache: [number, number] | null = null;
  * an open detail card that the new region may not contain.
  */
 let lastRegion: RegionCode | null | undefined = undefined;
+
+/**
+ * Whether the arrival fix has already had its say about the region.
+ *
+ * Module scope for the same reason as `lastRegion`: choosing a region navigates
+ * to that region's page, which unmounts this component, so a ref would forget
+ * the decision the moment it was acted on. It also makes the guess a one-time
+ * event per visit rather than a standing rule — someone who follows the guess
+ * with "Tüm bölgeler" gets the whole island back and keeps it, instead of being
+ * pushed home again by their own coordinates.
+ */
+let autoRegionSettled = false;
 
 const freshRoster = (date: string) => {
   const hit = rosterCache.get(date);
@@ -608,6 +621,40 @@ export default function AppShell({
     },
     [router, rosterHref, date]
   );
+
+  /**
+   * On arrival with a fix, open the region the user is standing in.
+   *
+   * Only from the unfiltered roster: a region in the path or the query is the
+   * user's own choice — or a shared link's — and coordinates do not get to
+   * overrule it. `autoRegionSettled` then closes the question for the rest of
+   * the visit, so clearing the filter back to the whole island sticks.
+   *
+   * The region comes from the nearest on-duty pharmacy rather than from a fixed
+   * map of the island, which means it is the roster's answer and can differ from
+   * one night to the next: standing in the same spot, the nearest pharmacy on
+   * duty may be over the boundary. That is the trade accepted for needing no
+   * geography beyond what the list already carries.
+   *
+   * A fix off the island buys nothing here — the nearest on-duty pharmacy to
+   * someone in London is a coin toss between eight regions — so it settles the
+   * question without narrowing anything, and the full roster stands.
+   */
+  useEffect(() => {
+    if (autoRegionSettled || region !== null || locMode !== "granted" || !coords) return;
+    if (!isOnCyprus(coords[0], coords[1])) {
+      autoRegionSettled = true;
+      return;
+    }
+    // Distances need the roster; before it lands there is nothing to be nearest
+    // to, so this waits rather than settling on no answer.
+    const nearest = all
+      .filter((p) => p.region !== null && p.dist !== null)
+      .sort((a, b) => (a.dist as number) - (b.dist as number))[0];
+    if (!nearest) return;
+    autoRegionSettled = true;
+    setRegion(nearest.region as RegionCode);
+  }, [all, coords, locMode, region, setRegion]);
 
   const setDate = useCallback(
     (d: string) => {

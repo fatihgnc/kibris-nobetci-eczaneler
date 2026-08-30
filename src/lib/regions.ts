@@ -148,3 +148,19 @@ export function regionDisplay(code: RegionCode, locale: string): string {
   const en = REGION_LABEL_EN[code];
   return en === tr ? tr : `${en} (${tr})`;
 }
+
+/**
+ * Is this fix on Cyprus at all?
+ *
+ * A bounding box around the whole island — west to the Akamas, east to Cape
+ * Apostolos Andreas, south past Limassol, north to the Karpaz tip. Deliberately
+ * the *whole* island rather than the north: someone in Limassol looking up a
+ * northern roster is still a plausible visitor, whereas a fix in Istanbul or
+ * London is not, and guessing a region for them would be pure noise.
+ *
+ * The box takes in some sea. That is fine for what it guards: the question is
+ * "could this person be here", not "is this dry land".
+ */
+export function isOnCyprus(lat: number, lng: number): boolean {
+  return lat >= 34.5 && lat <= 35.75 && lng >= 32.2 && lng <= 34.65;
+}
