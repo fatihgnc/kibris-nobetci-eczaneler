@@ -6,6 +6,8 @@ import { useEffect, useRef } from "react";
 
 export interface MapPoint {
   id: number;
+  /** The pharmacy's name — the pin's accessible name, nothing more. */
+  name: string;
   lat: number;
   lng: number;
   statusClass: string; // s-open | s-warn | s-oncall | s-closed
@@ -176,6 +178,11 @@ export default function MapView({ points, me, selId, fitSignal, onSelect, bottom
         maxBounds: ISLAND,
         maxBoundsViscosity: 1,
       });
+      // Top right, not Leaflet's default bottom right: on a phone the bottom
+      // of the map runs under the sheet, which both hid the attribution — OSM
+      // requires it visible — and left its link overlapping the footer's tap
+      // targets through the sheet.
+      m.attributionControl.setPosition("topright");
       L.tileLayer(BASEMAP, {
         attribution: TILE_ATTRIBUTION,
         maxZoom: 19,
@@ -228,7 +235,15 @@ export default function MapView({ points, me, selId, fitSignal, onSelect, bottom
         // Muted pins sit under the rest so a dense region still reads.
         zIndexOffset: sel ? 400 : p.muted ? -200 : 0,
         interactive: !p.muted,
+        // A muted pin is not clickable, so it must not be tabbable either:
+        // keyboard:true would leave a role="button" in the tab order that
+        // does nothing when pressed.
+        keyboard: !p.muted,
       }).addTo(layer);
+      // Leaflet gives the icon role="button" and a tabindex but no name, so a
+      // screen reader announced every pin as just "button". The name is set on
+      // the element directly — divIcon has no option for it.
+      marker.getElement()?.setAttribute("aria-label", p.name);
       if (!p.muted) marker.on("click", () => onSelectRef.current(p.id));
     }
     // No invalidateSize here. Re-measuring while maxBounds is set makes Leaflet

@@ -41,7 +41,13 @@ import type { DutyDaysResponse, OnDutyPharmacy, OnDutyResponse } from "@/lib/typ
 import { CloseIcon, NavIcon, PhoneIcon, RecenterIcon } from "./icons";
 import type { MapPoint } from "./MapView";
 
-const MapView = dynamic(() => import("./MapView"), { ssr: false });
+const MapView = dynamic(() => import("./MapView"), {
+  ssr: false,
+  // Painted in the server HTML and held until Leaflet's chunk arrives: the map
+  // corner of the screen is otherwise bare surface for the several seconds the
+  // tiles take on a phone, and a bare corner reads as broken rather than late.
+  loading: () => <div className="mapghost" aria-hidden="true" />,
+});
 
 /**
  * `denied` is only ever a refusal — the user said no, or the browser has no
@@ -582,6 +588,7 @@ export default function AppShell({
         .filter((p) => p.lat !== null && p.lng !== null)
         .map((p) => ({
           id: p.id,
+          name: p.name,
           lat: p.lat as number,
           lng: p.lng as number,
           statusClass: p.liveStatus ? STATUS_CLASS[p.liveStatus] : "s-future",
@@ -837,8 +844,11 @@ export default function AppShell({
       <button
         className={`datechip pick ${pickerOpen ? "on" : ""}`}
         onClick={() => setPickerOpen((v) => !v)}
+        // No aria-label: it said "close the picker" while the button visibly
+        // read as a date, and an accessible name that does not contain the
+        // visible label breaks voice control ("tap 23 Ağu" found nothing).
+        // The date is the name; aria-expanded carries the open/closed state.
         aria-expanded={pickerOpen}
-        aria-label={pickerOpen ? t("days.close") : t("days.open")}
       >
         {dateChipInner(short)}
         <span className="caret" aria-hidden="true" />
@@ -1020,7 +1030,7 @@ export default function AppShell({
     <>
       {locMode === "preask" && !showInitialSkeleton && (
         <div className="notice locask">
-          <h4>{t("locask.title")}</h4>
+          <h2>{t("locask.title")}</h2>
           <p>{t("locask.body")}</p>
           <div className="acts">
             <button className="btn pri" onClick={locate}>
@@ -1031,7 +1041,7 @@ export default function AppShell({
       )}
       {locMode === "denied" && !showInitialSkeleton && (
         <div className="notice">
-          <h4>{t("denied.title")}</h4>
+          <h2>{t("denied.title")}</h2>
           <p>{t("denied.body")}</p>
           {showLocHelp && <p style={{ marginTop: 8 }}>{t("denied.help")}</p>}
           <div className="acts two">
@@ -1046,7 +1056,7 @@ export default function AppShell({
       )}
       {locMode === "unavailable" && !showInitialSkeleton && (
         <div className="notice">
-          <h4>{t("unavailable.title")}</h4>
+          <h2>{t("unavailable.title")}</h2>
           <p>{t("unavailable.body")}</p>
           <div className="acts">
             <button className="btn sec" onClick={locate}>
@@ -1059,7 +1069,7 @@ export default function AppShell({
         skeletons
       ) : error && !data ? (
         <div className="notice">
-          <h4>{t("error.title")}</h4>
+          <h2>{t("error.title")}</h2>
           <p>{t("error.body")}</p>
           <div className="acts">
             <button className="btn sec" onClick={() => load(date)}>
@@ -1072,13 +1082,13 @@ export default function AppShell({
           <div className="glyph" aria-hidden="true">
             —
           </div>
-          <h4>
+          <h2>
             {region
               ? t("empty.title", { region: REGION_LABEL[region] })
               : isFuture
                 ? t("days.emptyTitle", { date: formatDutyDate(date, locale) })
                 : t("empty.titleAll")}
-          </h4>
+          </h2>
           <p>{isFuture && !region ? t("days.emptyBody") : t("empty.body")}</p>
           {region && (
             <div className="acts">

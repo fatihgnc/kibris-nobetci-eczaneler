@@ -232,6 +232,9 @@ button { font: inherit; color: inherit; border: 0; background: none; cursor: poi
 .map { position: absolute; inset: 0; }
 /* Leaflet owns this one — React only owns the .map host it sits in. */
 .mapcanvas { position: absolute; inset: 0; }
+/* What the map corner shows until Leaflet's chunk arrives — OSM's land colour,
+   so the tiles fade in over it rather than over bare app surface. */
+.mapghost { position: absolute; inset: 0; background: #f2efe9; }
 .leaflet-container { background: var(--surface); font-family: var(--font-ui); }
 .leaflet-control-attribution {
   background: color-mix(in oklab, var(--bg) 78%, transparent) !important; color: var(--text-3) !important;
@@ -366,14 +369,17 @@ button { font: inherit; color: inherit; border: 0; background: none; cursor: poi
 
 /* notices inside list */
 .notice { padding: 16px; border-radius: 15px; background: var(--surface-2); border: 1px solid var(--line-soft); }
-.notice h4 { margin: 0 0 6px; font-size: 14.5px; font-weight: 600; }
+/* h2, not h4: these headings follow the sheet's h1 directly, and skipping two
+   levels is what screen-reader outlines (and Lighthouse) flag. Same size —
+   the level is structure, not styling. */
+.notice h2 { margin: 0 0 6px; font-size: 14.5px; font-weight: 600; }
 .notice p { margin: 0; font-size: 13px; line-height: 1.5; color: var(--text-2); }
 .notice .acts { grid-template-columns: 1fr; }
 .notice .acts.two { grid-template-columns: 1fr 1fr; }
 .notice.locask { background: var(--accent-soft); border-color: color-mix(in oklab, var(--accent) 45%, transparent); }
 .empty { padding: 34px 18px; text-align: center; }
 .empty .glyph { width: 40px; height: 40px; margin: 0 auto 12px; border-radius: 12px; border: 1px dashed var(--line); display: grid; place-items: center; color: var(--text-3); font-family: var(--font-mono); font-size: 15px; }
-.empty h4 { margin: 0 0 6px; font-size: 15px; }
+.empty h2 { margin: 0 0 6px; font-size: 15px; }
 .empty p { margin: 0 auto; max-width: 270px; font-size: 13px; line-height: 1.5; color: var(--text-2); }
 .empty .acts { grid-template-columns: 1fr; margin-top: 14px; }
 
@@ -386,10 +392,13 @@ button { font: inherit; color: inherit; border: 0; background: none; cursor: poi
 .foot {
   padding: 10px 16px 14px; font-size: 11.5px; line-height: 1.5; color: var(--text-3);
   padding-bottom: max(14px, env(safe-area-inset-bottom));
-  border-top: 1px solid var(--line-soft); display: flex; gap: 4px 8px; align-items: baseline; flex-wrap: wrap;
+  border-top: 1px solid var(--line-soft); display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap;
 }
 .foot b { color: var(--text-2); font-weight: 600; }
-.foot a { color: inherit; }
+/* 11.5px text is a ~17px-tall link — under the 24px touch-target floor. The
+   padding grows the hit area past it and the negative margin hands the space
+   back to the layout; the row gap above covers what the margin cannot. */
+.foot a { color: inherit; padding: 4px 2px; margin: -4px -2px; }
 .foot a:hover { color: var(--accent); }
 
 /* detail overlay (mobile) */
@@ -540,7 +549,9 @@ button { font: inherit; color: inherit; border: 0; background: none; cursor: poi
 
 /* A dot between the links rather than a wide gap: at this size the space alone
    read as three stray words rather than one row of them. */
-.foot .links { display: flex; align-items: baseline; gap: 6px; }
+/* Row gap 8px, not 6: when the links wrap, the tap padding above reaches 4px
+   past each row, and rows any closer would overlap each other's targets. */
+.foot .links { display: flex; align-items: baseline; flex-wrap: wrap; gap: 8px 6px; }
 .foot .links i { font-style: normal; color: var(--text-3); opacity: .65; }
 .foot .links a { color: var(--text-3); text-decoration: none; }
 .foot .links a:hover { color: var(--text-2); text-decoration: underline; }

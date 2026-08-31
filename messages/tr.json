@@ -102,8 +102,6 @@
     "sourceLabel": "Veri kaynağı:"
   },
   "days": {
-    "open": "Başka bir gün seç",
-    "close": "Gün seçimini kapat",
     "label": "Nöbet günü",
     "today": "Bugün",
     "tomorrow": "Yarın",

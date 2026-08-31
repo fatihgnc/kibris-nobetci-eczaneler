@@ -102,8 +102,6 @@
     "sourceLabel": "Data source:"
   },
   "days": {
-    "open": "Pick another day",
-    "close": "Close the day picker",
     "label": "Duty day",
     "today": "Today",
     "tomorrow": "Tomorrow",
