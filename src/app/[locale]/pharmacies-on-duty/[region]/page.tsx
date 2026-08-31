@@ -114,9 +114,6 @@ export default async function RegionPage({
 
   return (
     <>
-      {/* Hoisted into <head> — same early hand-off of the map placeholder's
-          URL as the homepage; see the note there. */}
-      <link rel="preload" as="image" href="/map-placeholder.webp" fetchPriority="high" />
       {inRegion.length > 0 && (
         <DutyJsonLd date={date} title={t("title", values)} pharmacies={inRegion} />
       )}

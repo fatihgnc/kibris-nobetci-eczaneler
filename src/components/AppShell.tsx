@@ -172,13 +172,6 @@ let lastRegion: RegionCode | null | undefined = undefined;
  * pushed home again by their own coordinates.
  */
 let autoRegionSettled = false;
-/**
- * Whether the live basemap has ever been on screen this visit. Module scope
- * like the caches above: a locale or region switch remounts this component
- * over a map that is already painted, and the placeholder must not flash
- * back over it.
- */
-let mapEverShown = false;
 
 const freshRoster = (date: string) => {
   const hit = rosterCache.get(date);
@@ -285,15 +278,6 @@ export default function AppShell({
   const [showLocHelp, setShowLocHelp] = useState(false);
   const [mapInset, setMapInset] = useState(0);
   const [pickerOpen, setPickerOpen] = useState(true);
-  const [mapReady, setMapReady] = useState(mapEverShown);
-  // Decided once per mount: a mount that begins with the map already shown
-  // never renders the placeholder at all, rather than rendering it faded.
-  const holderSkipped = useRef(mapEverShown);
-
-  const onMapReady = useCallback(() => {
-    mapEverShown = true;
-    setMapReady(true);
-  }, []);
 
   const bumpFit = useCallback(() => setFitSignal((n) => n + 1), []);
 
@@ -1289,37 +1273,14 @@ export default function AppShell({
   );
 
   const mapView = (
-    <>
-      <MapView
-        points={points}
-        me={coords}
-        selId={sel}
-        fitSignal={fitSignal}
-        onSelect={select}
-        onReady={onMapReady}
-        bottomInset={isDesktop ? 0 : mapInset}
-      />
-      {/* The map's opening view as a plain same-origin image, in the server
-          HTML: the browser starts fetching it from the first bytes of the
-          page — long before hydration lets Leaflet ask for a single tile —
-          and it holds the map's corner of the screen (and the LCP) until the
-          real basemap reports itself painted underneath, then fades off it.
-          Not the dynamic import's `loading` fallback, deliberately: that
-          disappears when the chunk arrives, seconds before the tiles do. It
-          stays out of remounts that arrive after the map has shown — the
-          fade is a hand-over, not something to replay on a locale switch. */}
-      {!holderSkipped.current && (
-        <img
-          className={`mapholder ${mapReady ? "off" : ""}`}
-          src="/map-placeholder.webp"
-          alt=""
-          width={936}
-          height={601}
-          fetchPriority="high"
-          decoding="async"
-        />
-      )}
-    </>
+    <MapView
+      points={points}
+      me={coords}
+      selId={sel}
+      fitSignal={fitSignal}
+      onSelect={select}
+      bottomInset={isDesktop ? 0 : mapInset}
+    />
   );
 
   /* ---------- desktop ---------- */

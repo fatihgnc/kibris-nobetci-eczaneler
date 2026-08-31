@@ -21,13 +21,6 @@ interface Props {
   selId: number | null;
   fitSignal: number;
   onSelect: (id: number) => void;
-  /**
-   * Fired once the basemap is actually on screen — the first tile-layer
-   * `load`, or immediately when a mount adopts the kept map, which by
-   * definition is already painted. The static placeholder holds the map's
-   * corner of the screen until this says the real thing is under it.
-   */
-  onReady?: () => void;
   /** Which basemap to draw. */
   /**
    * Height in px of the map container hidden behind the bottom sheet. Leaflet
@@ -142,13 +135,6 @@ let carriedOver = false;
 /** Whether the pins have ever been framed. Until they have, every mount fits. */
 let everFitted = false;
 /**
- * Whether the basemap has ever finished painting. Module scope like the map
- * itself: a remount adopts an already-painted map, and the placeholder must
- * be told so at once — StrictMode's mount-unmount-mount would otherwise be
- * told "ready" by the adoption before a single tile had actually arrived.
- */
-let basemapShown = false;
-/**
  * The set of pins the current view was framed for.
  *
  * A remount is not a reason to re-frame — unless it is showing something else.
@@ -161,14 +147,12 @@ let basemapShown = false;
  */
 let fittedKey = "";
 
-export default function MapView({ points, me, selId, fitSignal, onSelect, onReady, bottomInset = 0 }: Props) {
+export default function MapView({ points, me, selId, fitSignal, onSelect, bottomInset = 0 }: Props) {
   const hostRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<L.Map | null>(null);
   const layerRef = useRef<L.LayerGroup | null>(null);
   const onSelectRef = useRef(onSelect);
   onSelectRef.current = onSelect;
-  const onReadyRef = useRef(onReady);
-  onReadyRef.current = onReady;
   const insetRef = useRef(bottomInset);
   insetRef.current = bottomInset;
 
@@ -199,14 +183,10 @@ export default function MapView({ points, me, selId, fitSignal, onSelect, onRead
       // requires it visible — and left its link overlapping the footer's tap
       // targets through the sheet.
       m.attributionControl.setPosition("topright");
-      const tiles = L.tileLayer(BASEMAP, {
+      L.tileLayer(BASEMAP, {
         attribution: TILE_ATTRIBUTION,
         maxZoom: 19,
       }).addTo(m);
-      tiles.once("load", () => {
-        basemapShown = true;
-        onReadyRef.current?.();
-      });
       m.setView(CYPRUS_CENTER, 9);
       lockZoomOut(m);
       keptLayer = L.layerGroup().addTo(m);
@@ -214,10 +194,6 @@ export default function MapView({ points, me, selId, fitSignal, onSelect, onRead
     } else if (keptEl.parentNode !== host) {
       host.appendChild(keptEl);
     }
-    // A carried-over map is already painted, so the placeholder owes it an
-    // immediate hand-over rather than waiting for a tile load that may never
-    // fire again.
-    if (basemapShown) onReadyRef.current?.();
 
     mapRef.current = keptMap;
     layerRef.current = keptLayer;

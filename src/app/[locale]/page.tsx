@@ -117,11 +117,6 @@ export default async function Page({
 
   return (
     <>
-      {/* Hoisted into <head>. The placeholder <img> sits deep in the body,
-          behind everything the parser reads first; this line hands its URL to
-          the browser in the first kilobyte instead, which is worth most of a
-          second of LCP on a throttled phone. */}
-      <link rel="preload" as="image" href="/map-placeholder.webp" fetchPriority="high" />
       {/* Today included. This used to be withheld from the bare URL on the
           grounds that it was prerendered at build time and the roster baked
           into it would go stale — but the route reads searchParams, so it has
