@@ -228,13 +228,28 @@ button { font: inherit; color: inherit; border: 0; background: none; cursor: poi
 .mstale { display: flow-root; }
 
 /* map */
-.mapwrap { position: absolute; left: 0; right: 0; overflow: hidden; background: var(--surface); }
-.map { position: absolute; inset: 0; }
+/* top/bottom here are the pre-hydration guess — layoutMobile() measures the
+   real chrome and overrides them inline a moment later. Without a guess the
+   wrapper is 0px tall until then, and the placeholder image inside it could
+   not paint (or be the LCP) before JavaScript arrives. */
+.mapwrap { position: absolute; left: 0; right: 0; top: 186px; bottom: 0; overflow: hidden; background: var(--surface); }
+/* isolate: Leaflet's internal panes carry z-indexes up to 700, and without a
+   stacking context of its own they would compete with the app's layers. */
+.map { position: absolute; inset: 0; isolation: isolate; }
 /* Leaflet owns this one — React only owns the .map host it sits in. */
 .mapcanvas { position: absolute; inset: 0; }
 /* What the map corner shows until Leaflet's chunk arrives — OSM's land colour,
    so the tiles fade in over it rather than over bare app surface. */
 .mapghost { position: absolute; inset: 0; background: #f2efe9; }
+/* The stitched opening view, painted with the first HTML and faded out once
+   the live basemap under it reports its tiles on screen. Above the map (410),
+   under the recenter button (420) and the sheet (450). */
+.mapholder {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+  object-fit: cover; z-index: 410; pointer-events: none;
+  transition: opacity .45s ease;
+}
+.mapholder.off { opacity: 0; }
 .leaflet-container { background: var(--surface); font-family: var(--font-ui); }
 .leaflet-control-attribution {
   background: color-mix(in oklab, var(--bg) 78%, transparent) !important; color: var(--text-3) !important;
@@ -376,7 +391,6 @@ button { font: inherit; color: inherit; border: 0; background: none; cursor: poi
 .notice p { margin: 0; font-size: 13px; line-height: 1.5; color: var(--text-2); }
 .notice .acts { grid-template-columns: 1fr; }
 .notice .acts.two { grid-template-columns: 1fr 1fr; }
-.notice.locask { background: var(--accent-soft); border-color: color-mix(in oklab, var(--accent) 45%, transparent); }
 .empty { padding: 34px 18px; text-align: center; }
 .empty .glyph { width: 40px; height: 40px; margin: 0 auto 12px; border-radius: 12px; border: 1px dashed var(--line); display: grid; place-items: center; color: var(--text-3); font-family: var(--font-mono); font-size: 15px; }
 .empty h2 { margin: 0 0 6px; font-size: 15px; }
@@ -565,6 +579,26 @@ button { font: inherit; color: inherit; border: 0; background: none; cursor: poi
    about to settle. The class is dropped on the first client commit, before
    paint, so it can never fight the inline styles that replace it. */
 .sheet.preboot { max-height: 38dvh; }
+
+/* ---------- pre-hydration desktop dressing ----------
+   The server always sends the phone tree — it cannot know the viewport — and
+   the real desktop grid only exists after hydration swaps it in. On a wide
+   screen that used to mean the list painted full-width and then snapped into
+   its 400px panel seconds later (however long the JavaScript took to arrive).
+   These rules dress the phone tree as "panel left, map right" with the same
+   400px seam the desktop grid uses, so the swap moves almost nothing. Every
+   selector here targets elements that exist only in the phone tree (.sheet,
+   .app > .topbar, the chips wrapper), so the rules die with it at hydration;
+   .mapwrap survives in the desktop tree but its `.deskmap .mapwrap` rule is
+   more specific and takes over. */
+@media (min-width: 1024px) {
+  .app > .topbar { width: 400px; }
+  .app > div:has(> .chips) { width: 400px; }
+  .mstale { width: 400px; }
+  .mapwrap { left: 400px; top: 0; }
+  .sheet { left: 0; right: auto; width: 400px; top: 186px; border-right: 1px solid var(--line); }
+  .sheet.preboot { max-height: none; }
+}
 
 /* Header for the document pages.
    Sticky because these pages scroll — the directory runs to four hundred rows,

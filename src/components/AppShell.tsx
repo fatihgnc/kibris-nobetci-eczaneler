@@ -55,8 +55,15 @@ const MapView = dynamic(() => import("./MapView"), {
  * service is off, no signal, the 12s timeout ran out) is `unavailable`: same
  * loss of distances, but telling someone who already granted the permission to
  * go and grant it is wrong, and it was the one thing they could not act on.
+ *
+ * There is deliberately no "ask for permission" state. The arrival effect
+ * always resolves the question by itself — Permissions API, then locate() —
+ * so a state like that only ever existed for the moment before the answer
+ * came back, and rendering a notice for it meant every refresh flashed
+ * "turn on location" at people who had granted it long ago. `locating` is
+ * the honest name for that moment, and it renders as nothing.
  */
-type LocMode = "preask" | "locating" | "granted" | "denied" | "unavailable";
+type LocMode = "locating" | "granted" | "denied" | "unavailable";
 
 const STATUS_CLASS: Record<DutyStatus, string> = {
   OPEN: "s-open",
@@ -165,6 +172,13 @@ let lastRegion: RegionCode | null | undefined = undefined;
  * pushed home again by their own coordinates.
  */
 let autoRegionSettled = false;
+/**
+ * Whether the live basemap has ever been on screen this visit. Module scope
+ * like the caches above: a locale or region switch remounts this component
+ * over a map that is already painted, and the placeholder must not flash
+ * back over it.
+ */
+let mapEverShown = false;
 
 const freshRoster = (date: string) => {
   const hit = rosterCache.get(date);
@@ -262,7 +276,7 @@ export default function AppShell({
   const [data, setData] = useState<OnDutyResponse | null>(cachedRoster?.data ?? seeded);
   const [loading, setLoading] = useState(!cachedRoster && !seeded);
   const [error, setError] = useState(false);
-  const [locMode, setLocMode] = useState<LocMode>(coordsCache ? "granted" : "preask");
+  const [locMode, setLocMode] = useState<LocMode>(coordsCache ? "granted" : "locating");
   const [coords, setCoords] = useState<[number, number] | null>(coordsCache);
   const [sel, setSel] = useState<number | null>(null);
   const [snap, setSnap] = useState(1);
@@ -271,6 +285,15 @@ export default function AppShell({
   const [showLocHelp, setShowLocHelp] = useState(false);
   const [mapInset, setMapInset] = useState(0);
   const [pickerOpen, setPickerOpen] = useState(true);
+  const [mapReady, setMapReady] = useState(mapEverShown);
+  // Decided once per mount: a mount that begins with the map already shown
+  // never renders the placeholder at all, rather than rendering it faded.
+  const holderSkipped = useRef(mapEverShown);
+
+  const onMapReady = useCallback(() => {
+    mapEverShown = true;
+    setMapReady(true);
+  }, []);
 
   const bumpFit = useCallback(() => setFitSignal((n) => n + 1), []);
 
@@ -1028,17 +1051,6 @@ export default function AppShell({
 
   const listContent = (
     <>
-      {locMode === "preask" && !showInitialSkeleton && (
-        <div className="notice locask">
-          <h2>{t("locask.title")}</h2>
-          <p>{t("locask.body")}</p>
-          <div className="acts">
-            <button className="btn pri" onClick={locate}>
-              {t("locask.cta")}
-            </button>
-          </div>
-        </div>
-      )}
       {locMode === "denied" && !showInitialSkeleton && (
         <div className="notice">
           <h2>{t("denied.title")}</h2>
@@ -1277,14 +1289,37 @@ export default function AppShell({
   );
 
   const mapView = (
-    <MapView
-      points={points}
-      me={coords}
-      selId={sel}
-      fitSignal={fitSignal}
-      onSelect={select}
-      bottomInset={isDesktop ? 0 : mapInset}
-    />
+    <>
+      <MapView
+        points={points}
+        me={coords}
+        selId={sel}
+        fitSignal={fitSignal}
+        onSelect={select}
+        onReady={onMapReady}
+        bottomInset={isDesktop ? 0 : mapInset}
+      />
+      {/* The map's opening view as a plain same-origin image, in the server
+          HTML: the browser starts fetching it from the first bytes of the
+          page — long before hydration lets Leaflet ask for a single tile —
+          and it holds the map's corner of the screen (and the LCP) until the
+          real basemap reports itself painted underneath, then fades off it.
+          Not the dynamic import's `loading` fallback, deliberately: that
+          disappears when the chunk arrives, seconds before the tiles do. It
+          stays out of remounts that arrive after the map has shown — the
+          fade is a hand-over, not something to replay on a locale switch. */}
+      {!holderSkipped.current && (
+        <img
+          className={`mapholder ${mapReady ? "off" : ""}`}
+          src="/map-placeholder.webp"
+          alt=""
+          width={936}
+          height={601}
+          fetchPriority="high"
+          decoding="async"
+        />
+      )}
+    </>
   );
 
   /* ---------- desktop ---------- */

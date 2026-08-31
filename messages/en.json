@@ -57,11 +57,6 @@
     "showAll": "Show all regions",
     "howTo": "How to enable?"
   },
-  "locask": {
-    "title": "Turn on location to sort by distance",
-    "body": "It works without location too: pick a region below and pharmacies are listed island-wide.",
-    "cta": "Find my location"
-  },
   "denied": {
     "title": "Location permission is off",
     "body": "Distances can't be shown. Continue by picking a region, or enable the permission in your browser settings.",

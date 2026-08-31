@@ -57,11 +57,6 @@
     "showAll": "Tüm bölgeleri göster",
     "howTo": "Nasıl açılır?"
   },
-  "locask": {
-    "title": "Konumunuzu açın, en yakını sıralayalım",
-    "body": "Konum olmadan da kullanabilirsiniz: aşağıdan bölge seçin, eczaneler ada genelinde listelenir.",
-    "cta": "Konumumu bul"
-  },
   "denied": {
     "title": "Konum izni kapalı",
     "body": "Mesafe gösterilemiyor. Bölge seçerek devam edebilir ya da tarayıcı ayarlarından izni açabilirsiniz.",
