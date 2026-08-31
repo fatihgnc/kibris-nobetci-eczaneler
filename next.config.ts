@@ -22,6 +22,30 @@ const nextConfig: NextConfig = {
       { source: "/tr/:path*", destination: "/:path*", permanent: true },
     ];
   },
+  /**
+   * Edge caching for the page HTML, said in the one header Vercel listens to.
+   *
+   * The middleware writes a normal Cache-Control, and on a self-hosted `next
+   * start` that is the header that goes out — but on Vercel the render's own
+   * `no-store` outranks anything middleware or config puts in Cache-Control.
+   * `Vercel-CDN-Cache-Control` is the documented exception: top priority even
+   * from next.config, consumed by the CDN, never forwarded to the browser.
+   * Same window as /api/on-duty (SPEC §6). Scoped like the middleware
+   * matcher, so API responses keep making their own decisions.
+   */
+  async headers() {
+    return [
+      {
+        source: "/((?!api|_next|_vercel|.*\\..*).*)",
+        headers: [
+          {
+            key: "Vercel-CDN-Cache-Control",
+            value: "max-age=300, stale-while-revalidate=600",
+          },
+        ],
+      },
+    ];
+  },
 };
 
 export default withNextIntl(nextConfig);
