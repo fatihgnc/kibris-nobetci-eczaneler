@@ -243,13 +243,20 @@ button { font: inherit; color: inherit; border: 0; background: none; cursor: poi
 .mapghost { position: absolute; inset: 0; background: #f2efe9; }
 /* The stitched opening view, painted with the first HTML and faded out once
    the live basemap under it reports its tiles on screen. Above the map (410),
-   under the recenter button (420) and the sheet (450). */
+   under the recenter button (420) and the sheet (450).
+
+   Blurred while it stands in: a 936px image stretched over the map area is
+   visibly soft, and blur turns "low-quality map" into "map still focusing".
+   The slight scale keeps the blur's translucent edges outside the box. When
+   the live map reports in, it sharpens as it fades, so the hand-over reads
+   as the picture snapping into focus rather than a swap. */
 .mapholder {
   position: absolute; inset: 0; width: 100%; height: 100%;
   object-fit: cover; z-index: 410; pointer-events: none;
-  transition: opacity .45s ease;
+  filter: blur(10px); transform: scale(1.06);
+  transition: opacity .6s ease, filter .6s ease;
 }
-.mapholder.off { opacity: 0; }
+.mapholder.off { opacity: 0; filter: blur(0); }
 .leaflet-container { background: var(--surface); font-family: var(--font-ui); }
 .leaflet-control-attribution {
   background: color-mix(in oklab, var(--bg) 78%, transparent) !important; color: var(--text-3) !important;
@@ -598,6 +605,15 @@ button { font: inherit; color: inherit; border: 0; background: none; cursor: poi
   .mapwrap { left: 400px; top: 0; }
   .sheet { left: 0; right: auto; width: 400px; top: 186px; border-right: 1px solid var(--line); }
   .sheet.preboot { max-height: none; }
+  /* Undress the sheet while it stands in for the panel: the grab handle, the
+     rounded shoulders, the shadow and the sort badge all say "bottom sheet",
+     and none of them will exist once the real panel takes over — losing them
+     up front makes the takeover a content change, not a costume change. */
+  .sheet .grab,
+  .sheet .sortbtn { display: none; }
+  .sheet { border-radius: 0; border-top: none; box-shadow: none; }
+  .sheet .sheethead { padding: 14px 18px 10px; }
+  .sheet .sheetdrag { cursor: default; }
 }
 
 /* Header for the document pages.
