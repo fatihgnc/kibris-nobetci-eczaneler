@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import { hasLocale, NextIntlClientProvider } from "next-intl";
 import { getMessages, getTranslations, setRequestLocale } from "next-intl/server";
 import { IBM_Plex_Mono, Outfit } from "next/font/google";
@@ -123,6 +124,9 @@ export default async function LocaleLayout({
           <RegisterSW />
           {/* No-op off Vercel, so dev and self-hosted runs stay untouched. */}
           <Analytics />
+          {/* Real-user Core Web Vitals, so the Lighthouse numbers have field
+              data to answer to. Same no-op-off-Vercel behaviour as above. */}
+          <SpeedInsights />
         </NextIntlClientProvider>
       </body>
     </html>
