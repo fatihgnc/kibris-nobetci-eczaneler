@@ -57,18 +57,19 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     lastDutySyncAt(),
   ]);
 
-  const home = localised((l) => `/${l}`, {
+  const home = localised((l) => getPathname({ locale: l, href: "/" }), {
     priority: 1,
     changeFrequency: "daily",
     lastModified: syncedAt,
   });
 
-  // Today is deliberately absent: it is served at the bare `/tr`, and listing
-  // `?date=<today>` beside it would offer the same roster at two addresses.
+  // Today is deliberately absent: it is served at the bare homepage, and
+  // listing `?date=<today>` beside it would offer the same roster at two
+  // addresses.
   const dated = days
     .filter((d) => d !== today)
     .flatMap((date) =>
-      localised((l) => `/${l}?date=${date}`, {
+      localised((l) => getPathname({ locale: l, href: { pathname: "/", query: { date } } }), {
         // A published day is settled: it can still be revised, but not on the
         // homepage's daily rhythm.
         priority: 0.6,

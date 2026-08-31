@@ -6,7 +6,8 @@ import { IBM_Plex_Mono, Outfit } from "next/font/google";
 import { notFound } from "next/navigation";
 import RegisterSW from "@/components/RegisterSW";
 import SiteJsonLd from "@/components/SiteJsonLd";
-import { routing } from "@/i18n/routing";
+import { getPathname } from "@/i18n/navigation";
+import { routing, type AppLocale } from "@/i18n/routing";
 import { clientMessages } from "@/lib/messages";
 import { SITE_URL } from "@/lib/site";
 import "../globals.css";
@@ -39,7 +40,11 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "app" });
-  const path = `/${locale}`;
+  // Through getPathname, not string-built: with localePrefix "as-needed" the
+  // Turkish homepage is `/` and only /en carries a prefix, and this is the one
+  // function that knows that.
+  const home = (l: AppLocale) => getPathname({ locale: l, href: "/" });
+  const path = home(locale as AppLocale);
   return {
     // Absolute URLs for everything below; without it Next emits relative
     // og:image and the share card comes up blank.
@@ -52,8 +57,8 @@ export async function generateMetadata({
       // Both locales are the same page in another language, so tell search
       // engines that rather than letting them pick one and drop the other.
       languages: {
-        ...Object.fromEntries(routing.locales.map((l) => [l, `/${l}`])),
-        "x-default": `/${routing.defaultLocale}`,
+        ...Object.fromEntries(routing.locales.map((l) => [l, home(l)])),
+        "x-default": home(routing.defaultLocale),
       },
     },
     openGraph: {
@@ -106,6 +111,12 @@ export default async function LocaleLayout({
   return (
     <html lang={locale} className={`${outfit.variable} ${plexMono.variable}`}>
       <body>
+        {/* React hoists this into <head>. The map tiles are the largest thing
+            on the screen and the last to start loading — Leaflet only asks for
+            them after hydration — so the DNS+TLS handshake to the tile server
+            is paid here, in parallel with everything else, instead of at the
+            front of the first tile request. */}
+        <link rel="preconnect" href="https://tile.openstreetmap.org" />
         <SiteJsonLd locale={locale} name={t("name")} />
         <NextIntlClientProvider messages={messages}>
           {children}

@@ -3,9 +3,26 @@ import { defineRouting } from "next-intl/routing";
 export const routing = defineRouting({
   locales: ["tr", "en"],
   defaultLocale: "tr",
-  // Initial locale from Accept-Language, then persisted in a cookie.
-  localeDetection: true,
-  localeCookie: true,
+  /**
+   * Turkish lives at the bare URL; only /en carries a prefix.
+   *
+   * `/` used to 307 to /tr on every arrival, and on a throttled phone that
+   * round trip was the single largest line in the Lighthouse audit (~1s of
+   * LCP). Serving the default locale at the root removes the hop entirely;
+   * /tr/* now permanently redirects to /*, so old links keep working.
+   */
+  localePrefix: "as-needed",
+  /**
+   * No detection and no cookie — both deliberate, and they stand together.
+   *
+   * Detection would still redirect `/` for any browser whose Accept-Language
+   * is not Turkish (Lighthouse's included), which is the exact cost being
+   * removed. And the NEXT_LOCALE Set-Cookie on every page response is what
+   * kept the CDN from caching the HTML at all. English stays one tap away on
+   * the visible TR/EN switch, and /en URLs hold the choice from then on.
+   */
+  localeDetection: false,
+  localeCookie: false,
   /**
    * Localised URLs, so each side of the site is addressed in its own language.
    *

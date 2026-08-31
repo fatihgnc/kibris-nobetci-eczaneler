@@ -4,6 +4,7 @@
 // so it belongs in the layout and never needs a query. The KTEB attribution is
 // the load-bearing part — a health listing whose source is machine-readable is
 // a different kind of claim from one whose source is a line of small print.
+import { getPathname } from "@/i18n/navigation";
 import { SITE_URL } from "@/lib/site";
 
 export default function SiteJsonLd({ locale, name }: { locale: string; name: string }) {
@@ -14,7 +15,7 @@ export default function SiteJsonLd({ locale, name }: { locale: string; name: str
       {
         "@type": "WebSite",
         "@id": id,
-        url: `${SITE_URL}/${locale}`,
+        url: `${SITE_URL}${getPathname({ locale: locale as "tr" | "en", href: "/" })}`,
         name,
         inLanguage: locale,
         publisher: { "@id": `${SITE_URL}/#publisher` },

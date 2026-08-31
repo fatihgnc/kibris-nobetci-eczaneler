@@ -56,7 +56,8 @@ export async function generateMetadata({
   if (date === dutyDateFor()) return {};
 
   const dateText = formatDutyDate(date, locale);
-  const path = (l: string) => `/${l}?date=${date}`;
+  const path = (l: string) =>
+    getPathname({ locale: l as "tr" | "en", href: { pathname: "/", query: { date } } });
   return {
     title: t("titleOnDate", { date: dateText }),
     description: t("descriptionOnDate", { date: dateText }),
