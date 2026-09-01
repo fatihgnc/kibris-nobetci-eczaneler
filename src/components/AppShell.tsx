@@ -36,6 +36,7 @@ import {
   regionDisplay,
   type RegionCode,
 } from "@/lib/regions";
+import { pharmacySlug } from "@/lib/slug";
 import { deriveStatus, type DutyStatus } from "@/lib/status";
 import type { DutyDaysResponse, OnDutyPharmacy, OnDutyResponse } from "@/lib/types";
 import { CloseIcon, NavIcon, PhoneIcon, RecenterIcon } from "./icons";
@@ -954,6 +955,18 @@ export default function AppShell({
         // when there is no address at all, not an addition to one.
         mapSearchUrl(p.name, p.address ?? (p.region ? REGION_LABEL[p.region] : null), "KKTC");
 
+  /**
+   * The pharmacy's own page.
+   *
+   * A real link rather than another way to select the card, and the only one
+   * on this side of the site: until now four hundred pharmacy pages hung off
+   * the directory alone, unreachable from the roster that names them every
+   * night. The slug is derived from the id and the name the response already
+   * carries, so nothing extra has to be fetched to draw it.
+   */
+  const pharmacyHref = (p: Listed) =>
+    ({ pathname: "/pharmacy/[slug]", params: { slug: pharmacySlug(p) } }) as const;
+
   const card = (p: Listed) => {
     const cls = p.liveStatus ? STATUS_CLASS[p.liveStatus] : "s-future";
     return (
@@ -988,6 +1001,15 @@ export default function AppShell({
         </div>
         {p.address && <p className="addr">{p.address}</p>}
         <p className="hours">{hoursLine(p)}</p>
+        {/* Quiet text rather than a third button: the two below are what
+            someone at 2am actually presses, and this is for the other visit —
+            the one asking when this pharmacy is next on duty. The click is
+            stopped because the card behind it selects a map pin. */}
+        <p className="pglink">
+          <Link href={pharmacyHref(p)} onClick={(e) => e.stopPropagation()}>
+            {t("list.pharmacyPage")}
+          </Link>
+        </p>
         <div className="acts">
           {/* Calling is offered on a planned day too. It was withheld on the
               grounds that ringing about a shift days away puts a real person on
@@ -1225,6 +1247,9 @@ export default function AppShell({
               </div>
             )}
           </dl>
+          <p className="pglink dpglink">
+            <Link href={pharmacyHref(p)}>{t("list.pharmacyPage")}</Link>
+          </p>
           <p className="dsource">
             {t.rich("detail.source", {
               b: (c) => <b>{c}</b>,

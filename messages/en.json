@@ -34,7 +34,8 @@
     "sortDistance": "By distance",
     "sortRegion": "By region",
     "title": "On-duty pharmacies",
-    "onDate": "On duty {date}"
+    "onDate": "On duty {date}",
+    "pharmacyPage": "Pharmacy page and duty calendar"
   },
   "status": {
     "OPEN": "Open",

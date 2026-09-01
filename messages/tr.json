@@ -34,7 +34,8 @@
     "sortDistance": "Mesafeye göre",
     "sortRegion": "Bölgeye göre",
     "title": "Nöbetçi eczaneler",
-    "onDate": "{date} nöbetçi"
+    "onDate": "{date} nöbetçi",
+    "pharmacyPage": "Eczane sayfası ve nöbet takvimi"
   },
   "status": {
     "OPEN": "Açık",
