@@ -40,6 +40,8 @@ export const routing = defineRouting({
       en: "/pharmacies-on-duty/[region]",
     },
     "/pharmacies": { tr: "/eczaneler", en: "/pharmacies" },
+    // The same word in both: it is what the people who would embed it call it.
+    "/widget": { tr: "/widget", en: "/widget" },
     "/pharmacy/[slug]": { tr: "/eczane/[slug]", en: "/pharmacy/[slug]" },
     "/about": { tr: "/hakkinda", en: "/about" },
     "/privacy": { tr: "/gizlilik", en: "/privacy" },

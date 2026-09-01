@@ -1139,6 +1139,8 @@ export default function AppShell({
             lives inside the anchor, so the dot picked up the hover underline
             and sat inside the click target — a separator you could click. */}
         <i aria-hidden="true">·</i>
+        <Link href="/widget">{t("nav.widget")}</Link>
+        <i aria-hidden="true">·</i>
         <Link href="/about">{t("nav.about")}</Link>
         <i aria-hidden="true">·</i>
         <Link href="/privacy">{t("nav.privacy")}</Link>

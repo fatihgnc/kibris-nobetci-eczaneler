@@ -17,7 +17,7 @@ import type { AbstractIntlMessages } from "next-intl";
  * carrying the directive. Keep this list honest: if a client component starts
  * using one of these, take it off the list or it will throw.
  */
-const SERVER_ONLY = ["region", "pharmacy", "about", "privacy", "contact", "directory"];
+const SERVER_ONLY = ["region", "pharmacy", "about", "privacy", "contact", "directory", "embed", "widget"];
 
 export function clientMessages(all: AbstractIntlMessages): AbstractIntlMessages {
   const out: AbstractIntlMessages = { ...all };

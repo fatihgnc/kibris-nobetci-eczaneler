@@ -169,7 +169,8 @@
     "pharmacies": "Eczaneler",
     "about": "Hakkında",
     "privacy": "Gizlilik",
-    "contact": "İletişim"
+    "contact": "İletişim",
+    "widget": "Widget"
   },
   "directory": {
     "title": "KKTC Eczaneleri — Bölgeye Göre Tüm Eczaneler",
@@ -198,5 +199,41 @@
     "pharmacyP": "Adres, telefon veya harita konumu hatalıysa bildirin. Bu bilgiler de kaynaktan geliyor, ama koordinatları elle düzeltebiliyoruz.",
     "bugTitle": "Sitede bir sorun",
     "bugP": "Açılmayan bir sayfa, yanlış görünen bir şey ya da öneriniz varsa yazın. Hangi cihaz ve tarayıcıyı kullandığınızı eklerseniz bulması kolaylaşır."
+  },
+  "embed": {
+    "title": "{region} nöbetçi eczaneler",
+    "island": "KKTC",
+    "empty": "{region} için bugün nöbetçi eczane görünmüyor.",
+    "unavailable": "Liste şu an yüklenemedi.",
+    "sourceLabel": "Kaynak:",
+    "sourceLink": "acikeczanevarmi.com",
+    "count": "{count} eczane"
+  },
+  "widget": {
+    "title": "Ücretsiz Nöbetçi Eczane Widget'ı — Sitenize Ekleyin",
+    "description": "KKTC nöbetçi eczane listesini kendi sitenize ücretsiz gömün. Her gün otomatik güncellenir, kurulum tek satır.",
+    "h1": "Nöbetçi eczane listesini sitenize ekleyin",
+    "lead": "Haber siteleri, üniversiteler, belediyeler ve rehber siteleri için ücretsiz. Aşağıdan bölgeyi seçin, çıkan kodu sayfanıza yapıştırın. Liste Kıbrıs Türk Eczacılar Birliği’nin yayınından her gün otomatik güncellenir; sizin hiçbir şey yapmanıza gerek kalmaz.",
+    "pickLabel": "Bölge",
+    "allRegions": "Tüm KKTC",
+    "langLabel": "Dil",
+    "langTr": "Türkçe",
+    "langEn": "İngilizce",
+    "codeTitle": "Yapıştırılacak kod",
+    "copy": "Kodu kopyala",
+    "copied": "Kopyalandı",
+    "previewTitle": "Önizleme",
+    "creditTitle": "Kaynak satırı neden kodun içinde?",
+    "creditBody": "Tek şartımız bu: iframe’in altındaki kaynak linkinin sayfanızda kalması. Widget’ı ücretsiz veriyoruz, karşılığında okurlarınızın tam listeye ve haritaya ulaşabileceği bir bağlantı istiyoruz. Widget’ın kendi içinde de küçük bir kaynak satırı vardır ve o kaldırılamaz; dışarıdaki linki silerseniz widget çalışmaya devam eder ama bizden istediğimiz tek şeyi almamış oluruz.",
+    "termsTitle": "Şartlar",
+    "term1": "Ücretsizdir ve ücretli olmayacaktır. Reklam içermez, çerez yazmaz, ziyaretçinizi takip etmez.",
+    "term2": "Veri Kıbrıs Türk Eczacılar Birliği’nin resmî nöbet çizelgesinden gelir. Biz veriyi üretmeyiz, olduğu gibi aktarırız.",
+    "term3": "Kaynak linkinin sayfada görünür kalması gerekir.",
+    "term4": "Sorun olursa ya da özel bir görünüm isterseniz iletişim sayfasından yazın; genellikle birkaç gün içinde dönüş yapılır.",
+    "heightTitle": "Yükseklik otomatik olsun isterseniz",
+    "heightBody": "Widget içeriği kadar yer kaplar. Sabit yükseklikle de çalışır, ama şu üç satırı sayfanıza eklerseniz kendini içeriğe göre ayarlar:",
+    "themeLabel": "Tema",
+    "themeLight": "Açık",
+    "themeDark": "Koyu"
   }
 }

@@ -22,6 +22,14 @@ export default function middleware(req: NextRequest) {
 }
 
 export const config = {
-  // Everything except API routes, Next internals, and files with an extension.
-  matcher: ["/((?!api|_next|_vercel|.*\\..*).*)"],
+  /**
+   * Everything except API routes, the embed, Next internals, and files with an
+   * extension.
+   *
+   * The embed is out because it has no locale to negotiate: it answers at one
+   * address per region and takes its language from `?lang=`, so the locale
+   * middleware could only redirect a newspaper's iframe somewhere it never
+   * asked to go.
+   */
+  matcher: ["/((?!api|embed|_next|_vercel|.*\\..*).*)"],
 };

@@ -119,5 +119,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     lastModified: syncedAt,
   });
 
-  return [...home, ...regions, ...directory, ...dated, ...detail, ...docs];
+  // Above the doc pages: this is the page an outreach email points at, and the
+  // one another site might link to on its own.
+  const widget = localised((l) => getPathname({ locale: l, href: "/widget" }), {
+    priority: 0.5,
+    changeFrequency: "monthly",
+  });
+
+  return [...home, ...regions, ...directory, ...dated, ...detail, ...widget, ...docs];
 }
