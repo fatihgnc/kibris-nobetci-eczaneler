@@ -107,11 +107,12 @@
     "emptyBody": "Eczacılar Birliği bu günü henüz duyurmamış. Daha yakın bir güne bakabilirsiniz."
   },
   "region": {
-    "title": "{region} Nöbetçi Eczaneler — {date}",
-    "description": "{date} tarihinde {region} bölgesinde nöbetçi olan eczaneler. Adres, telefon numarası ve nöbet saatleriyle birlikte haritada görüntüleyin.",
+    "title": "{region} Nöbetçi Eczaneler — Bugün Açık Olanlar",
+    "description": "{region} bölgesinde bugün nöbetçi olan eczaneler. Adres, telefon numarası ve nöbet saatleriyle birlikte haritada görüntüleyin.",
     "ogTitle": "{region} bölgesinde bu gece hangi eczane nöbetçi?",
     "ogDescription": "{region} nöbetçi eczane listesi: konum, telefon ve nöbet saatleri. Size en yakın olanı haritada görün.",
-    "intro": "{region} bölgesinde {date} günü nöbet tutacak olan eczaneler aşağıda listelenmiştir. Nöbet akşam saatlerinde başlar ve ertesi sabaha kadar sürer; bu saatlerin bir bölümünde eczane kapalı olup telefon nöbeti tutuyor olabilir, o yüzden yola çıkmadan önce aramanız önerilir."
+    "intro": "{region} bölgesinde {date} günü nöbet tutacak olan eczaneler aşağıda listelenmiştir. Nöbet akşam saatlerinde başlar ve ertesi sabaha kadar sürer; bu saatlerin bir bölümünde eczane kapalı olup telefon nöbeti tutuyor olabilir, o yüzden yola çıkmadan önce aramanız önerilir.",
+    "listName": "{region} Nöbetçi Eczaneler — {date}"
   },
   "pharmacy": {
     "title": "{name} — {region} | Adres, Telefon ve Nöbet Tarihleri",

@@ -114,8 +114,12 @@ export default async function RegionPage({
 
   return (
     <>
+      {/* listName, not title: the <title> tag dropped its date because Google
+          caches it and would go on showing a stale one for days, but this names
+          a specific day's roster and sits beside validFrom/validThrough saying
+          the same date. */}
       {inRegion.length > 0 && (
-        <DutyJsonLd date={date} title={t("title", values)} pharmacies={inRegion} />
+        <DutyJsonLd date={date} title={t("listName", values)} pharmacies={inRegion} />
       )}
       <BreadcrumbJsonLd
         trail={[

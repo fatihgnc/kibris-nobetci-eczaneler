@@ -107,11 +107,12 @@
     "emptyBody": "The Pharmacists' Association has not announced this day yet. Try a nearer day."
   },
   "region": {
-    "title": "On-Duty Pharmacies in {region} — {date}",
-    "description": "Pharmacies on duty in {region} on {date}. See each one’s address, phone number and duty hours on the map.",
+    "title": "On-Duty Pharmacies in {region} — Open Today",
+    "description": "Pharmacies on duty in {region} today. See each one’s address, phone number and duty hours on the map.",
     "ogTitle": "Which pharmacy is on duty tonight in {region}?",
     "ogDescription": "The on-duty roster for {region}: locations, phone numbers and duty hours. Find the one nearest you on the map.",
-    "intro": "The pharmacies that will be on duty in {region} on {date} are listed below. A duty shift starts in the evening and runs until the next morning; for part of that time the pharmacy may be closed and taking calls instead, so it is worth phoning ahead before setting off."
+    "intro": "The pharmacies that will be on duty in {region} on {date} are listed below. A duty shift starts in the evening and runs until the next morning; for part of that time the pharmacy may be closed and taking calls instead, so it is worth phoning ahead before setting off.",
+    "listName": "On-Duty Pharmacies in {region} — {date}"
   },
   "pharmacy": {
     "title": "{name} — {region} | Address, Phone and Duty Dates",
