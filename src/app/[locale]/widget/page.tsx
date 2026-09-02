@@ -83,6 +83,7 @@ export default async function WidgetPage({ params }: { params: Params }) {
               langTr: t("langTr"),
               langEn: t("langEn"),
               codeTitle: t("codeTitle"),
+              codeHint: t("codeHint"),
               copy: t("copy"),
               copied: t("copied"),
               previewTitle: t("previewTitle"),

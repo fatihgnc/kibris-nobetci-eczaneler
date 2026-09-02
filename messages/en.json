@@ -257,6 +257,7 @@
     "kktcOncall": "On-call indication: some pharmacies are open until a set hour, after which the pharmacist is reachable by phone (KTEB publishes this as “On-Call”). The widget shows both the opening hours and the on-call window as KTEB prints them, so a reader knows to call rather than walk to a closed door.",
     "kktcSeason": "Summer and winter hours: duty hours change with the season, and KTEB publishes each day’s hours separately. The widget assumes no fixed hours; it shows whatever that day’s roster says, so nothing on your side changes at the seasonal switch.",
     "kktcSubregion": "Sub-regions: KTEB splits Mesarya into “Üst Mesarya” and “Alt Mesarya”. Both having a pharmacy on duty the same night is rare, so the widget folds them into one “Mesarya” list. The duty day rolls over at 08:00; after midnight the previous day’s list is still shown, because that duty runs until then.",
-    "usersTitle": "Sites using the widget"
+    "usersTitle": "Sites using the widget",
+    "codeHint": "Paste this where you want the list to appear: inside the article body, in a sidebar, or on your own on-duty page. In WordPress use a “Custom HTML” block; in other systems any HTML/code field will do. Paste both lines together; the credit line belongs right under the frame."
   }
 }

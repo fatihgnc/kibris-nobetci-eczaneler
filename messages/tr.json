@@ -257,6 +257,7 @@
     "kktcOncall": "Nöbet işareti: Bazı eczaneler belirli bir saate kadar açıktır, sonrasında eczacıya telefonla ulaşılır (KTEB bunu “On-Call” olarak yayınlar). Widget bu eczanelerde açık olunan saatleri ve nöbet aralığını KTEB’in yazdığı biçimde gösterir; okur kapalı bir kapıya gitmek yerine telefon etmesi gerektiğini anlar.",
     "kktcSeason": "Yaz ve kış saatleri: Nöbet saatleri mevsime göre değişir ve KTEB her günün saatlerini ayrıca yayınlar. Widget sabit bir saat varsaymaz; o günün çizelgesinde ne yazıyorsa onu gösterir, dolayısıyla yaz–kış geçişinde sizin bir şey değiştirmeniz gerekmez.",
     "kktcSubregion": "Alt bölgeler: KTEB Mesarya’yı “Üst Mesarya” ve “Alt Mesarya” olarak ikiye ayırır. Aynı gece ikisinde birden nöbetçi olması nadir olduğundan widget ikisini tek “Mesarya” listesinde birleştirir. Nöbet günü sabah 08:00’de değişir; gece yarısından sonra hâlâ bir önceki günün listesi gösterilir, çünkü nöbet o saate kadar sürer.",
-    "usersTitle": "Kullananlar"
+    "usersTitle": "Kullananlar",
+    "codeHint": "Bu kodu, listenin görünmesini istediğiniz yere yapıştırın: haber gövdesinin içine, kenar çubuğuna ya da nöbetçi eczane sayfanıza. WordPress’te “Özel HTML” bloğu, diğer sistemlerde HTML/kod alanı yeterlidir. İki satırı birlikte yapıştırın; kaynak satırı iframe’in hemen altında kalmalıdır."
   }
 }

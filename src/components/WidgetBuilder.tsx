@@ -16,6 +16,7 @@ export interface WidgetLabels {
   langTr: string;
   langEn: string;
   codeTitle: string;
+  codeHint: string;
   copy: string;
   copied: string;
   previewTitle: string;
@@ -228,6 +229,7 @@ export default function WidgetBuilder({
 
       <h2>{labels.codeTitle}</h2>
       <CodeBlock code={snippet} copy={labels.copy} copied={labels.copied} />
+      <p className="note">{labels.codeHint}</p>
 
       <div className="wopts">
         {/* Off by default. Lazy loading is right for a frame below the fold
