@@ -91,8 +91,6 @@ export default async function WidgetPage({ params }: { params: Params }) {
               themeDark: t("themeDark"),
               accentLabel: t("accentLabel"),
               accentReset: t("accentReset"),
-              anchorLabel: t("anchorLabel"),
-              anchorHint: t("anchorHint"),
               lazyLabel: t("lazyLabel"),
               lazyHint: t("lazyHint"),
               viewDesktop: t("viewDesktop"),

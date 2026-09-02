@@ -23,8 +23,6 @@ export interface WidgetLabels {
   themeDark: string;
   accentLabel: string;
   accentReset: string;
-  anchorLabel: string;
-  anchorHint: string;
   lazyLabel: string;
   lazyHint: string;
   viewDesktop: string;
@@ -56,11 +54,13 @@ const DEFAULT_ACCENT: Record<Theme, string> = { light: "#1550a8", dark: "#8ab4f8
 /**
  * Text that lands in the host's HTML, in the snippet's language rather than
  * the page's. Kept here with the other snippet-only strings ("Kaynak" used to
- * be one) because the catalogue only knows the page's locale.
+ * be one) because the catalogue only knows the page's locale. Fixed on
+ * purpose: the credit is the price of the widget, and a line the editor can
+ * reword is a line that ends up saying nothing.
  */
 const DEFAULT_ANCHOR: Record<Lang, string> = {
-  tr: "Nöbetçi eczane verisi: acikeczanevarmi.com",
-  en: "On-duty pharmacy data: acikeczanevarmi.com",
+  tr: "Kaynak: acikeczanevarmi.com",
+  en: "Source: acikeczanevarmi.com",
 };
 const FRAME_TITLE: Record<Lang, string> = {
   tr: "KKTC nöbetçi eczaneler",
@@ -70,7 +70,7 @@ const FRAME_TITLE: Record<Lang, string> = {
 /** Placeholders until real captures exist; swap the files, keep the paths. */
 const POSTER = { desktop: "/widget/preview-desktop.svg", mobile: "/widget/preview-mobile.svg" };
 
-/** The anchor text is typed by the editor and pasted as markup, so it is escaped as markup. */
+/** Text that lands in markup is escaped as markup, ours or not. */
 const escapeHtml = (s: string) =>
   s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 
@@ -112,9 +112,6 @@ export default function WidgetBuilder({
   const [theme, setTheme] = useState<Theme>("light");
   // Null means "the theme's own", which is what the snippet leaves unsaid.
   const [accent, setAccent] = useState<string | null>(null);
-  // Null means "not edited": the default then follows the snippet language,
-  // and stops following it the moment the editor types their own.
-  const [anchor, setAnchor] = useState<string | null>(null);
   const [lazy, setLazy] = useState(false);
   const [copied, setCopied] = useState(false);
   // Which preview address has finished loading. Compared against the current
@@ -150,7 +147,7 @@ export default function WidgetBuilder({
         ? origin
         : `${origin}/nobetci-eczaneler/${slug}`;
   const title = region ? `${FRAME_TITLE[lang]} — ${name}` : FRAME_TITLE[lang];
-  const anchorText = anchor ?? DEFAULT_ANCHOR[lang];
+  const anchorText = DEFAULT_ANCHOR[lang];
 
   // The credit line is a sibling of the frame, never inside it. A link within
   // the iframe is a document of ours pointing at us and does nothing for
@@ -221,13 +218,12 @@ export default function WidgetBuilder({
             frame can wear the host's brand instead of ours. A colour input only
             ever yields #rrggbb; the frame re-checks that on its own side. */}
         <div className="wfield">
-          <label htmlFor="waccent">
-            <span>{labels.accentLabel}</span>
-          </label>
+          <span>{labels.accentLabel}</span>
           <span className="waccent">
             <input
               id="waccent"
               type="color"
+              aria-label={labels.accentLabel}
               value={accent ?? DEFAULT_ACCENT[theme]}
               onChange={(e) => setAccent(e.target.value)}
             />
@@ -252,16 +248,6 @@ export default function WidgetBuilder({
       </p>
 
       <div className="wopts">
-        <label>
-          <span>{labels.anchorLabel}</span>
-          <input
-            type="text"
-            value={anchorText}
-            onChange={(e) => setAnchor(e.target.value)}
-            spellCheck={false}
-          />
-        </label>
-        <p className="note">{labels.anchorHint}</p>
         {/* Off by default. Lazy loading is right for a frame below the fold
             and wrong for one at the top of an article, where it costs the
             reader a visible wait for a list they came for; that is the
