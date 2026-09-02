@@ -10,7 +10,7 @@
    wrapped around a bright white map is worse than no dark mode at all.
    ================================================================ */
 :root {
-  --font-ui: var(--font-outfit), "Outfit", Helvetica, Arial, sans-serif;
+  --font-ui: var(--font-bricolage), "Bricolage Grotesque", Helvetica, Arial, sans-serif;
   --font-mono: var(--font-plex-mono), "IBM Plex Mono", ui-monospace, monospace;
 
   --bg: oklch(0.985 0.004 250);
@@ -363,11 +363,8 @@ button { font: inherit; color: inherit; border: 0; background: none; cursor: poi
    on duty. Inline-block so the tap target is the words, not the card's width;
    the card underneath already responds to a tap of its own. */
 .pglink { margin: 9px 0 0; font-size: 12.5px; line-height: 1.4; }
-.pglink a {
-  display: inline-block; padding: 3px 0; font-weight: 600;
-  border-bottom: 1px solid color-mix(in oklab, var(--accent) 35%, transparent);
-}
-.pglink a:hover { border-bottom-color: var(--accent); }
+.pglink a { display: inline-block; padding: 3px 0; font-weight: 600; text-decoration: none; }
+.pglink a:hover { color: var(--accent); }
 .dpglink { margin-top: 14px; font-size: 13.5px; }
 .acts { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 11px; }
 .btn {
@@ -722,15 +719,26 @@ button { font: inherit; color: inherit; border: 0; background: none; cursor: poi
 }
 /* Same column as .doc, down to the padding, so the brand sits over the h1 and
    the nav ends where the text ends. */
+/* One row, always. The nav used to wrap under the brand when the face got
+   wider, which left the brand alone on a line and the links reading as a
+   second header; now the brand keeps its width and the nav scrolls sideways
+   on a narrow screen instead of breaking the bar in two. */
 .docheadin {
   max-width: 640px; margin: 0 auto; padding: 13px 18px;
-  display: flex; align-items: center; gap: 10px 18px; flex-wrap: wrap;
+  display: flex; align-items: center; gap: 18px; flex-wrap: nowrap;
 }
-.docbrand { font-weight: 700; font-size: 15px; color: var(--text); text-decoration: none; letter-spacing: -.01em; }
-.docnav { display: flex; gap: 14px; margin-left: auto; flex-wrap: wrap; }
+.docbrand {
+  font-weight: 700; font-size: 15px; color: var(--text); text-decoration: none;
+  letter-spacing: -.02em; white-space: nowrap; flex: none;
+}
+.docnav {
+  display: flex; gap: 12px; margin-left: auto; flex-wrap: nowrap; min-width: 0;
+  overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch;
+}
+.docnav::-webkit-scrollbar { display: none; }
 .docnav a {
-  color: var(--text-3); text-decoration: none; font-size: 13.5px;
-  min-height: 32px; display: inline-flex; align-items: center;
+  color: var(--text-3); text-decoration: none; font-size: 13px; white-space: nowrap;
+  min-height: 32px; display: inline-flex; align-items: center; letter-spacing: -.01em;
 }
 .docnav a:hover { color: var(--text); }
 .docnav a[aria-current="page"] { color: var(--text); font-weight: 600; }

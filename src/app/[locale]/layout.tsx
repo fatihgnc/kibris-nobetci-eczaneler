@@ -3,7 +3,7 @@ import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { hasLocale, NextIntlClientProvider } from "next-intl";
 import { getMessages, getTranslations, setRequestLocale } from "next-intl/server";
-import { IBM_Plex_Mono, Outfit } from "next/font/google";
+import { Bricolage_Grotesque, IBM_Plex_Mono } from "next/font/google";
 import { notFound } from "next/navigation";
 import RegisterSW from "@/components/RegisterSW";
 import SiteJsonLd from "@/components/SiteJsonLd";
@@ -13,12 +13,12 @@ import { clientMessages } from "@/lib/messages";
 import { SITE_URL } from "@/lib/site";
 import "../globals.css";
 
-const outfit = Outfit({
+const bricolage = Bricolage_Grotesque({
   // latin-ext is not optional here: ş, ğ, ı and İ live in that subset, and
   // half of this interface is Turkish.
   subsets: ["latin", "latin-ext"],
   weight: ["400", "500", "600", "700"],
-  variable: "--font-outfit",
+  variable: "--font-bricolage",
   display: "swap",
 });
 const plexMono = IBM_Plex_Mono({
@@ -110,7 +110,7 @@ export default async function LocaleLayout({
   const t = await getTranslations({ locale, namespace: "app" });
 
   return (
-    <html lang={locale} className={`${outfit.variable} ${plexMono.variable}`}>
+    <html lang={locale} className={`${bricolage.variable} ${plexMono.variable}`}>
       <body>
         {/* React hoists this into <head>. The map tiles are the largest thing
             on the screen and the last to start loading — Leaflet only asks for
