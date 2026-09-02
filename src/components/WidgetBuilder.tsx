@@ -7,6 +7,7 @@
 // visitor of the roster so that one page can render them is the trade that file
 // exists to refuse. Plain text on a plain object crosses the boundary cleanly.
 import { useState } from "react";
+import CodeBlock from "./CodeBlock";
 
 export interface WidgetLabels {
   pickLabel: string;
@@ -238,9 +239,7 @@ export default function WidgetBuilder({
       </div>
 
       <h2>{labels.codeTitle}</h2>
-      <pre className="wcode">
-        <code>{snippet}</code>
-      </pre>
+      <CodeBlock code={snippet} />
       <p>
         <button className="wcopy" onClick={copy}>
           {copied ? labels.copied : labels.copy}
@@ -294,9 +293,7 @@ export default function WidgetBuilder({
 
       <h2>{labels.heightTitle}</h2>
       <p>{labels.heightBody}</p>
-      <pre className="wcode">
-        <code>{heightScript(origin)}</code>
-      </pre>
+      <CodeBlock code={heightScript(origin)} />
     </div>
   );
 }

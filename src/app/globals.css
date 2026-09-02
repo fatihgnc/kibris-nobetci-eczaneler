@@ -544,6 +544,14 @@ button { font: inherit; color: inherit; border: 0; background: none; cursor: poi
   border: 1px solid var(--line-soft); font-family: var(--font-mono); font-size: 11.5px;
   line-height: 1.7; color: var(--text); white-space: pre-wrap; overflow-wrap: anywhere;
 }
+/* Four colours, all from the theme, so the box reads in dark mode too: tags
+   in the accent, attribute names muted, values in the "open" green, and the
+   punctuation stepped back so the words stand out from the brackets. */
+.wcode .tk-tag { color: var(--accent); font-weight: 600; }
+.wcode .tk-attr { color: var(--text-2); }
+.wcode .tk-val { color: var(--open); }
+.wcode .tk-kw { color: var(--closed); }
+.wcode .tk-p { color: var(--text-3); }
 .wcopy {
   min-height: 42px; padding: 0 16px; border-radius: 12px; font-weight: 600; font-size: 13.5px;
   background: var(--accent); color: var(--accent-ink);
