@@ -7,6 +7,7 @@
 // the right failure for a box whose only job is to be copied.
 "use client";
 import { useState, type ReactNode } from "react";
+import { CheckIcon, CopyIcon } from "./icons";
 
 /** Attributes inside a tag: name, "=", quoted value, and the whitespace between. */
 const ATTR_RE = /([^\s=]+)(=)("[^"]*"|'[^']*')|([^\s=]+)|(\s+)/g;
@@ -107,8 +108,17 @@ export default function CodeBlock({
   return (
     <div className="wcodebox">
       {copy && (
-        <button type="button" className={`wcopy${done ? " is-done" : ""}`} onClick={onCopy}>
-          {done ? (copied ?? copy) : copy}
+        // An icon, not a labelled button: the box is the thing, and a word in
+        // its corner competes with the code. The label is for the screen reader
+        // and the tooltip; the tick is the only feedback it needs.
+        <button
+          type="button"
+          className={`wcopy${done ? " is-done" : ""}`}
+          onClick={onCopy}
+          aria-label={done ? (copied ?? copy) : copy}
+          title={done ? (copied ?? copy) : copy}
+        >
+          {done ? <CheckIcon /> : <CopyIcon />}
         </button>
       )}
       <pre className="wcode">
