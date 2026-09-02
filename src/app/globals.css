@@ -10,6 +10,10 @@
    wrapped around a bright white map is worse than no dark mode at all.
    ================================================================ */
 :root {
+  /* The column the document pages share: the header bar's row and the
+     article beneath it, in one place so the two can never drift apart. The
+     map screen sets its own width and takes none of this. */
+  --doc-col: 992px;
   --font-ui: var(--font-bricolage), "Bricolage Grotesque", Helvetica, Arial, sans-serif;
   --font-mono: var(--font-plex-mono), "IBM Plex Mono", ui-monospace, monospace;
 
@@ -657,7 +661,7 @@ button { font: inherit; color: inherit; border: 0; background: none; cursor: poi
    one viewport tall *plus* the header above it — a scrollbar on pages with
    nothing to scroll. These pages are as tall as their content; the background
    is the body's, so there is nothing for a full-height box to paint anyway. */
-.doc { max-width: 640px; margin: 0 auto; padding: 20px 18px 56px; }
+.doc { max-width: var(--doc-col); margin: 0 auto; padding: 20px 18px 56px; }
 .doc h1 { margin: 0 0 14px; font-size: 21px; font-weight: 700; letter-spacing: -.02em; color: var(--text); line-height: 1.25; }
 .doc .prose { padding: 0; font-size: 14px; }
 .doc .prose h2 { margin: 26px 0 8px; font-size: 15px; }
@@ -724,7 +728,7 @@ button { font: inherit; color: inherit; border: 0; background: none; cursor: poi
    second header; now the brand keeps its width and the nav scrolls sideways
    on a narrow screen instead of breaking the bar in two. */
 .docheadin {
-  max-width: 640px; margin: 0 auto; padding: 13px 18px;
+  max-width: var(--doc-col); margin: 0 auto; padding: 13px 18px;
   display: flex; align-items: center; gap: 18px; flex-wrap: nowrap;
 }
 .docbrand {
