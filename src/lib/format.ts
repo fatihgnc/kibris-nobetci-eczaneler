@@ -57,6 +57,30 @@ export function formatAgo(iso: string, locale: string, now: Date = new Date()): 
   return rtf.format(-Math.round(hours / 24), "day");
 }
 
+/**
+ * "DD.MM.YYYY HH:MM" in Nicosia time — the stamp the embed prints beside a
+ * roster it can no longer vouch for. One fixed shape in both languages, so an
+ * editor who sees it on a host page reads the same thing we do.
+ */
+export function formatStamp(iso: string): string {
+  const parts: Record<string, string> = {};
+  const fmt = new Intl.DateTimeFormat("en-GB", {
+    timeZone: NICOSIA_TZ,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23",
+  });
+  for (const p of fmt.formatToParts(new Date(iso))) {
+    if (p.type !== "literal") parts[p.type] = p.value;
+  }
+  // h23 may still yield "24" on some ICU builds (see nicosiaParts).
+  const hour = String(Number(parts.hour) % 24).padStart(2, "0");
+  return `${parts.day}.${parts.month}.${parts.year} ${hour}:${parts.minute}`;
+}
+
 /** "HH:MM:SS" | "HH:MM" → "HH:MM" for display. */
 export function shortTime(t: string | null): string | null {
   if (!t) return null;

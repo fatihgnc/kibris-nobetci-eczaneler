@@ -3,6 +3,7 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import BreadcrumbJsonLd from "@/components/BreadcrumbJsonLd";
 import SiteHeader from "@/components/SiteHeader";
 import WidgetBuilder from "@/components/WidgetBuilder";
+import WidgetUsers, { type WidgetUser } from "@/components/WidgetUsers";
 import { getPathname } from "@/i18n/navigation";
 import { routing } from "@/i18n/routing";
 import { navLabels } from "@/lib/nav";
@@ -20,6 +21,12 @@ import { SITE_URL } from "@/lib/site";
 type Params = Promise<{ locale: string }>;
 
 const path = (locale: string) => getPathname({ locale: locale as "tr" | "en", href: "/widget" });
+
+/**
+ * The sites carrying the widget. Empty until the first one does; the strip
+ * renders nothing while it is. Add `{ name, href, logo: "/widget/users/x.svg" }`.
+ */
+const USERS: WidgetUser[] = [];
 
 export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
   const { locale } = await params;
@@ -82,6 +89,16 @@ export default async function WidgetPage({ params }: { params: Params }) {
               themeLabel: t("themeLabel"),
               themeLight: t("themeLight"),
               themeDark: t("themeDark"),
+              accentLabel: t("accentLabel"),
+              accentReset: t("accentReset"),
+              anchorLabel: t("anchorLabel"),
+              anchorHint: t("anchorHint"),
+              lazyLabel: t("lazyLabel"),
+              lazyHint: t("lazyHint"),
+              viewDesktop: t("viewDesktop"),
+              viewMobile: t("viewMobile"),
+              posterAlt: t("posterAlt"),
+              noscript: t("noscript"),
               heightTitle: t("heightTitle"),
               heightBody: t("heightBody"),
             }}
@@ -92,6 +109,24 @@ export default async function WidgetPage({ params }: { params: Params }) {
             <p>{t("creditBody")}</p>
           </section>
           <section>
+            <h2>{t("perfTitle")}</h2>
+            <p>{t("perfBody1")}</p>
+            <p>{t("perfBody2")}</p>
+          </section>
+          <section>
+            <h2>{t("outageTitle")}</h2>
+            <p>{t("outageBody1")}</p>
+            <p>{t("outageBody2")}</p>
+          </section>
+          <section>
+            <h2>{t("kktcTitle")}</h2>
+            <ul className="wterms">
+              <li>{t("kktcOncall")}</li>
+              <li>{t("kktcSeason")}</li>
+              <li>{t("kktcSubregion")}</li>
+            </ul>
+          </section>
+          <section>
             <h2>{t("termsTitle")}</h2>
             <ul className="wterms">
               <li>{t("term1")}</li>
@@ -100,6 +135,7 @@ export default async function WidgetPage({ params }: { params: Params }) {
               <li>{t("term4")}</li>
             </ul>
           </section>
+          <WidgetUsers title={t("usersTitle")} users={USERS} />
         </article>
       </main>
     </>

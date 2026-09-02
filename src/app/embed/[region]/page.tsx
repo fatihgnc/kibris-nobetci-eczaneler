@@ -1,7 +1,8 @@
 import { getTranslations } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { getOnDuty } from "@/lib/on-duty";
-import { formatDutyDate, shortTime, telHref } from "@/lib/format";
+import { parseAccent } from "@/lib/embed-accent";
+import { directionsUrl, formatDutyDate, formatStamp, mapSearchUrl, shortTime, telHref } from "@/lib/format";
 import { REGION_ORDER, REGION_SLUG, regionDisplay, regionFromSlug } from "@/lib/regions";
 import { routing } from "@/i18n/routing";
 import { SITE_URL } from "@/lib/site";
@@ -100,7 +101,20 @@ const DARK = [
  * paint itself light and then flip, in front of the reader, on somebody else's
  * article.
  */
-const palette = (theme: Theme) => `:root{${theme === "dark" ? DARK : LIGHT}}`;
+const palette = (theme: Theme, accent: string | null) => {
+  const base = `:root{${theme === "dark" ? DARK : LIGHT}}`;
+  if (!accent) return base;
+  // The three tints are mixed from the one colour the host gave us, against
+  // the theme's own background. Behind @supports so a browser without
+  // color-mix keeps the theme's tints instead of computing three invalid
+  // values into `unset`.
+  const mix = (pct: number) => `color-mix(in srgb,${accent} ${pct}%,var(--bg))`;
+  return (
+    base +
+    `:root{--accent:${accent}}` +
+    `@supports (color:color-mix(in srgb,red,blue)){:root{--accent-line:${mix(24)};--accent-soft:${mix(7)};--accent-soft-hi:${mix(12)}}}`
+  );
+};
 
 const ClockIcon = () => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
@@ -119,6 +133,13 @@ const PhoneIcon = () => (
   </svg>
 );
 
+const PinIcon = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+    <path d="M12 21s-6-5.3-6-10a6 6 0 0 1 12 0c0 4.7-6 10-6 10z" strokeLinejoin="round" />
+    <circle cx="12" cy="11" r="2.2" />
+  </svg>
+);
+
 export default async function EmbedPage({
   params,
   searchParams,
@@ -133,6 +154,8 @@ export default async function EmbedPage({
   const query = await searchParams;
   const locale = langFrom(query.lang);
   const theme = themeFrom(query.theme);
+  // Sanitised to a hex colour or nothing; the raw string never reaches the page.
+  const accent = parseAccent(query.accent);
   const t = await getTranslations({ locale, namespace: "embed" });
 
   // Never throws its way out of here: a frame on someone else's page must
@@ -140,11 +163,15 @@ export default async function EmbedPage({
   // error inside an article. The credit still goes out either way.
   let pharmacies: OnDutyPharmacy[] = [];
   let dutyDate: string | null = null;
+  let lastSyncedAt: string | null = null;
+  let stale = false;
   let failed = false;
   try {
     const data = await getOnDuty({ region });
     pharmacies = data.pharmacies;
     dutyDate = data.dutyDate;
+    lastSyncedAt = data.lastSyncedAt;
+    stale = data.stale;
   } catch {
     failed = true;
   }
@@ -160,6 +187,16 @@ export default async function EmbedPage({
         : "/"
   }`;
 
+  // A pin when KTEB gave us one, a name-and-address search when it did not:
+  // either way the reader ends up in Maps with somewhere to go. Opens in a new
+  // tab for the same reason the credit link does — this is someone else's page.
+  const directions = (p: OnDutyPharmacy) =>
+    p.lat !== null && p.lng !== null
+      ? directionsUrl(p.lat, p.lng)
+      : p.address
+        ? mapSearchUrl(p.name, p.address)
+        : null;
+
   const hours = (p: OnDutyPharmacy) => {
     const open = shortTime(p.opensAt);
     const close = shortTime(p.closesAt);
@@ -168,7 +205,7 @@ export default async function EmbedPage({
 
   return (
     <div className="wrap">
-      <style dangerouslySetInnerHTML={{ __html: palette(theme) }} />
+      <style dangerouslySetInnerHTML={{ __html: palette(theme, accent) }} />
 
       <div className="head">
         <h2>
@@ -185,8 +222,23 @@ export default async function EmbedPage({
         )}
       </div>
 
+      {/* When KTEB cannot be reached the sync fails and the database keeps
+          the last roster it fetched; that list is still served here, but
+          never in silence. The stamp says when it was last confirmed, so a
+          reader on someone else's page can decide how far to trust it. An
+          empty roster is flagged the same way: between the 08:00 rollover and
+          the next sync the day's list is simply not here yet, which must not
+          read as "nobody is on duty". */}
+      {stale && !failed && (
+        <p className="stale" role="status">
+          {lastSyncedAt ? t("stale", { stamp: formatStamp(lastSyncedAt) }) : t("never")}
+        </p>
+      )}
+
       {failed || pharmacies.length === 0 ? (
-        <p className="empty">{failed ? t("unavailable") : t("empty", { region: regionName })}</p>
+        <p className="empty">
+          {failed ? t("unavailable") : stale ? t("missing") : t("empty", { region: regionName })}
+        </p>
       ) : (
         <ul>
           {pharmacies.map((p) => (
@@ -197,12 +249,20 @@ export default async function EmbedPage({
                 {hours(p)}
               </p>
               {p.address && <p className="ad">{p.address}</p>}
-              {p.phone && (
-                <a className="ph" href={telHref(p.phone)}>
-                  <PhoneIcon />
-                  {p.phone}
-                </a>
-              )}
+              <p className="act">
+                {p.phone && (
+                  <a className="ph" href={telHref(p.phone)}>
+                    <PhoneIcon />
+                    {p.phone}
+                  </a>
+                )}
+                {directions(p) && (
+                  <a className="ph dir" href={directions(p)!} target="_blank" rel="noopener">
+                    <PinIcon />
+                    {t("directions")}
+                  </a>
+                )}
+              </p>
             </li>
           ))}
         </ul>

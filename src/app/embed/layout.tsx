@@ -105,14 +105,20 @@ li:hover{border-color:var(--line-hi);box-shadow:var(--sh-hi)}
 }
 .hrs svg{width:12px;height:12px;flex:none;opacity:.55}
 .ad{font-size:12.5px;color:var(--dim);margin:9px 0 0;line-height:1.5}
+.act{display:flex;flex-wrap:wrap;gap:7px;margin:11px 0 0}
 .ph{
-  display:inline-flex;align-items:center;gap:7px;margin-top:11px;padding:7px 12px;
+  display:inline-flex;align-items:center;gap:7px;margin:0;padding:7px 12px;
   border-radius:9px;border:1px solid var(--accent-line);background:var(--accent-soft);
   font-size:13px;font-weight:600;color:var(--accent);text-decoration:none;
   font-variant-numeric:tabular-nums;transition:background .15s ease;
 }
 .ph:hover{background:var(--accent-soft-hi)}
 .ph svg{width:13px;height:13px;flex:none}
+/* Directions is the quieter of the two: calling settles whether the trip is
+   worth making, so the phone keeps the tinted fill and this one sits beside it
+   on the card's own surface. */
+.dir{background:var(--card);border-color:var(--line-hi)}
+.dir:hover{background:var(--chip)}
 
 /* ---- credit ----
    Inside the frame, so it cannot be stripped the way the line on the host page
@@ -124,6 +130,14 @@ li:hover{border-color:var(--line-hi);box-shadow:var(--sh-hi)}
 }
 .foot a{color:var(--fg2);text-decoration:none;font-weight:600}
 .foot a:hover{color:var(--accent)}
+/* The stale notice. Set in the accent tints rather than a warning red: the
+   list below is the last one confirmed, which is usually still right, and the
+   point is that the reader knows its age, not that they are alarmed. */
+.stale{
+  margin:0 0 11px;padding:7px 11px;border-radius:9px;
+  border:1px solid var(--accent-line);background:var(--accent-soft);
+  font-size:12px;font-weight:600;color:var(--fg2);font-variant-numeric:tabular-nums;
+}
 .empty{
   border:1px dashed var(--line-hi);border-radius:12px;padding:18px 14px;
   font-size:13px;color:var(--dim);text-align:center;line-height:1.5;
