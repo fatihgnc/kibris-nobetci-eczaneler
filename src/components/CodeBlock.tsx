@@ -5,7 +5,8 @@
 // tokenises just enough of both to make the shape visible: tags, attributes,
 // values and strings. Anything it does not recognise stays plain, which is
 // the right failure for a box whose only job is to be copied.
-import type { ReactNode } from "react";
+"use client";
+import { useState, type ReactNode } from "react";
 
 /** Attributes inside a tag: name, "=", quoted value, and the whitespace between. */
 const ATTR_RE = /([^\s=]+)(=)("[^"]*"|'[^']*')|([^\s=]+)|(\s+)/g;
@@ -79,10 +80,40 @@ export function highlight(code: string): ReactNode[] {
   return out;
 }
 
-export default function CodeBlock({ code }: { code: string }) {
+export default function CodeBlock({
+  code,
+  copy,
+  copied,
+}: {
+  code: string;
+  /** Label for the corner button; the button is omitted without one. */
+  copy?: string;
+  /** What the button says for a moment after it has worked. */
+  copied?: string;
+}) {
+  const [done, setDone] = useState(false);
+  const onCopy = async () => {
+    try {
+      // The raw string, never the highlighted DOM: what is copied is what
+      // the box says, span for span, but without the spans.
+      await navigator.clipboard.writeText(code);
+      setDone(true);
+      setTimeout(() => setDone(false), 2000);
+    } catch {
+      // Clipboard permission denied, or an insecure origin. The code is on
+      // screen and selectable either way, so this needs no error of its own.
+    }
+  };
   return (
-    <pre className="wcode">
-      <code>{highlight(code)}</code>
-    </pre>
+    <div className="wcodebox">
+      {copy && (
+        <button type="button" className={`wcopy${done ? " is-done" : ""}`} onClick={onCopy}>
+          {done ? (copied ?? copy) : copy}
+        </button>
+      )}
+      <pre className="wcode">
+        <code>{highlight(code)}</code>
+      </pre>
+    </div>
   );
 }

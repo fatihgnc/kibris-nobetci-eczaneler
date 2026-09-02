@@ -114,7 +114,6 @@ export default function WidgetBuilder({
   // Null means "the theme's own", which is what the snippet leaves unsaid.
   const [accent, setAccent] = useState<string | null>(null);
   const [lazy, setLazy] = useState(false);
-  const [copied, setCopied] = useState(false);
   // Which preview address has finished loading. Compared against the current
   // one rather than stored as a boolean, so a change of options puts the
   // poster back until the new frame paints.
@@ -161,17 +160,6 @@ export default function WidgetBuilder({
         title="${escapeHtml(title)}"${lazy ? '\n        loading="lazy"' : ""}
         style="width:100%;height:420px;border:0"></iframe>
 <p><a href="${page}">${escapeHtml(anchorText)}</a></p>`;
-
-  const copy = async () => {
-    try {
-      await navigator.clipboard.writeText(snippet);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch {
-      // Clipboard permission denied, or an insecure origin. The code is on
-      // screen and selectable either way, so this needs no error of its own.
-    }
-  };
 
   // The static fallback. With scripts off the poster swap above cannot run
   // and the tabs still work (they are radio buttons), so the honest preview is
@@ -239,12 +227,7 @@ export default function WidgetBuilder({
       </div>
 
       <h2>{labels.codeTitle}</h2>
-      <CodeBlock code={snippet} />
-      <p>
-        <button className="wcopy" onClick={copy}>
-          {copied ? labels.copied : labels.copy}
-        </button>
-      </p>
+      <CodeBlock code={snippet} copy={labels.copy} copied={labels.copied} />
 
       <div className="wopts">
         {/* Off by default. Lazy loading is right for a frame below the fold
@@ -293,7 +276,7 @@ export default function WidgetBuilder({
 
       <h2>{labels.heightTitle}</h2>
       <p>{labels.heightBody}</p>
-      <CodeBlock code={heightScript(origin)} />
+      <CodeBlock code={heightScript(origin)} copy={labels.copy} copied={labels.copied} />
     </div>
   );
 }
