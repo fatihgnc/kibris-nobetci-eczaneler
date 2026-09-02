@@ -133,7 +133,6 @@ export default async function RegionPage({
           initialDays={days}
           initialNowMinutes={nowMinutes}
           initialRegion={region}
-          regionIntro={t("intro", values)}
         />
       </Suspense>
     </>

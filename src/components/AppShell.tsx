@@ -86,27 +86,8 @@ function kmBetween(a: [number, number], b: [number, number]): number {
   return 2 * R * Math.asin(Math.sqrt(h));
 }
 
-/**
- * Which layout to render. False until the media query can be read.
- *
- * useLayoutEffect, not useEffect: the server cannot know the viewport, so the
- * phone tree is always what is rendered first and the desktop one replaces it a
- * commit later. Under useEffect that replacement landed *after* a paint, so a
- * desktop arrival saw the phone layout full-width and then watched it snap into
- * a 400px panel. Reading the query before the browser paints makes the swap
- * invisible — it is the same two renders, just not two pictures.
- */
-function useIsDesktop(): boolean {
-  const [v, setV] = useState(false);
-  useLayoutEffect(() => {
-    const mq = window.matchMedia("(min-width: 1024px)");
-    const on = () => setV(mq.matches);
-    on();
-    mq.addEventListener("change", on);
-    return () => mq.removeEventListener("change", on);
-  }, []);
-  return v;
-}
+/** Where the phone layout gives way to the panel-and-map one. */
+const DESKTOP_MQ = "(min-width: 1024px)";
 
 /**
  * False until the first client commit, on both sides of hydration.
@@ -213,16 +194,6 @@ export interface AppShellProps {
   initialNowMinutes?: number;
   /** Region fixed by the URL path, on a region page. Null on the homepage. */
   initialRegion?: RegionCode | null;
-  /**
-   * A sentence or two about the region being shown, rendered with the filter.
-   *
-   * Under the region control on desktop; at the head of the list on a phone,
-   * where putting it between the chips and the map would cost the map the
-   * height of a paragraph. A region page is otherwise this same component over
-   * a filtered list, and this is what keeps each of the sixteen of them a page
-   * of its own rather than a near-copy of the other fifteen.
-   */
-  regionIntro?: ReactNode;
 }
 
 export default function AppShell({
@@ -230,14 +201,35 @@ export default function AppShell({
   initialDays = null,
   initialNowMinutes,
   initialRegion = null,
-  regionIntro = null,
 }: AppShellProps = {}) {
   const t = useTranslations();
   const locale = useLocale();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const isDesktop = useIsDesktop();
   const hydrated = useHydrated();
+
+  /**
+   * The breakpoint, read on demand rather than held in state.
+   *
+   * It used to be state, and this component returned a different tree for each
+   * value. The server cannot read a media query, so it always sent the phone
+   * tree: a wide screen was served phone HTML and then re-rendered into a
+   * panel the moment the JavaScript arrived, which is what the "pre-hydration
+   * desktop dressing" in globals.css existed to paper over. There is one tree
+   * now and the stylesheet lays it out both ways, so nothing about *rendering*
+   * needs the viewport any more.
+   *
+   * What is left is imperative: the sheet's geometry, which is measured from
+   * the live DOM anyway, and whether tapping a card should move the sheet. A
+   * function keeps both out of the render pass, so there is nothing for the
+   * server and the client to disagree about.
+   */
+  const deskMq = useRef<MediaQueryList | null>(null);
+  const isDesktop = useCallback(() => {
+    if (typeof window === "undefined") return false;
+    deskMq.current ??= window.matchMedia(DESKTOP_MQ);
+    return deskMq.current.matches;
+  }, []);
 
   // The path wins over the query: on a region page the region *is* the URL, and
   // a stray ?region= pointing elsewhere must not quietly override it.
@@ -694,7 +686,7 @@ export default function AppShell({
   const select = useCallback(
     (id: number) => {
       setSel(id);
-      if (!isDesktop) setSnap((s) => (s === 2 ? 1 : s));
+      if (!isDesktop()) setSnap((s) => (s === 2 ? 1 : s));
     },
     [isDesktop]
   );
@@ -710,12 +702,29 @@ export default function AppShell({
   const snapRef = useRef(snap);
   snapRef.current = snap;
 
-  const layoutMobile = useCallback(() => {
+  const layout = useCallback(() => {
     const app = appRef.current;
     const chips = chipsRef.current;
     const mapwrap = mapwrapRef.current;
     const sheet = sheetRef.current;
     if (!app || !chips || !mapwrap || !sheet) return;
+    if (isDesktop()) {
+      // The panel and the map are a grid up here, sized entirely by the
+      // stylesheet. Clear whatever a narrower pass wrote, or a window dragged
+      // wide keeps the phone's measured heights and the sheet stays translated
+      // half off the screen inside its column.
+      mapwrap.style.top = "";
+      mapwrap.style.bottom = "";
+      mapwrap.style.removeProperty("--map-inset");
+      sheet.style.height = "";
+      sheet.style.transform = "";
+      sheet.style.paddingBottom = "";
+      if (insetRef.current !== 0) {
+        insetRef.current = 0;
+        setMapInset(0);
+      }
+      return;
+    }
     const H = app.clientHeight;
     const chipsBottom = chips.getBoundingClientRect().bottom - app.getBoundingClientRect().top;
     const staleH = staleRef.current?.offsetHeight ?? 0;
@@ -740,25 +749,42 @@ export default function AppShell({
       insetRef.current = covered;
       setMapInset(covered);
     }
-  }, []);
+    // Read by the map's floating buttons, which are anchored to the map
+    // container and would otherwise sit behind the sheet. A custom property
+    // rather than an inline style on the button row: it is geometry this pass
+    // owns, and keeping it out of the JSX keeps the server's HTML and the
+    // client's first render byte-identical.
+    mapwrap.style.setProperty("--map-inset", `${covered}px`);
+  }, [isDesktop]);
 
   useLayoutEffect(() => {
-    if (!isDesktop) layoutMobile();
+    layout();
   });
 
   useEffect(() => {
     const on = () => {
-      layoutMobile();
+      layout();
       bumpFit();
     };
     window.addEventListener("resize", on);
-    return () => window.removeEventListener("resize", on);
-  }, [layoutMobile, bumpFit]);
+    // Crossing the breakpoint arrives as a resize in every browser that can do
+    // it by hand, but a device rotation or a zoom change can move the query
+    // without one, and the two layouts are far too different to be left to it.
+    const mq = window.matchMedia(DESKTOP_MQ);
+    mq.addEventListener("change", on);
+    return () => {
+      window.removeEventListener("resize", on);
+      mq.removeEventListener("change", on);
+    };
+  }, [layout, bumpFit]);
 
   const dragState = useRef({ startY: 0, startT: 0, dragging: false });
   const onGrabPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
     const app = appRef.current;
-    if (!app) return;
+    // The handle is hidden on desktop but the heading it shares a row with is
+    // not, and there is no sheet to drag up there — dragging it would only
+    // write a transform onto a static panel.
+    if (!app || isDesktop()) return;
     dragState.current = {
       startY: e.clientY,
       startT: SNAPS[snapRef.current] * app.clientHeight,
@@ -840,14 +866,27 @@ export default function AppShell({
 
   // Short form on the phone — "23 Ağu Paz" rather than "23 Ağustos Pazar
   // gecesi": the long one does not fit the header beside a name as long as a
-  // domain, and truncating it mid-word reads worse than saying less.
-  const dateChipInner = (short: boolean) =>
-    t.rich(short ? "header.dutyDateShort" : "header.dutyNightShort", {
-      b: (c) => <strong>{c}</strong>,
-      ...formatDutyDateParts(dutyDate, locale, short ? "short" : "long"),
-    });
+  // domain, and truncating it mid-word reads worse than saying less. Both are
+  // written and CSS picks one, so the chip is one control at one place in the
+  // DOM instead of a different element per layout.
+  const dateChipInner = (
+    <>
+      <span className="dc-s">
+        {t.rich("header.dutyDateShort", {
+          b: (c) => <strong>{c}</strong>,
+          ...formatDutyDateParts(dutyDate, locale, "short"),
+        })}
+      </span>
+      <span className="dc-l">
+        {t.rich("header.dutyNightShort", {
+          b: (c) => <strong>{c}</strong>,
+          ...formatDutyDateParts(dutyDate, locale, "long"),
+        })}
+      </span>
+    </>
+  );
 
-  const dateChip = (short: boolean) =>
+  const dateChip = () =>
     canPickDay ? (
       <button
         className={`datechip pick ${pickerOpen ? "on" : ""}`}
@@ -858,11 +897,11 @@ export default function AppShell({
         // The date is the name; aria-expanded carries the open/closed state.
         aria-expanded={pickerOpen}
       >
-        {dateChipInner(short)}
+        {dateChipInner}
         <span className="caret" aria-hidden="true" />
       </button>
     ) : (
-      <div className="datechip">{dateChipInner(short)}</div>
+      <div className="datechip">{dateChipInner}</div>
     );
 
   const dayStrip =
@@ -1306,92 +1345,56 @@ export default function AppShell({
       selId={sel}
       fitSignal={fitSignal}
       onSelect={select}
-      bottomInset={isDesktop ? 0 : mapInset}
+      bottomInset={mapInset}
     />
   );
 
-  /* ---------- desktop ---------- */
-  if (isDesktop) {
-    return (
-      <div className="app" ref={appRef}>
-        <div className="deskgrid">
-          <div className="panel">
-            <div className="topbar">
-              <div className="brand">
-                <b>{t("app.name")}</b>
-              </div>
-              <div className="datechip" style={{ visibility: "hidden" }} />
-              {localeSwitch}
-            </div>
-            {/* Its own row under the name and the locale switch, so neither of
-                those has to grow a line to make room for it. Desktop only: the
-                phone's topbar already shares one tight row with the date and
-                the locate button. */}
-            <p className="tagline">{t("app.tagline")}</p>
-            {/* Its own paragraph rather than a second sentence: the strip below
-                is the only part of this panel nobody thinks to touch, and a
-                clause buried at the end of the first paragraph was not going
-                to change that. */}
-            <p className="tagline">{t("app.taglineDays")}</p>
-            <div className="deskbar">{dateChip(false)}</div>
-            {dayStrip}
-            <div className="selectwrap">
-              <div className="selectfield">
-                <select
-                  className="select"
-                  aria-label={t("chips.regionFilter")}
-                  value={region ?? "ALL"}
-                  onChange={(e) => setRegion(isRegionCode(e.target.value) ? e.target.value : null)}
-                >
-                  <option value="ALL">{t("chips.allRegions")}</option>
-                  {REGION_ORDER.map((r) => (
-                    <option key={r} value={r}>
-                      {REGION_LABEL[r]}
-                    </option>
-                  ))}
-                </select>
-                {/* Drawn here rather than left to the native arrow, which sits
-                    hard against the border with no room to inset it. */}
-                <span className="selectcaret" aria-hidden="true" />
-              </div>
-            </div>
-            {regionIntro && <p className="regionintro">{regionIntro}</p>}
-            {(planBar ?? staleBanner) && <div className="dstale">{planBar ?? staleBanner}</div>}
-            <div className="sheethead">
-              <h1>{titleTxt}</h1>
-              <span className="n">{countTxt}</span>
-            </div>
-            <div className="list">{listContent}</div>
-            {foot}
-          </div>
-          <div className="deskmap">
-            <div className="mapwrap">{mapView}</div>
-            <div className="mapbtns">{recenterButton}</div>
-            {selected && <div className="deskdetail">{detailBody(selected)}</div>}
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  /* ---------- mobile ---------- */
+  /**
+   * One tree, laid out two ways by the stylesheet.
+   *
+   * There used to be two returns here, chosen by a media query read in state.
+   * The server cannot read one, so every visitor was served the phone markup
+   * and a desktop arrival then re-rendered the whole page into a panel — a
+   * second tree, a second mount of everything in it, and a stretch of wrong
+   * layout for however long the JavaScript took to arrive. The order below is
+   * the phone's, top to bottom; from 1024px up the same five blocks become a
+   * 400px column beside a full-height map, and the handful of parts that
+   * belong to only one of the two (the region chips against the select, the
+   * short date against the long one, the sheet's grab handle) are written once
+   * and hidden by CSS on the side that does not want them.
+   */
   return (
     <div className="app" ref={appRef}>
       <div className="topbar">
         <div className="brand">
           <b>{t("app.name")}</b>
         </div>
-        {dateChip(true)}
+        {dateChip()}
         {localeSwitch}
+        {/* Desktop only, and ordered below the name there rather than beside
+            it: neither the name nor the locale switch has to grow a line to
+            make room. On a phone the topbar is one tight row and these are
+            not in it — read once and then ignored is not worth the height the
+            map would pay for it. */}
+        <p className="tagline">{t("app.tagline")}</p>
+        {/* Its own paragraph rather than a second sentence: the strip below
+            is the only part of this panel nobody thinks to touch, and a
+            clause buried at the end of the first paragraph was not going
+            to change that. */}
+        <p className="tagline">{t("app.taglineDays")}</p>
       </div>
       {/* Region and day are different questions, so they get their own rows —
           on one line they read as a single filter and the day is lost in it.
           Both live inside the measured wrapper: the sheet is positioned from
           its bottom edge, so a strip outside it would sit under the map. */}
-      <div ref={chipsRef}>
+      <div className="filters" ref={chipsRef}>
         {/* Links, not buttons: each region is a page of its own, and a crawler
             has to be able to walk to it. Scrolling is suppressed so tapping a
-            chip does not also throw the sheet back to the top. */}
+            chip does not also throw the sheet back to the top.
+
+            They stay in the markup on desktop, where the select below is what
+            is shown: a row of eight links is how the region pages are found,
+            and a control that cannot be crawled must not be the only one. */}
         <nav className="chips" aria-label={t("chips.regionFilter")}>
           <Link
             className="chip"
@@ -1413,17 +1416,42 @@ export default function AppShell({
             </Link>
           ))}
         </nav>
+        {/* The same eight regions as a select, for the 400px column, where a
+            scrolling row of chips would hide half of them behind a gesture a
+            mouse does not have. */}
+        <div className="selectwrap">
+          <div className="selectfield">
+            <select
+              className="select"
+              aria-label={t("chips.regionFilter")}
+              value={region ?? "ALL"}
+              onChange={(e) => setRegion(isRegionCode(e.target.value) ? e.target.value : null)}
+            >
+              <option value="ALL">{t("chips.allRegions")}</option>
+              {REGION_ORDER.map((r) => (
+                <option key={r} value={r}>
+                  {REGION_LABEL[r]}
+                </option>
+              ))}
+            </select>
+            {/* Drawn here rather than left to the native arrow, which sits
+                hard against the border with no room to inset it. */}
+            <span className="selectcaret" aria-hidden="true" />
+          </div>
+        </div>
         {dayStrip}
       </div>
-      <div className="mstale" ref={staleRef}>{planBar ?? staleBanner}</div>
+      <div className="mstale" ref={staleRef}>
+        {planBar ?? staleBanner}
+      </div>
       <div className="mapwrap" ref={mapwrapRef}>
         {mapView}
-        {/* The map container runs to the bottom of the screen, so buttons
-            anchored to it end up behind the sheet and cannot be tapped.
-            Lift them by however much the sheet currently covers. */}
-        <div className="mapbtns" style={{ bottom: mapInset + 14 }}>
-          {recenterButton}
-        </div>
+        {/* On a phone the map container runs to the bottom of the screen, so
+            buttons anchored to it end up behind the sheet and cannot be
+            tapped. --map-inset is how much the sheet currently covers, written
+            by the layout pass; on desktop nothing writes it and the fallback
+            leaves the buttons where they are. */}
+        <div className="mapbtns">{recenterButton}</div>
       </div>
       <section
         className={hydrated ? "sheet" : "sheet preboot"}
@@ -1433,7 +1461,8 @@ export default function AppShell({
         {/* The handle and the heading drag together. On a phone the bar alone
             is a ~18px strip to land a thumb on, and the row under it looks
             just as grabbable — missing it read as a sheet that would not
-            open at all. */}
+            open at all. Neither the handle nor the drag exists on desktop,
+            where this is the top of a panel that does not move. */}
         <div
           className="sheetdrag"
           onPointerDown={onGrabPointerDown}
@@ -1449,13 +1478,13 @@ export default function AppShell({
             <span className="sortbtn">{coords ? t("list.sortDistance") : t("list.sortRegion")}</span>
           </div>
         </div>
-        <div className="list">
-          {regionIntro && <p className="regionintro">{regionIntro}</p>}
-          {listContent}
-        </div>
+        <div className="list">{listContent}</div>
         {foot}
       </section>
       <div className={`scrim ${selected ? "on" : ""}`} onClick={closeDetail} aria-hidden="true" />
+      {/* Up from the bottom of the phone over a dimmed map; a card floating at
+          the top-left of the map column on desktop. Same element, same body —
+          only where it comes from changes. */}
       <aside className={`detail ${selected ? "on" : ""}`} aria-modal={selected ? true : undefined}>
         {selected && detailBody(selected)}
       </aside>

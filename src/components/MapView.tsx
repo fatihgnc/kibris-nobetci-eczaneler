@@ -315,8 +315,8 @@ export default function MapView({ points, me, selId, fitSignal, onSelect, bottom
     // and so does a mount that arrived with a different set of them.
     if (carriedOver && everFitted && key === fittedKey) {
       carriedOver = false;
-      // Deferred for the same reason as the fit below: the mount into the
-      // phone layout must not re-measure a map it is about to hand over.
+      // Deferred for the same reason as the fit below: the container is not
+      // its final size yet, and re-measuring it now would measure the wrong box.
       const keep = setTimeout(() => {
         // Only when the box actually changed. Re-measuring, and re-applying a
         // wall the map already has, both make Leaflet pan the view back inside
@@ -336,14 +336,13 @@ export default function MapView({ points, me, selId, fitSignal, onSelect, bottom
     /*
      * Deferred, and cancelled if this mount does not survive the delay.
      *
-     * useIsDesktop cannot read the media query during the first render without
-     * breaking hydration, so it reports "mobile" and corrects itself in an
-     * effect. Every arrival therefore mounts this component twice: once into
-     * the phone layout, once into the desktop one, a frame apart. A fit that
-     * ran immediately would frame the pins for the container being thrown
-     * away, and — worse — would mark them framed, so the container that
-     * survives would inherit a view fitted to the wrong box. Waiting lets the
-     * short-lived mount die before it can claim anything.
+     * The map's container is not its final size on the frame it appears. On a
+     * phone AppShell measures the real chrome and writes the wrapper's top and
+     * the sheet's height in a layout effect, and `bottomInset` — how much of
+     * the map the sheet covers — arrives with it. A fit that ran immediately
+     * would frame the pins for the box before all that, and, worse, would mark
+     * them framed, so the corrected box would inherit a view fitted to the
+     * wrong one. Waiting a beat lets the measurements land first.
      */
     const t = setTimeout(() => {
       everFitted = true;

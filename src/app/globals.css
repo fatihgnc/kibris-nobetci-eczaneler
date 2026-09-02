@@ -90,6 +90,9 @@ button { font: inherit; color: inherit; border: 0; background: none; cursor: poi
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 .datechip strong, .datechip b { color: var(--text); font-weight: 600; }
+/* Both forms of the date are written; this is the one a phone shows. The long
+   one only fits the 400px panel, where the chip has a row to itself. */
+.datechip .dc-l { display: none; }
 .iconbtn {
   width: 44px; height: 44px; border-radius: 12px; display: grid; place-items: center; flex: none;
   background: var(--surface-2); border: 1px solid var(--line); color: var(--text);
@@ -232,11 +235,11 @@ button { font: inherit; color: inherit; border: 0; background: none; cursor: poi
 .mstale { display: flow-root; }
 
 /* map */
-/* top/bottom here are the pre-hydration guess — layoutMobile() measures the
-   real chrome and overrides them inline a moment later. Without a guess the
-   wrapper is 0px tall until then: the map's corner of the screen would be a
-   hole in the first paint, and the desktop dressing below would have no map
-   column to place. */
+/* top/bottom here are the pre-hydration guess — the layout pass in AppShell
+   measures the real chrome and overrides them inline a moment later. Without a
+   guess the wrapper is 0px tall until then, and the map's corner of the screen
+   would be a hole in the first paint. Desktop drops the absolute positioning
+   entirely and makes this a grid column. */
 .mapwrap { position: absolute; left: 0; right: 0; top: 186px; bottom: 0; overflow: hidden; background: var(--surface); }
 /* isolate: Leaflet's internal panes carry z-indexes up to 700, and without a
    stacking context of its own they would compete with the app's layers. */
@@ -268,7 +271,12 @@ button { font: inherit; color: inherit; border: 0; background: none; cursor: poi
   box-shadow: 0 2px 8px rgba(0, 0, 0, .45), 0 0 0 6px color-mix(in oklab, var(--accent) 30%, transparent);
 }
 .mepin { width: 16px; height: 16px; border-radius: 50%; background: var(--me); border: 3px solid var(--bg); box-shadow: 0 0 0 7px color-mix(in oklab, var(--me) 26%, transparent); }
-.mapbtns { position: absolute; right: 12px; bottom: 14px; z-index: 420; display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
+/* --map-inset is how much of the map the bottom sheet currently covers,
+   written onto .mapwrap by the layout pass in AppShell. Without it these
+   buttons sit behind the sheet, anchored to a container that runs to the
+   bottom of the screen. Nothing writes it on desktop, where the map column has
+   no sheet over it, so the fallback is what applies there. */
+.mapbtns { position: absolute; right: 12px; bottom: calc(var(--map-inset, 0px) + 14px); z-index: 420; display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
 
 /* The map's own control: a pill, icon and label together, so it says what it
    does instead of asking the user to guess a crosshair. White like every other
@@ -453,48 +461,131 @@ button { font: inherit; color: inherit; border: 0; background: none; cursor: poi
 .dclose { position: absolute; top: 12px; right: 14px; width: 36px; height: 36px; border-radius: 50%; background: var(--surface-2); border: 1px solid var(--line); display: grid; place-items: center; }
 .dclose svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2; }
 
-/* ---------- desktop layout (≥1024px) ---------- */
-.deskgrid { display: grid; grid-template-columns: 400px 1fr; grid-template-rows: minmax(0, 1fr); height: 100%; }
-.panel { display: flex; flex-direction: column; border-right: 1px solid var(--line); min-width: 0; min-height: 0; overflow: hidden; background: var(--bg); }
-.panel .topbar { padding: 16px 18px 6px; gap: 8px; }
-.panel .brand b { font-size: 15px; }
-/* Read once and then ignored, so it sits a step below the name in both size
-   and colour — enough to say what the page is, never enough to compete with
-   the pharmacy the reader came for. Aligned to the topbar's own gutter so the
-   two rows read as one block. */
-.tagline { margin: 0; padding: 0 18px 12px; font-size: 12px; line-height: 1.45; color: var(--text-3); }
-.panel .list { padding: 6px 14px 10px; flex: 1; min-height: 0; }
-.deskmap { position: relative; min-height: 0; overflow: hidden; }
-.deskmap .mapwrap { inset: 0; }
-.deskdetail {
-  position: absolute; left: 18px; top: 18px; width: 352px; z-index: 500; border-radius: 18px; background: var(--surface);
-  border: 1px solid var(--line); box-shadow: 0 24px 60px rgba(0, 0, 0, .42); overflow: hidden;
-  max-height: calc(100% - 36px); overflow-y: auto;
+/* Parts of the one tree the phone layout has no use for. They are in the
+   markup on every screen — the region chips because eight crawlable links are
+   how the region pages are found, the taglines and the long date because a
+   second element per layout is exactly what this file stopped doing — and the
+   desktop block below is what turns them on. */
+.tagline, .selectwrap { display: none; }
+
+/* ---------- desktop layout (1024px and up) ----------
+   The same five blocks the phone stacks down the screen become a 400px column
+   beside a full-height map. There is no second tree behind this: AppShell
+   returns the phone's order, the server can render it without knowing the
+   viewport, and everything here is the stylesheet reading a media query the
+   server never had to. */
+@media (min-width: 1024px) {
+  .app {
+    display: grid;
+    grid-template-columns: 400px 1fr;
+    /* topbar / filters / freshness banner, each as tall as it needs, and the
+       list taking the rest. minmax(0, 1fr) rather than 1fr so the row can be
+       shorter than its content and the list scrolls inside it. */
+    grid-template-rows: auto auto auto minmax(0, 1fr);
+  }
+
+  /* Four rows in 400px: the name with the locale switch, the two taglines, and
+     the date under them. A grid rather than a wrapping flex row — the date has
+     a line of its own but is not as wide as one, and only justify-self can say
+     that. It is also what lets the rows be assigned out of source order, so
+     the markup can stay in the order a phone wants (name, date, locale). */
+  .app > .topbar {
+    grid-column: 1; grid-row: 1;
+    display: grid; grid-template-columns: 1fr auto; column-gap: 8px; row-gap: 0;
+    align-items: center;
+    padding: 16px 18px 8px;
+    border-bottom: 1px solid var(--line-soft);
+  }
+  .app > .topbar .brand { grid-row: 1; grid-column: 1; }
+  .app > .topbar .brand b { font-size: 15px; }
+  .app > .topbar .localesw { grid-row: 1; grid-column: 2; }
+  /* Read once and then ignored, so it sits a step below the name in both size
+     and colour — enough to say what the page is, never enough to compete with
+     the pharmacy the reader came for. No explicit row: they fall into 2 and 3,
+     the first full-width rows still free. */
+  .app > .topbar .tagline {
+    display: block; grid-column: 1 / -1;
+    margin: 0; padding: 0 0 12px;
+    font-size: 12px; line-height: 1.45; color: var(--text-3);
+  }
+  /* Its own row, its own width. The phone stretches this chip to fill the space
+     between the name and the locale switch; here there is nothing beside it to
+     fill up to, and a control that runs the width of the panel reads as a field
+     rather than as the date it is. */
+  .app > .topbar .datechip {
+    grid-row: 4; grid-column: 1 / -1; justify-self: start;
+    margin-top: 2px; flex: none; text-align: left; line-height: 16px;
+  }
+  .app > .topbar .datechip.pick { justify-content: flex-start; }
+  .datechip .dc-s { display: none; }
+  .datechip .dc-l { display: inline; }
+
+  .filters { grid-column: 1; grid-row: 2; display: flex; flex-direction: column; min-width: 0; }
+  /* A scrolling row of chips hides half the regions behind a sideways gesture
+     a mouse does not have, so the column asks the same question as a select.
+     The chips stay in the DOM, unpainted: they are the crawlable path to the
+     region pages, and the select is not. */
+  .filters .chips { display: none; }
+  .filters .daystrip { order: 1; padding: 12px 18px 0; }
+  .filters .selectwrap { display: block; order: 2; padding: 12px 18px 0; }
+
+  /* Only takes room when it is carrying something. The phone renders the same
+     wrapper empty, where it costs nothing; here it would be a 12px gap under
+     the filters on every night the roster is fresh. */
+  .mstale { grid-column: 1; grid-row: 3; padding-top: 12px; }
+  .mstale:empty { padding-top: 0; }
+  .mstale .stale, .mstale .planbar { margin: 0 18px; }
+
+  /* The map takes the second column whole. The seam between the two is drawn
+     here rather than on the four blocks of the column, which would have to
+     agree with each other pixel for pixel to look like one line. */
+  .mapwrap {
+    grid-column: 2; grid-row: 1 / -1;
+    position: relative; inset: auto; min-height: 0;
+    border-left: 1px solid var(--line);
+  }
+
+  /* The sheet becomes the foot of the panel: same heading, same list, same
+     footer, none of the furniture that said "drag me". */
+  .sheet {
+    grid-column: 1; grid-row: 4;
+    position: relative; inset: auto; z-index: auto;
+    min-height: 0; overflow: hidden;
+    background: var(--bg);
+    border-top: 0; border-radius: 0; box-shadow: none; transition: none;
+  }
+  .sheet .grab, .sheet .sortbtn { display: none; }
+  .sheet .sheetdrag { cursor: default; touch-action: auto; }
+  .sheet .sheethead { padding: 14px 18px 10px; }
+  .sheet .list { padding: 6px 14px 10px; }
+
+  .selectfield { position: relative; }
+  .select {
+    min-height: 44px; width: 100%; padding: 0 40px 0 14px; border-radius: 12px; background: var(--surface-2); border: 1px solid var(--line);
+    color: var(--text); font-size: 13.5px; font-weight: 500; font-family: var(--font-ui);
+    appearance: none; -webkit-appearance: none;
+  }
+  .selectcaret {
+    position: absolute; right: 17px; top: 50%; width: 8px; height: 8px; pointer-events: none;
+    border-right: 1.6px solid var(--text-2); border-bottom: 1.6px solid var(--text-2);
+    transform: translateY(-70%) rotate(45deg);
+  }
+
+  /* A card over the top-left of the map instead of a sheet up from the bottom.
+     Shown and hidden outright rather than slid off-screen: there is no edge to
+     slide from here, and the aside is empty when nothing is selected. */
+  .scrim { display: none; }
+  .detail { display: none; }
+  .detail.on {
+    display: block;
+    left: calc(400px + 19px); right: auto; top: 18px; bottom: auto;
+    width: 352px; max-height: calc(100% - 36px); overflow-y: auto;
+    border-radius: 18px; border: 1px solid var(--line); border-top: 1px solid var(--line);
+    box-shadow: 0 24px 60px rgba(0, 0, 0, .42);
+    transform: none;
+  }
+  .detail .dbody { padding: 18px; }
 }
-.deskdetail .dbody { padding: 18px; }
-.deskbar { display: flex; align-items: center; gap: 12px; padding: 14px 18px 8px; border-bottom: 1px solid var(--line-soft); }
-.deskbar .datechip { text-align: left; flex: 0 1 auto; line-height: 16px; }
-/* The locate button here is chrome-free: it only picks up a faint surface and
-   a hint of shadow on hover, on a barely rounded square. The box stays 32px so
-   it does not push the date further off the rule below; the icon shrinks
-   instead to breathe inside it. */
-.selectwrap { padding: 12px 18px 0; }
-.selectfield { position: relative; }
-.select {
-  min-height: 44px; width: 100%; padding: 0 40px 0 14px; border-radius: 12px; background: var(--surface-2); border: 1px solid var(--line);
-  color: var(--text); font-size: 13.5px; font-weight: 500; font-family: var(--font-ui);
-  appearance: none; -webkit-appearance: none;
-}
-.selectcaret {
-  position: absolute; right: 17px; top: 50%; width: 8px; height: 8px; pointer-events: none;
-  border-right: 1.6px solid var(--text-2); border-bottom: 1.6px solid var(--text-2);
-  transform: translateY(-70%) rotate(45deg);
-}
-.dstale { padding-top: 12px; }
-.dstale .stale, .dstale .planbar { margin: 0 18px; }
-.panel .daystrip { padding: 12px 18px 0; }
-.panel .datechip.pick { justify-content: flex-start; text-align: left; }
-.panel .sheethead { padding: 14px 18px 10px; }
 
 /* screen-reader-only helper */
 .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
@@ -682,36 +773,13 @@ button { font: inherit; color: inherit; border: 0; background: none; cursor: poi
    rendered server-side rather than left as skeletons, is the whole screen.
    Capping it here shapes that first paint into roughly where the sheet is
    about to settle. The class is dropped on the first client commit, before
-   paint, so it can never fight the inline styles that replace it. */
-.sheet.preboot { max-height: 38dvh; }
+   paint, so it can never fight the inline styles that replace it.
 
-/* ---------- pre-hydration desktop dressing ----------
-   The server always sends the phone tree — it cannot know the viewport — and
-   the real desktop grid only exists after hydration swaps it in. On a wide
-   screen that used to mean the list painted full-width and then snapped into
-   its 400px panel seconds later (however long the JavaScript took to arrive).
-   These rules dress the phone tree as "panel left, map right" with the same
-   400px seam the desktop grid uses, so the swap moves almost nothing. Every
-   selector here targets elements that exist only in the phone tree (.sheet,
-   .app > .topbar, the chips wrapper), so the rules die with it at hydration;
-   .mapwrap survives in the desktop tree but its `.deskmap .mapwrap` rule is
-   more specific and takes over. */
-@media (min-width: 1024px) {
-  .app > .topbar { width: 400px; }
-  .app > div:has(> .chips) { width: 400px; }
-  .mstale { width: 400px; }
-  .mapwrap { left: 400px; top: 0; }
-  .sheet { left: 0; right: auto; width: 400px; top: 186px; border-right: 1px solid var(--line); }
-  .sheet.preboot { max-height: none; }
-  /* Undress the sheet while it stands in for the panel: the grab handle, the
-     rounded shoulders, the shadow and the sort badge all say "bottom sheet",
-     and none of them will exist once the real panel takes over — losing them
-     up front makes the takeover a content change, not a costume change. */
-  .sheet .grab,
-  .sheet .sortbtn { display: none; }
-  .sheet { border-radius: 0; border-top: none; box-shadow: none; }
-  .sheet .sheethead { padding: 14px 18px 10px; }
-  .sheet .sheetdrag { cursor: default; }
+   Phone-only, and written as a max-width query rather than undone in the
+   desktop block below: up there the sheet is a grid row with a height of its
+   own and nothing measures it, so there is no first frame to cap. */
+@media (max-width: 1023.98px) {
+  .sheet.preboot { max-height: 38dvh; }
 }
 
 /* Header for the document pages.
@@ -785,14 +853,3 @@ button { font: inherit; color: inherit; border: 0; background: none; cursor: poi
 .regiongroup > summary h2 { margin: 0; }
 .regiongroup > summary h2 .note { font-weight: 400; }
 .regiongroup > p { margin-top: 0; }
-
-/* The one line of prose on a region page, sitting with the filter that put it
-   there: under the region select on desktop, at the head of the list on a
-   phone. Between the chips and the map it would have cost the map a paragraph
-   of height, which on the screen this app is mostly used on is the wrong
-   trade. */
-.regionintro {
-  flex: none; margin: 0; padding: 0 4px 2px;
-  color: var(--text-3); font-size: 12.5px; line-height: 1.55;
-}
-.panel .regionintro { padding: 8px 18px 10px; }
