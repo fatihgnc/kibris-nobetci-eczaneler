@@ -6,11 +6,13 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "test": "vitest run",
-    "test:watch": "vitest",
+    "test": "vitest run --project=unit",
+    "test:watch": "vitest --project=unit",
     "seed": "tsx scripts/seed-pharmacies.ts",
     "sync-duty": "tsx scripts/sync-duty.ts",
-    "coords": "tsx scripts/manual-coords.ts"
+    "coords": "tsx scripts/manual-coords.ts",
+    "storybook": "storybook dev -p 6006",
+    "build-storybook": "storybook build"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.45.4",
@@ -33,6 +35,17 @@
     "tailwindcss": "^4.1.0",
     "tsx": "^4.19.2",
     "typescript": "^5.7.2",
-    "vitest": "^3.0.5"
+    "vitest": "^3.0.5",
+    "storybook": "^10.6.0",
+    "@storybook/nextjs-vite": "^10.6.0",
+    "@chromatic-com/storybook": "latest",
+    "@storybook/addon-vitest": "^10.6.0",
+    "@storybook/addon-a11y": "^10.6.0",
+    "@storybook/addon-docs": "^10.6.0",
+    "@storybook/addon-mcp": "^10.6.0",
+    "vite": "latest",
+    "@vitest/browser": "3.2.7",
+    "@vitest/coverage-v8": "3.2.7",
+    "playwright": "latest"
   }
 }

@@ -7,6 +7,12 @@
       "runtimeArgs": ["run", "dev", "--", "-p", "4001"],
       "port": 4001,
       "autoPort": false
+    },
+    {
+      "name": "storybook",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "storybook"],
+      "port": 6006
     }
   ]
 }
