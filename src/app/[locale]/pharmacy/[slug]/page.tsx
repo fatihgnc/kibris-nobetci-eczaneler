@@ -4,6 +4,7 @@ import { notFound, permanentRedirect } from "next/navigation";
 import BackLink from "@/components/BackLink";
 import BreadcrumbJsonLd, { type Crumb } from "@/components/BreadcrumbJsonLd";
 import PharmacyJsonLd from "@/components/PharmacyJsonLd";
+import SiteFooter from "@/components/SiteFooter";
 import SiteHeader from "@/components/SiteHeader";
 import { getPathname, Link } from "@/i18n/navigation";
 import { routing } from "@/i18n/routing";
@@ -232,6 +233,7 @@ export default async function PharmacyPage({ params }: { params: Params }) {
           <p className="note">{t("hoursNote")}</p>
         </article>
       </main>
+      <SiteFooter />
     </>
   );
 }

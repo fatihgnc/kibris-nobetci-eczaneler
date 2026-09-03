@@ -853,3 +853,31 @@ button { font: inherit; color: inherit; border: 0; background: none; cursor: poi
 .regiongroup > summary h2 { margin: 0; }
 .regiongroup > summary h2 .note { font-weight: 400; }
 .regiongroup > p { margin-top: 0; }
+
+/* Footer for the document pages, mirroring .dochead at the other end.
+   One row: the publisher on the left, the roster's source on the right, held
+   to the same column as .doc so both sit flush with the text above them. It
+   wraps rather than overflows on the narrowest phones — the gap is what gives
+   under pressure, not the words. */
+/* The footer sits on the bottom edge of the screen even when the article is
+   two paragraphs long — a bar floating halfway up an empty page reads as
+   content that failed to load. `:has` rather than a class on <body>: the
+   layout is shared with the app screen, which wants none of this, and the
+   presence of the footer itself is the only thing that distinguishes them.
+   The app screen's own root is position:fixed, so it is not a flex item and
+   the column below never reaches it. */
+body:has(> .sitefoot) { display: flex; flex-direction: column; min-height: 100dvh; }
+.sitefoot { border-top: 1px solid var(--line-soft); margin-top: auto; }
+.sitefootin {
+  max-width: var(--doc-col); margin: 0 auto;
+  padding: 14px 18px max(16px, env(safe-area-inset-bottom));
+  display: flex; align-items: baseline; justify-content: space-between; gap: 6px 14px;
+  flex-wrap: wrap; font-size: 11.5px; line-height: 1.5; color: var(--text-3);
+}
+.sitefootin > span { white-space: nowrap; }
+/* Touch-target correction. An inline box is sized by the font's metrics, not
+   by line-height, so the anchor is ~14px tall here; 5px of padding takes the
+   hit area to 24px and the negative margin hands the space straight back to
+   the row, which keeps its own height. Measured, not assumed. */
+.sitefootin a { color: inherit; text-decoration: none; padding: 5px 2px; margin: -5px -2px; }
+.sitefootin a:hover { color: var(--text-2); text-decoration: underline; }

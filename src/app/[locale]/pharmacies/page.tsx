@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import BreadcrumbJsonLd from "@/components/BreadcrumbJsonLd";
+import SiteFooter from "@/components/SiteFooter";
 import SiteHeader from "@/components/SiteHeader";
 import { getPathname, Link } from "@/i18n/navigation";
 import { routing } from "@/i18n/routing";
@@ -119,6 +120,7 @@ export default async function DirectoryPage({ params }: { params: Params }) {
           ))}
         </article>
       </main>
+      <SiteFooter />
     </>
   );
 }

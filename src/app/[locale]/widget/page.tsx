@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import BreadcrumbJsonLd from "@/components/BreadcrumbJsonLd";
+import SiteFooter from "@/components/SiteFooter";
 import SiteHeader from "@/components/SiteHeader";
 import WidgetBuilder from "@/components/WidgetBuilder";
 import WidgetUsers, { type WidgetUser } from "@/components/WidgetUsers";
@@ -137,6 +138,7 @@ export default async function WidgetPage({ params }: { params: Params }) {
           <WidgetUsers title={t("usersTitle")} users={USERS} />
         </article>
       </main>
+      <SiteFooter />
     </>
   );
 }

@@ -4,6 +4,7 @@
 // publisher and explains no data handling is asking to be treated as one more
 // scraped directory. They are documents rather than app screens, so they opt
 // out of the fixed full-viewport shell and simply scroll.
+import SiteFooter from "@/components/SiteFooter";
 import SiteHeader from "@/components/SiteHeader";
 import type { AppPathname } from "@/i18n/routing";
 import type { NavLabels } from "@/lib/nav";
@@ -48,6 +49,7 @@ export default function DocPage({
           ))}
         </article>
       </main>
+      <SiteFooter />
     </>
   );
 }
